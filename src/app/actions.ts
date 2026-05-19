@@ -928,7 +928,7 @@ export async function unsubscribeEmailFromBrevo(email: string) {
 
 export async function sendBrevoCampaign(campaign: {
   subject: string
-  title: string
+  title?: string
   htmlContent: string
 }) {
   try {
@@ -943,48 +943,57 @@ export async function sendBrevoCampaign(campaign: {
     }
 
     const headers = getBrevoHeaders()
+    let lastError: string | null = null
 
     // Send transactional SMTP mail for each recipient individually to guarantee privacy and support custom unsubscribe links
     const sendPromises = activeRecipients.map(async (recipient: any) => {
       const email = recipient.email
       const unsubscribeUrl = `https://sampleswala.com/unsubscribe?email=${encodeURIComponent(email)}`
 
-      const emailRes = await fetch(`${BREVO_API_URL}/smtp/email`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          sender: { name: 'SamplesWala News', email: 'news@sampleswala.com' },
-          to: [{ email }],
-          subject: campaign.subject,
-          htmlContent: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
-              <div style="font-size: 14px; line-height: 1.7; color: #111111;">
-                ${campaign.htmlContent}
+      try {
+        const emailRes = await fetch(`${BREVO_API_URL}/smtp/email`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            sender: { name: 'SamplesWala News', email: 'news@sampleswala.com' },
+            to: [{ email }],
+            subject: campaign.subject,
+            htmlContent: `
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+                <div style="font-size: 14px; line-height: 1.7; color: #111111;">
+                  ${campaign.htmlContent}
+                </div>
+                <div style="margin-top: 40px; padding: 20px; border-top: 3px solid #000000; background-color: #f9f9f9; font-size: 11px; color: #555; text-align: center;">
+                  <p style="margin: 0;">You received this email because you subscribed to our newsletter at <a href="https://sampleswala.com" style="color: #00BFFF; text-decoration: none; font-weight: bold;">sampleswala.com</a>.</p>
+                  <p style="margin: 10px 0 0 0; font-size: 12px; font-weight: bold; color: #555;">
+                    Want to stop receiving these?<a href="${unsubscribeUrl}" style="color: #FF0080; text-decoration: underline; font-weight: bold; margin-left: 5px;">Unsubscribe here</a>
+                  </p>
+                  <p style="font-weight: bold; margin-top: 15px; color: #000;">&copy; 2026 SamplesWala. All rights reserved.</p>
+                </div>
               </div>
-              <div style="margin-top: 40px; padding: 20px; border-top: 3px solid #000000; background-color: #f9f9f9; font-size: 11px; color: #555; text-align: center;">
-                <p style="margin: 0;">You received this email because you subscribed to our newsletter at <a href="https://sampleswala.com" style="color: #00BFFF; text-decoration: none; font-weight: bold;">sampleswala.com</a>.</p>
-                <p style="margin: 10px 0 0 0; font-size: 12px; font-weight: bold; color: #555;">
-                  Want to stop receiving these?<a href="${unsubscribeUrl}" style="color: #FF0080; text-decoration: underline; font-weight: bold; margin-left: 5px;">Unsubscribe here</a>
-                </p>
-                <p style="font-weight: bold; margin-top: 15px; color: #000;">&copy; 2026 SamplesWala. All rights reserved.</p>
-              </div>
-            </div>
-          `
+            `
+          })
         })
-      })
 
-      if (!emailRes.ok) {
-        const errData = await emailRes.json().catch(() => ({}))
-        console.error(`Failed to send email to ${email}:`, errData.message)
+        if (!emailRes.ok) {
+          const errData = await emailRes.json().catch(() => ({}))
+          lastError = errData.message || `Brevo returned status code ${emailRes.status}`
+          console.error(`Failed to send email to ${email}:`, lastError)
+          return false
+        }
+        return true
+      } catch (e: any) {
+        lastError = e.message || 'Unknown network error'
+        console.error(`Exception sending email to ${email}:`, lastError)
+        return false
       }
-      return emailRes.ok
     })
 
     const results = await Promise.all(sendPromises)
     const successfulSends = results.filter(r => r).length
 
     if (successfulSends === 0) {
-      throw new Error('Failed to dispatch campaign to any active recipients via Brevo SMTP.')
+      throw new Error(`Failed to dispatch campaign: ${lastError || 'No active recipients'}`)
     }
 
     return {

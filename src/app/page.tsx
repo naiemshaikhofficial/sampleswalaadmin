@@ -922,8 +922,8 @@ export default function AdminDashboard() {
 
   const handleSendCampaign = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!campaignSubject || !campaignTitle || !campaignContent) {
-      showToast('Subject, Title, and HTML Content are required!', 'error')
+    if (!campaignSubject || !campaignContent) {
+      showToast('Subject and HTML Content are required!', 'error')
       return
     }
 
@@ -939,7 +939,7 @@ export default function AdminDashboard() {
     try {
       const res = await sendBrevoCampaign({
         subject: campaignSubject,
-        title: campaignTitle,
+        title: campaignTitle || '',
         htmlContent: campaignContent
       })
       showToast(`Newsletter sent successfully to ${res.recipientsCount} subscribers!`, 'success')
