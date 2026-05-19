@@ -1,0 +1,226 @@
+@import "tailwindcss";
+
+@theme {
+  --color-studio-yellow: #FFE600;
+  --color-studio-yellow-hover: #FFF066;
+  --color-studio-pink: #00BFFF; /* Swapped to Electric Blue (Main Primary Color) */
+  --color-studio-blue: #FF0080; /* Swapped to Neon Pink (Secondary Color) */
+  --color-studio-orange: #FF5C00;
+  --color-studio-purple: #BF00FF;
+  --color-studio-neon: #00FF94; /* Neon Green */
+  --color-studio-red: #FF3131; /* Vibrant Neon Red */
+  --color-studio-grey: #1e1e1e;
+  --color-studio-charcoal: #0a0a0a;
+
+  /* Glass UI */
+  --color-glass-white: rgba(255, 255, 255, 0.03);
+  --color-glass-border: rgba(255, 255, 255, 0.1);
+  --color-glass-glow: rgba(0, 255, 148, 0.15);
+
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-luckiest-guy: var(--font-luckiest-guy);
+  --font-kalam: var(--font-kalam);
+  --font-permanent-marker: var(--font-permanent-marker);
+
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+
+  --shadow-premium: 10px 10px 0px rgba(0, 0, 0, 1);
+  --shadow-neon-pink: 0 0 15px rgba(0, 224, 255, 0.4);
+  --shadow-neon-blue: 0 0 15px rgba(255, 0, 122, 0.4);
+}
+
+@utility graffiti-text {
+  text-shadow: 4px 4px 0px black, 8px 8px 0px var(--color-studio-pink);
+}
+
+:root {
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+}
+
+html,
+body {
+  overflow-x: clip;
+}
+
+body {
+  background-color: #0c0c0c;
+  color: white;
+  user-select: text;
+  font-family: var(--font-mono);
+  animation: fadeIn 0.4s ease-in-out;
+  min-height: 100vh;
+}
+
+@media (min-width: 768px) {
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.04;
+    pointer-events: none;
+    z-index: 100;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border: 1px solid #111;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-studio-pink);
+}
+
+/* Brutalist CSS Components */
+.studio-panel {
+  border: 3px solid black;
+  background-color: #121212;
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 1);
+}
+
+.studio-button {
+  padding: 0.75rem 1.5rem;
+  background-color: white;
+  color: black;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 11px;
+  border-radius: 0px;
+  transition: all 0.1s ease-out;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 3px solid black;
+  box-shadow: 4px 4px 0px black;
+  cursor: pointer;
+}
+
+.studio-button:hover {
+  background-color: var(--color-studio-neon);
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px black;
+}
+
+.studio-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px black;
+}
+
+.comic-text {
+  -webkit-text-stroke: 2px black;
+  paint-order: stroke fill;
+  text-shadow: 4px 4px 0px rgba(0, 0, 0, 1);
+}
+
+.neon-border {
+  border: 4px solid black;
+  box-shadow: 6px 6px 0px var(--color-studio-neon);
+}
+
+.pink-border {
+  border: 4px solid black;
+  box-shadow: 6px 6px 0px var(--color-studio-pink);
+}
+
+.blue-border {
+  border: 4px solid black;
+  box-shadow: 6px 6px 0px var(--color-studio-blue);
+}
+
+.yellow-border {
+  border: 4px solid black;
+  box-shadow: 6px 6px 0px var(--color-studio-yellow);
+}
+
+.orange-border {
+  border: 4px solid black;
+  box-shadow: 6px 6px 0px var(--color-studio-orange);
+}
+
+.comic-panel {
+  border: 4px solid black;
+  background: var(--color-studio-charcoal);
+  box-shadow: 8px 8px 0px black;
+  position: relative;
+  overflow: hidden;
+}
+
+.comic-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 8px 8px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Comic Action Button */
+.comic-button {
+  position: relative;
+  padding: 0.75rem 1.5rem;
+  background-color: white;
+  color: black;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 12px;
+  border: 4px solid black;
+  box-shadow: 4px 4px 0px black;
+  transition: all 0.1s ease-out;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.comic-button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--color-studio-yellow);
+  background-color: var(--color-studio-yellow);
+}
+
+.comic-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px black;
+}
+
+.animate-rainbow {
+  animation: rainbow 3s linear infinite;
+}
+
+@keyframes rainbow {
+  0% { color: #ff0000; text-shadow: 2px 2px 0px #000; }
+  17% { color: #ff8800; text-shadow: 2px 2px 0px #000; }
+  33% { color: #ffff00; text-shadow: 2px 2px 0px #000; }
+  50% { color: #00ff00; text-shadow: 2px 2px 0px #000; }
+  67% { color: #0000ff; text-shadow: 2px 2px 0px #000; }
+  83% { color: #8800ff; text-shadow: 2px 2px 0px #000; }
+  100% { color: #ff0000; text-shadow: 2px 2px 0px #000; }
+}
