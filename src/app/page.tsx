@@ -72,7 +72,9 @@ import {
   Mail,
   Phone,
   Layers,
-  Coins
+  Coins,
+  Activity,
+  Terminal
 } from 'lucide-react'
 
 // Custom Toast Component for UI notifications
@@ -94,11 +96,35 @@ export default function AdminDashboard() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   // Navigation Tab
-  const [activeTab, setActiveTab] = useState<'analytics' | 'packs' | 'samples' | 'kyc' | 'coupons' | 'tickets' | 'rankings' | 'users' | 'sales'>('analytics')
+  const [activeTab, setActiveTab] = useState<'analytics' | 'packs' | 'samples' | 'kyc' | 'coupons' | 'tickets' | 'rankings' | 'users' | 'sales' | 'logs'>('analytics')
 
   // Client-side Memory Cache Manager for extremely fast & scalable page rendering
   const cacheRef = useRef<Record<string, { data: any; timestamp: number }>>({})
   const CACHE_DURATION_MS = 60 * 1000 // 60 seconds cache expiry
+
+  // Accent Switcher & Audit Log states
+  const [accent, setAccent] = useState<'pink' | 'blue' | 'neon' | 'orange' | 'yellow' | 'purple'>('pink')
+  
+  const accentDetails = {
+    pink: { label: 'Neon Pink', hex: '#FF0080', borderClass: 'shadow-[6px_6px_0px_#FF0080]' },
+    blue: { label: 'Electric Blue', hex: '#00BFFF', borderClass: 'shadow-[6px_6px_0px_#00BFFF]' },
+    neon: { label: 'Cyber Green', hex: '#00FF94', borderClass: 'shadow-[6px_6px_0px_#00FF94]' },
+    orange: { label: 'Volcanic Orange', hex: '#FF5C00', borderClass: 'shadow-[6px_6px_0px_#FF5C00]' },
+    yellow: { label: 'Tokyo Yellow', hex: '#FFE600', borderClass: 'shadow-[6px_6px_0px_#FFE600]' },
+    purple: { label: 'Neon Purple', hex: '#BF00FF', borderClass: 'shadow-[6px_6px_0px_#BF00FF]' },
+  }
+
+  const [auditLogs, setAuditLogs] = useState<Array<{
+    id: string
+    timestamp: string
+    action: string
+    type: 'danger' | 'warning' | 'success' | 'info'
+    target: string
+    admin: string
+  }>>([])
+
+  const [showPalette, setShowPalette] = useState(false)
+  const [paletteSearch, setPaletteSearch] = useState('')
 
   // Notification Toast State
   const [toast, setToast] = useState<ToastState>({ show: false, message: '', type: 'success' })
@@ -204,6 +230,67 @@ export default function AdminDashboard() {
       setToast(prev => ({ ...prev, show: false }))
     }, 4000)
   }
+
+  // Load / Save Audit Logs in current local session
+  useEffect(() => {
+    const saved = localStorage.getItem('sw_audit_logs')
+    if (saved) {
+      try {
+        setAuditLogs(JSON.parse(saved))
+      } catch (e) {
+        // Fallback
+      }
+    } else {
+      const initialLogs = [
+        {
+          id: 'log-initial',
+          timestamp: new Date(Date.now() - 1000 * 60 * 20).toLocaleString(),
+          action: 'SYSTEM_START',
+          type: 'success' as const,
+          target: 'Admin Panel Opened & Started.',
+          admin: 'System'
+        },
+        {
+          id: 'log-sso',
+          timestamp: new Date(Date.now() - 1000 * 60 * 10).toLocaleString(),
+          action: 'SECURITY_OK',
+          type: 'info' as const,
+          target: 'Google Login & Security Checks are active.',
+          admin: 'Security'
+        }
+      ]
+      setAuditLogs(initialLogs)
+      localStorage.setItem('sw_audit_logs', JSON.stringify(initialLogs))
+    }
+  }, [])
+
+  const addAuditLog = (action: string, target: string, type: 'danger' | 'warning' | 'success' | 'info' = 'info') => {
+    const newLog = {
+      id: `log-${Date.now()}`,
+      timestamp: new Date().toLocaleString(),
+      action,
+      type,
+      target,
+      admin: session?.user?.email || user?.email || 'Admin'
+    }
+    setAuditLogs(prev => {
+      const updated = [newLog, ...prev]
+      localStorage.setItem('sw_audit_logs', JSON.stringify(updated))
+      return updated
+    })
+  }
+
+  // Listen for Ctrl+K / Cmd+K Command Palette Trigger
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        setShowPalette(prev => !prev)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   // --- INITIAL SECURITY CHECKS & SESSION MANAGEMENTS ---
   useEffect(() => {
@@ -424,6 +511,7 @@ export default function AdminDashboard() {
       setDataLoading(true)
       await banUser(userId)
       showToast('User has been banned successfully!', 'success')
+      addAuditLog('BAN_USER', `Account lock applied to user: ${email}`, 'danger')
       const allUsers = await getAllUsers()
       setUsersList(allUsers)
       cacheRef.current['users'] = { data: allUsers, timestamp: Date.now() }
@@ -449,6 +537,7 @@ export default function AdminDashboard() {
       setDataLoading(true)
       await unbanUser(userId)
       showToast('User has been unbanned successfully!', 'success')
+      addAuditLog('UNBAN_USER', `Account access restored for user: ${email}`, 'success')
       const allUsers = await getAllUsers()
       setUsersList(allUsers)
       cacheRef.current['users'] = { data: allUsers, timestamp: Date.now() }
@@ -474,6 +563,7 @@ export default function AdminDashboard() {
       setDataLoading(true)
       await deleteUser(userId)
       showToast('User account deleted permanently!', 'success')
+      addAuditLog('DELETE_USER', `Permanently deleted user account: ${email}`, 'danger')
       const allUsers = await getAllUsers()
       setUsersList(allUsers)
       cacheRef.current['users'] = { data: allUsers, timestamp: Date.now() }
@@ -524,6 +614,7 @@ export default function AdminDashboard() {
     try {
       const saved = await saveSamplePack(activePack)
       showToast(`Pack "${saved.name}" saved successfully!`, 'success')
+      addAuditLog(activePack.id ? 'UPDATE_PACK' : 'CREATE_PACK', `Saved sample pack: ${saved.name} (Slug: ${saved.slug})`, 'info')
       setShowPackModal(false)
       invalidateCacheAndReload('packs')
     } catch (err: any) {
@@ -542,6 +633,7 @@ export default function AdminDashboard() {
     try {
       await deleteSamplePack(id)
       showToast(`Pack "${name}" deleted!`, 'success')
+      addAuditLog('DELETE_PACK', `Deleted sample pack: ${name}`, 'danger')
       invalidateCacheAndReload('packs')
     } catch (err: any) {
       showToast(err.message || 'Failed to delete pack', 'error')
@@ -559,6 +651,7 @@ export default function AdminDashboard() {
     try {
       const saved = await saveSample(activeSample)
       showToast(`Sample "${saved.name}" saved successfully!`, 'success')
+      addAuditLog(activeSample.id ? 'UPDATE_SAMPLE' : 'CREATE_SAMPLE', `Saved audio sample: ${saved.name}`, 'info')
       setShowSampleModal(false)
       invalidateCacheAndReload('samples')
     } catch (err: any) {
@@ -577,6 +670,7 @@ export default function AdminDashboard() {
     try {
       await deleteSample(id)
       showToast(`Sample "${name}" deleted!`, 'success')
+      addAuditLog('DELETE_SAMPLE', `Deleted audio sample: ${name}`, 'danger')
       invalidateCacheAndReload('samples')
     } catch (err: any) {
       showToast(err.message || 'Failed to delete sample', 'error')
@@ -594,6 +688,7 @@ export default function AdminDashboard() {
     try {
       await updateKYCStatus(artistId, status)
       showToast(`Artist KYC status updated to ${status}!`, 'success')
+      addAuditLog(status === 'approved' ? 'KYC_APPROVE' : 'KYC_REJECT', `Artist KYC ${status === 'approved' ? 'approved' : 'rejected'} for: ${artistName}`, status === 'approved' ? 'success' : 'warning')
       setShowKycModal(false)
       invalidateCacheAndReload('kyc')
     } catch (err: any) {
@@ -618,6 +713,7 @@ export default function AdminDashboard() {
         utr_number: payoutUtr
       })
       showToast(`Simulated payout of ₹${payoutAmount} registered successfully!`, 'success')
+      addAuditLog('TRIGGER_PAYOUT', `Triggered simulated payout of ₹${payoutAmount} to artist: ${payoutArtist.full_name}`, 'success')
       setShowPayoutModal(false)
       setPayoutAmount('')
       setPayoutMonth('')
@@ -640,6 +736,7 @@ export default function AdminDashboard() {
     try {
       const saved = await saveCoupon(activeCoupon)
       showToast(`Coupon "${saved.code}" saved!`, 'success')
+      addAuditLog(activeCoupon.id ? 'UPDATE_COUPON' : 'CREATE_COUPON', `Saved discount coupon: ${saved.code} (${saved.discount_percent}% off)`, 'info')
       setShowCouponModal(false)
       invalidateCacheAndReload('coupons')
     } catch (err: any) {
@@ -658,6 +755,7 @@ export default function AdminDashboard() {
     try {
       await deleteCoupon(id)
       showToast(`Coupon "${code}" deleted`, 'success')
+      addAuditLog('DELETE_COUPON', `Deleted discount coupon: ${code}`, 'danger')
       invalidateCacheAndReload('coupons')
     } catch (err: any) {
       showToast(err.message || 'Failed to delete coupon', 'error')
@@ -671,6 +769,7 @@ export default function AdminDashboard() {
     try {
       await replyToTicket(activeTicket.id, ticketReply)
       showToast('Reply submitted and ticket resolved!', 'success')
+      addAuditLog('RESOLVE_TICKET', `Replied and resolved support ticket ID: ${activeTicket.id} (user: ${activeTicket.user_email || 'N/A'})`, 'success')
       setShowTicketModal(false)
       setTicketReply('')
       invalidateCacheAndReload('tickets')
@@ -690,6 +789,7 @@ export default function AdminDashboard() {
     try {
       await saveSamplePack({ ...pack, display_rank: parsedRank })
       showToast(`Rank for "${pack.name}" updated to ${parsedRank}!`, 'success')
+      addAuditLog('UPDATE_RANK', `Updated priority rank for pack "${pack.name}" to #${parsedRank}`, 'info')
       invalidateCacheAndReload('rankings')
     } catch (err: any) {
       showToast(err.message || 'Failed to update priority rank', 'error')
@@ -838,7 +938,12 @@ export default function AdminDashboard() {
 
   // --- CORE AUTHORIZED ADMIN INTERFACE ---
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[#0c0c0c] text-white">
+    <div 
+      className="min-h-screen flex flex-col md:flex-row bg-[#0c0c0c] text-white"
+      style={{
+        ['--color-studio-pink' as any]: accentDetails[accent].hex,
+      }}
+    >
       {/* Hidden audio element for preview players */}
       {audioUrl && (
         <audio
@@ -889,7 +994,7 @@ export default function AdminDashboard() {
             }`}
           >
             <LayoutDashboard className="w-4.5 h-4.5" />
-            <span>📈 Performance Stats</span>
+            <span>📈 Overview & Earnings</span>
           </button>
 
           <button
@@ -899,10 +1004,8 @@ export default function AdminDashboard() {
             }`}
           >
             <Library className="w-4.5 h-4.5" />
-            <span>📦 Sample Packs</span>
+            <span>📦 Manage Audio Packs</span>
           </button>
-
-
 
           <button
             onClick={() => setActiveTab('kyc')}
@@ -911,7 +1014,7 @@ export default function AdminDashboard() {
             }`}
           >
             <UserCheck className="w-4.5 h-4.5" />
-            <span>🎨 KYC & Payouts</span>
+            <span>🎨 Artist Verification & KYC</span>
           </button>
 
           <button
@@ -921,7 +1024,7 @@ export default function AdminDashboard() {
             }`}
           >
             <Ticket className="w-4.5 h-4.5" />
-            <span>🎟️ Discount Coupons</span>
+            <span>🎟️ Promo Codes & Coupons</span>
           </button>
 
           <button
@@ -931,7 +1034,7 @@ export default function AdminDashboard() {
             }`}
           >
             <MessageSquare className="w-4.5 h-4.5" />
-            <span>🎫 Support Tickets</span>
+            <span>🎫 Customer Support Help</span>
           </button>
 
           <button
@@ -941,7 +1044,7 @@ export default function AdminDashboard() {
             }`}
           >
             <Users className="w-4.5 h-4.5" />
-            <span>👥 Users Hub</span>
+            <span>👥 Registered Users</span>
           </button>
 
           <button
@@ -951,9 +1054,42 @@ export default function AdminDashboard() {
             }`}
           >
             <Coins className="w-4.5 h-4.5" />
-            <span>💰 Orders</span>
+            <span>💰 Orders & Sales Receipts</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('logs')}
+            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${
+              activeTab === 'logs' ? 'bg-studio-purple text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+            }`}
+          >
+            <Activity className="w-4.5 h-4.5" />
+            <span>🛠️ Admin Activity Logs</span>
           </button>
         </nav>
+
+        {/* ACCENT SWITCHER WIDGET */}
+        <div className="px-4 py-3.5 border-t-4 border-black bg-black font-mono">
+          <span className="text-[8px] uppercase tracking-widest text-zinc-500 font-bold block mb-2 leading-none">
+            🎨 INTERFACE ACCENT
+          </span>
+          <div className="grid grid-cols-6 gap-1.5">
+            {Object.entries(accentDetails).map(([key, item]) => (
+              <button
+                key={key}
+                onClick={() => {
+                  setAccent(key as any)
+                  showToast(`Accent set to ${item.label}!`, 'success')
+                }}
+                style={{ backgroundColor: item.hex }}
+                className={`h-5 w-full border-2 border-black hover:scale-110 active:scale-95 transition-all cursor-pointer ${
+                  accent === key ? 'ring-2 ring-white scale-105 opacity-100' : 'opacity-60 hover:opacity-100'
+                }`}
+                title={`Accent: ${item.label}`}
+              />
+            ))}
+          </div>
+        </div>
 
         {/* SIDEBAR FOOTER (USER & LOGOUT) */}
         <div className="p-4 border-t-4 border-black bg-black space-y-3 font-mono">
@@ -983,17 +1119,31 @@ export default function AdminDashboard() {
         <header className="border-b-4 border-black bg-[#121212] px-6 py-4 flex items-center justify-between flex-shrink-0 z-0">
           <div className="flex items-center gap-3">
             <span className="text-xl uppercase font-black tracking-tighter">
-              {activeTab === 'analytics' && '📈 Dashboard Stats & Revenue'}
-              {activeTab === 'packs' && '📦 Sample Packs Inventory'}
-              {activeTab === 'samples' && '🎵 Audio Sample Library'}
-              {activeTab === 'kyc' && '🎨 Artist KYCs & Payout Register'}
-              {activeTab === 'coupons' && '🎟️ Discount Coupon Register'}
-              {activeTab === 'tickets' && '🎫 Support Ticket Command'}
-              {activeTab === 'rankings' && '🌟 Global Ranking Engine'}
+              {activeTab === 'analytics' && '📈 Overview & Earnings Statistics'}
+              {activeTab === 'packs' && '📦 Manage Audio Sample Packs'}
+              {activeTab === 'samples' && '🎵 Individual Audio Track Samples'}
+              {activeTab === 'kyc' && '🎨 Artist Verification & KYC Payouts'}
+              {activeTab === 'coupons' && '🎟️ Discount Codes & Promo Coupons'}
+              {activeTab === 'tickets' && '🎫 Customer Support Help Tickets'}
+              {activeTab === 'users' && '👥 Registered User Accounts'}
+              {activeTab === 'sales' && '💰 Sales Receipts & Orders Log'}
+              {activeTab === 'logs' && '🛠️ Admin Activity Logs'}
+              {activeTab === 'rankings' && '🌟 Global Ranking List Engine'}
             </span>
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Command Palette Trigger Button */}
+            <button
+              onClick={() => setShowPalette(true)}
+              className="flex items-center gap-2 px-3 py-1.5 border-3 border-black bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all font-mono text-[10px] cursor-pointer"
+              title="Open Command Palette & Entity Search"
+            >
+              <Search className="w-3.5 h-3.5 text-zinc-500" />
+              <span className="hidden sm:inline">SEARCH / COMMANDS</span>
+              <kbd className="bg-black px-1.5 py-0.5 border border-zinc-800 text-[8px] font-black tracking-widest text-zinc-500">Ctrl+K</kbd>
+            </button>
+
             {dataLoading && (
               <div className="flex items-center gap-2 text-[10px] uppercase font-black text-studio-neon">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" /> LOADING DB DATA...
@@ -2099,6 +2249,98 @@ export default function AdminDashboard() {
             </div>
           )}
 
+          {/* ======================================================== */}
+          {/* TAB 10: SYSTEM AUDIT TRAILS LOG                          */}
+          {/* ======================================================== */}
+          {activeTab === 'logs' && (
+            <div className="space-y-6 animate-fadeIn font-mono text-xs">
+              <div className="bg-[#121212] p-4 border-4 border-black flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-purple">
+                    🛠️ Admin Activity Logs
+                  </h3>
+                  <p className="text-zinc-400 mt-1 uppercase text-[10px] font-bold">
+                    This shows a list of all recent actions done by administrators (e.g. banning users, deleting items, or approving artist KYCs).
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      localStorage.removeItem('sw_audit_logs')
+                      setAuditLogs([
+                        {
+                          id: 'log-clear',
+                          timestamp: new Date().toLocaleString(),
+                          action: 'LOGS_CLEARED',
+                          type: 'warning',
+                          target: 'Audit trail logs cleared by administrative command.',
+                          admin: session?.user?.email || 'Admin'
+                        }
+                      ])
+                      showToast('Audit trail logs wiped!', 'warning')
+                    }}
+                    className="px-3 py-2 border-2 border-black bg-studio-red hover:bg-studio-red/80 text-white font-bold uppercase text-[10px] transition-all cursor-pointer"
+                  >
+                    🗑️ Clear Log History
+                  </button>
+                </div>
+              </div>
+
+              {/* AUDIT LOG TABLE */}
+              <div className="border-4 border-black bg-black overflow-x-auto">
+                <table className="w-full text-left uppercase font-bold border-collapse">
+                  <thead>
+                    <tr className="bg-[#121212] border-b-4 border-black text-zinc-400">
+                      <th className="p-4">Date & Time</th>
+                      <th className="p-4">Action Done</th>
+                      <th className="p-4">Details of Change</th>
+                      <th className="p-4">Done By (Admin)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y-3 divide-black font-mono text-xs">
+                    {auditLogs.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="p-8 text-center text-zinc-500 uppercase font-bold">
+                          No activity logs found.
+                        </td>
+                      </tr>
+                    ) : (
+                      auditLogs.map((l) => (
+                        <tr
+                          key={l.id}
+                          className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors"
+                        >
+                          <td className="p-4 text-zinc-500 font-mono text-[10px] font-medium min-w-[140px]">
+                            {l.timestamp}
+                          </td>
+                          <td className="p-4">
+                            <span className={`inline-block font-sans font-black text-[9px] px-2 py-0.5 border-2 border-black shadow-[2px_2px_0px_black] ${
+                              l.type === 'danger'
+                                ? 'bg-studio-red text-white'
+                                : l.type === 'warning'
+                                ? 'bg-studio-yellow text-black'
+                                : l.type === 'success'
+                                ? 'bg-studio-neon text-black'
+                                : 'bg-studio-pink text-black'
+                            }`}>
+                              {l.action}
+                            </span>
+                          </td>
+                          <td className="p-4 text-zinc-200 normal-case font-medium max-w-md leading-relaxed">
+                            {l.target}
+                          </td>
+                          <td className="p-4 text-zinc-400 font-mono text-[10px]">
+                            {l.admin}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
         </div>
       </main>
 
@@ -3005,6 +3247,267 @@ export default function AdminDashboard() {
               >
                 CLOSE DETAIL DRAWER
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* COMMAND PALETTE & ENTITY SEARCH OVERLAY (Ctrl+K)         */}
+      {/* ======================================================== */}
+      {showPalette && (
+        <div 
+          className="fixed inset-0 bg-black/90 backdrop-blur-md z-[120] flex items-start justify-center p-4 pt-[10vh] animate-fadeIn"
+          onClick={() => setShowPalette(false)}
+        >
+          <div 
+            className="bg-[#121212] border-4 border-black p-6 w-full max-w-2xl relative text-left shadow-premium"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b-2 border-black pb-4 mb-4 font-mono">
+              <div className="flex items-center gap-2.5">
+                <Terminal className="w-5 h-5 text-studio-pink" />
+                <div>
+                  <h4 className="font-sans font-bold text-sm uppercase tracking-wide leading-none">
+                    UNIVERSAL COMMAND CENTER
+                  </h4>
+                  <span className="text-[8px] uppercase tracking-widest text-zinc-500 font-bold block mt-1.5">
+                    Search users, packs, orders, or run terminal slash commands
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowPalette(false)}
+                className="p-1 bg-black border-2 border-black hover:border-studio-pink text-zinc-400 hover:text-white transition-all cursor-pointer text-[10px] font-bold px-2 py-1"
+              >
+                ESC
+              </button>
+            </div>
+
+            {/* Input Box */}
+            <div className="relative mb-4">
+              <input
+                autoFocus
+                type="text"
+                placeholder="Type / for commands or search anything..."
+                value={paletteSearch}
+                onChange={e => setPaletteSearch(e.target.value)}
+                className="w-full bg-black border-4 border-black p-4 text-white outline-none focus:border-studio-pink font-mono text-sm placeholder-zinc-700 uppercase"
+              />
+            </div>
+
+            {/* List Results */}
+            <div className="max-h-[50vh] overflow-y-auto space-y-4 pr-1 scrollbar">
+              {(() => {
+                const query = paletteSearch.trim().toLowerCase()
+                
+                // 1. SLASH COMMANDS
+                if (query.startsWith('/') || query === '') {
+                  const allCommands = [
+                    { path: '/analytics', label: 'Go to Performance Analytics', action: () => { setActiveTab('analytics'); setShowPalette(false); } },
+                    { path: '/packs', label: 'Go to Sample Packs Inventory', action: () => { setActiveTab('packs'); setShowPalette(false); } },
+                    { path: '/samples', label: 'Go to Audio Sample Library', action: () => { setActiveTab('samples'); setShowPalette(false); } },
+                    { path: '/kyc', label: 'Go to Artist KYCs & Payouts', action: () => { setActiveTab('kyc'); setShowPalette(false); } },
+                    { path: '/coupons', label: 'Go to Discount Coupons Register', action: () => { setActiveTab('coupons'); setShowPalette(false); } },
+                    { path: '/tickets', label: 'Go to Support Ticket Hub', action: () => { setActiveTab('tickets'); setShowPalette(false); } },
+                    { path: '/rankings', label: 'Go to Global Rankings Engine', action: () => { setActiveTab('rankings'); setShowPalette(false); } },
+                    { path: '/users', label: 'Go to Users Management Hub', action: () => { setActiveTab('users'); setShowPalette(false); } },
+                    { path: '/sales', label: 'Go to Vault Orders Logs', action: () => { setActiveTab('sales'); setShowPalette(false); } },
+                    { path: '/logs', label: 'Go to System Audit Trails', action: () => { setActiveTab('logs'); setShowPalette(false); } },
+                    { path: '/refresh', label: 'Bypass cache & force reload database', action: () => { handleReload(); setShowPalette(false); showToast('Database revalidated!', 'success'); } },
+                  ]
+
+                  const filteredCmds = allCommands.filter(c => c.path.includes(query))
+
+                  if (filteredCmds.length > 0) {
+                    return (
+                      <div className="space-y-1.5 font-mono">
+                        <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold block mb-1">
+                          📟 SYSTEM SLASH COMMANDS
+                        </span>
+                        {filteredCmds.map(c => (
+                          <div
+                            key={c.path}
+                            onClick={c.action}
+                            className="bg-[#181818] hover:bg-studio-pink/10 border-2 border-black hover:border-studio-pink p-2.5 flex items-center justify-between cursor-pointer transition-all"
+                          >
+                            <span className="text-studio-pink font-bold">{c.path}</span>
+                            <span className="text-zinc-400 text-[10px] uppercase font-bold">{c.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  }
+                }
+
+                // 2. LIVE DATABASE COLLECTION SEARCH
+                if (query !== '') {
+                  // Search matching entities
+                  const matchedUsers = usersList.filter(u => 
+                    (u.full_name || '').toLowerCase().includes(query) ||
+                    (u.email || '').toLowerCase().includes(query)
+                  ).slice(0, 5)
+
+                  const matchedPacks = packs.filter(p => 
+                    (p.name || '').toLowerCase().includes(query) ||
+                    (p.slug || '').toLowerCase().includes(query)
+                  ).slice(0, 5)
+
+                  const matchedOrders = vaultSalesList.filter(s => 
+                    (s.pack_name || '').toLowerCase().includes(query) ||
+                    (s.buyer_name || '').toLowerCase().includes(query) ||
+                    (s.buyer_email || '').toLowerCase().includes(query)
+                  ).slice(0, 5)
+
+                  const matchedTickets = tickets.filter(t => 
+                    (t.user_name || '').toLowerCase().includes(query) ||
+                    (t.user_email || '').toLowerCase().includes(query) ||
+                    (t.subject || '').toLowerCase().includes(query)
+                  ).slice(0, 5)
+
+                  const matchedCoupons = coupons.filter(c => 
+                    (c.code || '').toLowerCase().includes(query)
+                  ).slice(0, 5)
+
+                  const totalMatches = matchedUsers.length + matchedPacks.length + matchedOrders.length + matchedTickets.length + matchedCoupons.length
+
+                  if (totalMatches === 0) {
+                    return (
+                      <div className="p-8 text-center border-2 border-black bg-black text-zinc-500 font-mono font-bold uppercase text-[10px]">
+                        No matching entities found in database.
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      {/* Users */}
+                      {matchedUsers.length > 0 && (
+                        <div className="space-y-1.5 font-mono">
+                          <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold block">
+                            👥 USERS ({matchedUsers.length})
+                          </span>
+                          {matchedUsers.map(u => (
+                            <div
+                              key={u.id}
+                              onClick={() => {
+                                setActiveUser(u);
+                                setShowUserModal(true);
+                                setShowPalette(false);
+                              }}
+                              className="bg-[#151515] hover:bg-studio-pink/10 border-2 border-black hover:border-studio-pink p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
+                            >
+                              <div className="font-sans font-bold text-zinc-100 normal-case">{u.full_name}</div>
+                              <div className="font-mono text-zinc-500 text-[10px] lowercase">{u.email}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Packs */}
+                      {matchedPacks.length > 0 && (
+                        <div className="space-y-1.5 font-mono">
+                          <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold block">
+                            📦 SAMPLE PACKS ({matchedPacks.length})
+                          </span>
+                          {matchedPacks.map(p => (
+                            <div
+                              key={p.id}
+                              onClick={() => {
+                                setActivePack(p);
+                                setShowPackModal(true);
+                                setShowPalette(false);
+                              }}
+                              className="bg-[#151515] hover:bg-studio-yellow/10 border-2 border-black hover:border-studio-yellow p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
+                            >
+                              <div className="font-sans font-bold text-zinc-100 normal-case">{p.name}</div>
+                              <div className="font-mono text-studio-yellow text-[10px]">₹{p.price}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Orders */}
+                      {matchedOrders.length > 0 && (
+                        <div className="space-y-1.5 font-mono">
+                          <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold block">
+                            💰 SALES & ORDERS ({matchedOrders.length})
+                          </span>
+                          {matchedOrders.map(o => (
+                            <div
+                              key={o.id}
+                              onClick={() => {
+                                setActiveOrder(o);
+                                setShowOrderModal(true);
+                                setShowPalette(false);
+                              }}
+                              className="bg-[#151515] hover:bg-studio-neon/10 border-2 border-black hover:border-studio-neon p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
+                            >
+                              <div className="font-sans font-bold text-zinc-100 normal-case">{o.pack_name}</div>
+                              <div className="font-mono text-studio-neon text-[10px] font-bold">₹{o.amount}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Tickets */}
+                      {matchedTickets.length > 0 && (
+                        <div className="space-y-1.5 font-mono">
+                          <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold block">
+                            🎫 SUPPORT TICKETS ({matchedTickets.length})
+                          </span>
+                          {matchedTickets.map(t => (
+                            <div
+                              key={t.id}
+                              onClick={() => {
+                                setActiveTicket(t);
+                                setShowTicketModal(true);
+                                setShowPalette(false);
+                              }}
+                              className="bg-[#151515] hover:bg-studio-purple/10 border-2 border-black hover:border-studio-purple p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
+                            >
+                              <div className="font-sans font-bold text-zinc-100 normal-case">{t.subject}</div>
+                              <div className="font-mono text-studio-purple text-[10px] uppercase font-bold">{t.status}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Coupons */}
+                      {matchedCoupons.length > 0 && (
+                        <div className="space-y-1.5 font-mono">
+                          <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold block">
+                            🎟️ COUPONS ({matchedCoupons.length})
+                          </span>
+                          {matchedCoupons.map(c => (
+                            <div
+                              key={c.id}
+                              onClick={() => {
+                                setActiveCoupon(c);
+                                setShowCouponModal(true);
+                                setShowPalette(false);
+                              }}
+                              className="bg-[#151515] hover:bg-studio-blue/10 border-2 border-black hover:border-studio-blue p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
+                            >
+                              <div className="font-mono font-bold text-zinc-100">{c.code}</div>
+                              <div className="font-mono text-studio-blue text-[10px] font-bold">{c.discount_percent}% OFF</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                }
+
+                return null
+              })()}
+            </div>
+
+            {/* Hint Footer */}
+            <div className="border-t border-zinc-900 pt-3 mt-4 text-[9px] text-zinc-600 font-mono flex items-center justify-between leading-none">
+              <span>TIP: CHOOSE COMMANDS OR CLICK DIRECTLY</span>
+              <span>PRESS ESC TO DISMISS COMMAND MODAL</span>
             </div>
           </div>
         </div>
