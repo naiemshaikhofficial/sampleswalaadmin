@@ -1946,7 +1946,7 @@ export default function AdminDashboard() {
                                       <Ban className="w-2.5 h-2.5 text-white" /> BANNED LOCK
                                     </span>
                                     <button
-                                      onClick={(e) => { e.stopPropagation(); handleUnbanUser(u.id); }}
+                                      onClick={(e) => { e.stopPropagation(); handleUnbanUser(u.id, u.email); }}
                                       className="px-2 py-1 border border-black bg-studio-neon hover:bg-studio-neon-hover text-black font-bold uppercase text-[8px] tracking-wider transition-all cursor-pointer"
                                     >
                                       ACTIVATE
@@ -1958,7 +1958,7 @@ export default function AdminDashboard() {
                                       <ShieldCheck className="w-2.5 h-2.5 text-studio-neon" /> ACCESS OK
                                     </span>
                                     <button
-                                      onClick={(e) => { e.stopPropagation(); handleBanUser(u.id); }}
+                                      onClick={(e) => { e.stopPropagation(); handleBanUser(u.id, u.email); }}
                                       className="px-2 py-1 border border-black bg-studio-red text-white hover:bg-studio-red/80 font-bold uppercase text-[8px] tracking-wider transition-all cursor-pointer"
                                     >
                                       BAN USER
