@@ -1,10 +1,26 @@
 'use server'
 
-import { supabaseAdmin } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
-// Helper to get an admin instance of Supabase
+let cachedDb: any = null
+
 function getDB() {
-  return supabaseAdmin
+  if (cachedDb) return cachedDb
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase admin credentials are not fully configured in environment variables.')
+  }
+
+  cachedDb = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+  return cachedDb
 }
 
 /**
@@ -753,10 +769,16 @@ export async function getBrevoSubscribers() {
     const db = getDB()
 
     // 1. Fetch all registered users from database
-    const { data: { users }, error: authErr } = await db.auth.admin.listUsers()
+    const { data, error: authErr } = await db.auth.admin.listUsers()
+    console.log('--- getBrevoSubscribers Debug ---')
+    console.log('listUsers error:', authErr)
+    console.log('listUsers count:', data?.users?.length)
     if (authErr) throw authErr
+    const users = data?.users || []
 
     const { data: userAccounts, error: dbErr } = await db.from('user_accounts').select('user_id, newsletter')
+    console.log('userAccounts error:', dbErr)
+    console.log('userAccounts count:', userAccounts?.length)
     if (dbErr) throw dbErr
 
     // Map database users
@@ -931,30 +953,20 @@ export async function sendBrevoCampaign(campaign: {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          sender: { name: 'SamplesWala News', email: 'newsletter@sampleswala.com' },
+          sender: { name: 'SamplesWala News', email: 'news@sampleswala.com' },
           to: [{ email }],
           subject: campaign.subject,
           htmlContent: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #333; border-radius: 0px; background-color: #ffffff;">
-              <div style="background-color: #000000; padding: 25px; text-align: center; border: 3px solid #000000;">
-                <h1 style="color: #FFE600; margin: 0; font-size: 28px; text-transform: uppercase; font-family: 'Arial Black', sans-serif; letter-spacing: 3px;">SAMPLESWALA</h1>
-                <p style="color: #00BFFF; margin: 5px 0 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">PREMIUM SOUNDS NEWSLETTER</p>
-              </div>
-              <div style="padding: 25px 15px; line-height: 1.7; color: #111111;">
-                <h2 style="color: #FF0080; margin-top: 0; font-size: 20px; font-family: 'Arial Black', sans-serif; text-transform: uppercase; border-bottom: 2px solid #FF0080; padding-bottom: 5px;">${campaign.title}</h2>
-                <div style="font-size: 14px;">
-                  ${campaign.htmlContent}
-                </div>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
+              <div style="font-size: 14px; line-height: 1.7; color: #111111;">
+                ${campaign.htmlContent}
               </div>
               <div style="margin-top: 40px; padding: 20px; border-top: 3px solid #000000; background-color: #f9f9f9; font-size: 11px; color: #555; text-align: center;">
                 <p style="margin: 0;">You received this email because you subscribed to our newsletter at <a href="https://sampleswala.com" style="color: #00BFFF; text-decoration: none; font-weight: bold;">sampleswala.com</a>.</p>
-                <p style="margin: 12px 0 0 0; font-size: 12px; font-weight: bold; color: #555;">
-                  Want to stop receiving these sounds drops? 
-                  <a href="${unsubscribeUrl}" style="color: #FF0080; text-decoration: underline; font-weight: bold; margin-left: 5px;">
-                    Unsubscribe here
-                  </a>
+                <p style="margin: 10px 0 0 0; font-size: 12px; font-weight: bold; color: #555;">
+                  Want to stop receiving these?<a href="${unsubscribeUrl}" style="color: #FF0080; text-decoration: underline; font-weight: bold; margin-left: 5px;">Unsubscribe here</a>
                 </p>
-                <p style="font-weight: bold; margin-top: 15px; color: #000;">&copy; ${new Date().getFullYear()} SamplesWala. All rights reserved.</p>
+                <p style="font-weight: bold; margin-top: 15px; color: #000;">&copy; 2026 SamplesWala. All rights reserved.</p>
               </div>
             </div>
           `

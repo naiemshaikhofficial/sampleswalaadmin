@@ -104,6 +104,7 @@ export default function AdminDashboard() {
 
   // Client-side Memory Cache Manager for extremely fast & scalable page rendering
   const cacheRef = useRef<Record<string, { data: any; timestamp: number }>>({})
+  const verifiedAdminIdRef = useRef<string | null>(null)
   const CACHE_DURATION_MS = 60 * 1000 // 60 seconds cache expiry
 
   // Accent Switcher & Audit Log states
@@ -331,7 +332,6 @@ export default function AdminDashboard() {
       setSession(session)
       if (session?.user) {
         setUser(session.user)
-        verifyAdmin(session.user.id)
       } else {
         setCheckingAdmin(false)
       }
@@ -346,6 +346,7 @@ export default function AdminDashboard() {
         setUser(null)
         setIsAdmin(false)
         setCheckingAdmin(false)
+        verifiedAdminIdRef.current = null // Reset on logout
       }
     })
 
@@ -353,11 +354,16 @@ export default function AdminDashboard() {
   }, [])
 
   const verifyAdmin = async (uid: string) => {
+    // Avoid checking repeatedly for the same user ID
+    if (verifiedAdminIdRef.current === uid) {
+      return
+    }
     setCheckingAdmin(true)
     const verified = await checkIsAdmin(uid)
     setIsAdmin(verified)
     setCheckingAdmin(false)
     if (verified) {
+      verifiedAdminIdRef.current = uid // Mark as verified
       showToast('Admin access verified successfully!', 'success')
       loadTabContext('analytics')
     } else {
@@ -3793,15 +3799,7 @@ export default function AdminDashboard() {
                         minHeight: '280px'
                       }}
                     >
-                      {/* Email Header Template */}
-                      <div style={{ backgroundColor: '#000000', padding: '20px', textAlign: 'center', marginBottom: '15px' }}>
-                        <h1 style={{ color: '#FFE600', margin: 0, fontSize: '24px', textTransform: 'uppercase', fontFamily: "'Arial Black', sans-serif", letterSpacing: '2px' }}>SAMPLESWALA</h1>
-                        <p style={{ color: '#00BFFF', margin: '3px 0 0 0', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>PREMIUM SOUNDS NEWSLETTER</p>
-                      </div>
 
-                      <h2 style={{ color: '#FF0080', marginTop: 0, fontSize: '18px', fontFamily: "'Arial Black', sans-serif", textTransform: 'uppercase', borderBottom: '2px solid #FF0080', paddingBottom: '5px' }}>
-                        {campaignTitle || 'YOUR NEWS HEADER'}
-                      </h2>
 
                       {/* Dynamic Content Preview */}
                       <div 
@@ -3816,12 +3814,9 @@ export default function AdminDashboard() {
                       <div style={{ marginTop: '30px', padding: '15px', borderTop: '2px solid #000000', backgroundColor: '#f9f9f9', fontSize: '10px', color: '#555', textAlign: 'center' }}>
                         <p style={{ margin: 0 }}>You received this email because you subscribed to our newsletter at <a href="https://sampleswala.com" style={{ color: '#00BFFF', textDecoration: 'none', fontWeight: 'bold' }}>sampleswala.com</a>.</p>
                         <p style={{ margin: '8px 0 0 0', fontSize: '11px', fontWeight: 'bold', color: '#555' }}>
-                          Want to stop receiving these? 
-                          <a href="#" onClick={(e) => e.preventDefault()} style={{ color: '#FF0080', textDecoration: 'underline', fontWeight: 'bold', marginLeft: '5px' }}>
-                            Unsubscribe here
-                          </a>
+                          Want to stop receiving these?<a href="#" onClick={(e) => e.preventDefault()} style={{ color: '#FF0080', textDecoration: 'underline', fontWeight: 'bold', marginLeft: '5px' }}>Unsubscribe here</a>
                         </p>
-                        <p style={{ fontWeight: 'bold', marginTop: '10px', color: '#000' }}>&copy; {new Date().getFullYear()} SamplesWala. All rights reserved.</p>
+                        <p style={{ fontWeight: 'bold', marginTop: '10px', color: '#000' }}>&copy; 2026 SamplesWala. All rights reserved.</p>
                       </div>
                     </div>
                   </div>
