@@ -96,6 +96,10 @@ export default function AdminDashboard() {
   // Navigation Tab
   const [activeTab, setActiveTab] = useState<'analytics' | 'packs' | 'samples' | 'kyc' | 'coupons' | 'tickets' | 'rankings' | 'users' | 'sales'>('analytics')
 
+  // Client-side Memory Cache Manager for extremely fast & scalable page rendering
+  const cacheRef = useRef<Record<string, { data: any; timestamp: number }>>({})
+  const CACHE_DURATION_MS = 60 * 1000 // 60 seconds cache expiry
+
   // Notification Toast State
   const [toast, setToast] = useState<ToastState>({ show: false, message: '', type: 'success' })
 
@@ -293,43 +297,95 @@ export default function AdminDashboard() {
     showToast('Logged out successfully', 'success')
   }
 
-  // --- FETCH CONTEXT DATA FOR SPECIFIC TABS ---
-  const loadTabContext = async (tab: typeof activeTab) => {
-    setDataLoading(true)
+  // Helper to apply cached data to specific tab state
+  const applyCachedData = (tab: string, data: any) => {
+    if (tab === 'analytics') {
+      setStats(data)
+    } else if (tab === 'packs') {
+      setPacks(data.packs)
+      setCategories(data.categories)
+    } else if (tab === 'samples') {
+      setSamples(data)
+    } else if (tab === 'kyc') {
+      setArtists(data.artists)
+      setPayouts(data.payouts)
+    } else if (tab === 'coupons') {
+      setCoupons(data)
+    } else if (tab === 'tickets') {
+      setTickets(data)
+    } else if (tab === 'rankings') {
+      setRankedPacks(data)
+    } else if (tab === 'users') {
+      setUsersList(data)
+    } else if (tab === 'sales') {
+      setVaultSalesList(data)
+    }
+  }
+
+  // --- FETCH CONTEXT DATA WITH ADVANCED SWR CACHING ---
+  const loadTabContext = async (tab: typeof activeTab, forceBypassCache = false) => {
+    const cachedEntry = cacheRef.current[tab]
+    const now = Date.now()
+
+    // SWR Pattern: Instantly render cached data while validating in the background
+    if (cachedEntry && !forceBypassCache) {
+      applyCachedData(tab, cachedEntry.data)
+
+      // If the cache is fresh (< 60s), do not fetch again
+      if (now - cachedEntry.timestamp < CACHE_DURATION_MS) {
+        return
+      }
+    }
+
+    // Render loading spinner only for full initial load or manually forced reload
+    if (!cachedEntry || forceBypassCache) {
+      setDataLoading(true)
+    }
+
     try {
+      let freshData: any = null
       if (tab === 'analytics') {
-        const dashboardData = await getDashboardStats()
-        setStats(dashboardData)
+        freshData = await getDashboardStats()
+        setStats(freshData)
       } else if (tab === 'packs') {
-        const { packs: packsData, categories: catsData } = await getSamplePacks()
-        setPacks(packsData)
-        setCategories(catsData)
+        const result = await getSamplePacks()
+        freshData = result
+        setPacks(result.packs)
+        setCategories(result.categories)
       } else if (tab === 'samples') {
-        // We also need packs to load filter
         const { packs: packsData } = await getSamplePacks()
         setPacks(packsData)
-        const samplesData = await getSamples(packFilter, sampleSearch)
-        setSamples(samplesData)
+        freshData = await getSamples(packFilter, sampleSearch)
+        setSamples(freshData)
       } else if (tab === 'kyc') {
         const artistsData = await getArtistsKYC()
         const payoutsData = await getArtistPayouts()
+        freshData = { artists: artistsData, payouts: payoutsData }
         setArtists(artistsData)
         setPayouts(payoutsData)
       } else if (tab === 'coupons') {
-        const couponsData = await getCoupons()
-        setCoupons(couponsData)
+        freshData = await getCoupons()
+        setCoupons(freshData)
       } else if (tab === 'tickets') {
-        const ticketsData = await getSupportTickets()
-        setTickets(ticketsData)
+        freshData = await getSupportTickets()
+        setTickets(freshData)
       } else if (tab === 'rankings') {
-        const rankingsData = await getRankedPacks()
-        setRankedPacks(rankingsData)
+        freshData = await getRankedPacks()
+        setRankedPacks(freshData)
       } else if (tab === 'users') {
-        const allUsers = await getAllUsers()
-        setUsersList(allUsers)
+        freshData = await getAllUsers()
+        setUsersList(freshData)
       } else if (tab === 'sales') {
-        const allSales = await getAllVaultSales()
-        setVaultSalesList(allSales)
+        freshData = await getAllVaultSales()
+        setVaultSalesList(freshData)
+      }
+
+      // Store in memory cache
+      if (freshData) {
+        cacheRef.current[tab] = {
+          data: freshData,
+          timestamp: Date.now()
+        }
       }
     } catch (error: any) {
       showToast(error.message || 'Failed to fetch data', 'error')
@@ -338,9 +394,15 @@ export default function AdminDashboard() {
     }
   }
 
-  // Reload current tab content
+  // Force invalidate memory cache and load fresh data (e.g. after mutating CRUD operations)
+  const invalidateCacheAndReload = (tab: typeof activeTab) => {
+    delete cacheRef.current[tab]
+    loadTabContext(tab, true)
+  }
+
+  // Reload current tab content bypassing the cache completely
   const handleReload = () => {
-    loadTabContext(activeTab)
+    invalidateCacheAndReload(activeTab)
   }
 
   // Trigger reloading on filter or tab change
@@ -364,6 +426,7 @@ export default function AdminDashboard() {
       showToast('User has been banned successfully!', 'success')
       const allUsers = await getAllUsers()
       setUsersList(allUsers)
+      cacheRef.current['users'] = { data: allUsers, timestamp: Date.now() }
       if (activeUser && activeUser.id === userId) {
         setActiveUser((prev: any) => ({ ...prev, is_banned: true }))
       }
@@ -388,6 +451,7 @@ export default function AdminDashboard() {
       showToast('User has been unbanned successfully!', 'success')
       const allUsers = await getAllUsers()
       setUsersList(allUsers)
+      cacheRef.current['users'] = { data: allUsers, timestamp: Date.now() }
       if (activeUser && activeUser.id === userId) {
         setActiveUser((prev: any) => ({ ...prev, is_banned: false }))
       }
@@ -412,6 +476,7 @@ export default function AdminDashboard() {
       showToast('User account deleted permanently!', 'success')
       const allUsers = await getAllUsers()
       setUsersList(allUsers)
+      cacheRef.current['users'] = { data: allUsers, timestamp: Date.now() }
       setShowUserModal(false)
     } catch (err: any) {
       showToast(err.message || 'Failed to delete user', 'error')
@@ -460,7 +525,7 @@ export default function AdminDashboard() {
       const saved = await saveSamplePack(activePack)
       showToast(`Pack "${saved.name}" saved successfully!`, 'success')
       setShowPackModal(false)
-      loadTabContext('packs')
+      invalidateCacheAndReload('packs')
     } catch (err: any) {
       showToast(err.message || 'Failed to save pack', 'error')
     }
@@ -477,7 +542,7 @@ export default function AdminDashboard() {
     try {
       await deleteSamplePack(id)
       showToast(`Pack "${name}" deleted!`, 'success')
-      loadTabContext('packs')
+      invalidateCacheAndReload('packs')
     } catch (err: any) {
       showToast(err.message || 'Failed to delete pack', 'error')
     }
@@ -495,7 +560,7 @@ export default function AdminDashboard() {
       const saved = await saveSample(activeSample)
       showToast(`Sample "${saved.name}" saved successfully!`, 'success')
       setShowSampleModal(false)
-      loadTabContext('samples')
+      invalidateCacheAndReload('samples')
     } catch (err: any) {
       showToast(err.message || 'Failed to save sample', 'error')
     }
@@ -512,7 +577,7 @@ export default function AdminDashboard() {
     try {
       await deleteSample(id)
       showToast(`Sample "${name}" deleted!`, 'success')
-      loadTabContext('samples')
+      invalidateCacheAndReload('samples')
     } catch (err: any) {
       showToast(err.message || 'Failed to delete sample', 'error')
     }
@@ -530,7 +595,7 @@ export default function AdminDashboard() {
       await updateKYCStatus(artistId, status)
       showToast(`Artist KYC status updated to ${status}!`, 'success')
       setShowKycModal(false)
-      loadTabContext('kyc')
+      invalidateCacheAndReload('kyc')
     } catch (err: any) {
       showToast(err.message || 'Failed to update KYC', 'error')
     }
@@ -558,7 +623,7 @@ export default function AdminDashboard() {
       setPayoutMonth('')
       setPayoutNotes('')
       setPayoutUtr('')
-      loadTabContext('kyc')
+      invalidateCacheAndReload('kyc')
     } catch (err: any) {
       showToast(err.message || 'Failed to trigger payout', 'error')
     }
@@ -576,7 +641,7 @@ export default function AdminDashboard() {
       const saved = await saveCoupon(activeCoupon)
       showToast(`Coupon "${saved.code}" saved!`, 'success')
       setShowCouponModal(false)
-      loadTabContext('coupons')
+      invalidateCacheAndReload('coupons')
     } catch (err: any) {
       showToast(err.message || 'Failed to save coupon', 'error')
     }
@@ -593,7 +658,7 @@ export default function AdminDashboard() {
     try {
       await deleteCoupon(id)
       showToast(`Coupon "${code}" deleted`, 'success')
-      loadTabContext('coupons')
+      invalidateCacheAndReload('coupons')
     } catch (err: any) {
       showToast(err.message || 'Failed to delete coupon', 'error')
     }
@@ -608,7 +673,7 @@ export default function AdminDashboard() {
       showToast('Reply submitted and ticket resolved!', 'success')
       setShowTicketModal(false)
       setTicketReply('')
-      loadTabContext('tickets')
+      invalidateCacheAndReload('tickets')
     } catch (err: any) {
       showToast(err.message || 'Failed to resolve ticket', 'error')
     }
@@ -625,7 +690,7 @@ export default function AdminDashboard() {
     try {
       await saveSamplePack({ ...pack, display_rank: parsedRank })
       showToast(`Rank for "${pack.name}" updated to ${parsedRank}!`, 'success')
-      loadTabContext('rankings')
+      invalidateCacheAndReload('rankings')
     } catch (err: any) {
       showToast(err.message || 'Failed to update priority rank', 'error')
     }
