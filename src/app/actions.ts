@@ -730,3 +730,258 @@ export async function getAllVaultSales() {
     throw error
   }
 }
+
+/**
+ * 10. Brevo Newsletter Integration Actions
+ */
+const BREVO_API_URL = 'https://api.brevo.com/v3'
+
+function getBrevoHeaders() {
+  const apiKey = process.env.BREVO_API_KEY
+  if (!apiKey) {
+    throw new Error('BREVO_API_KEY is not defined in environment variables. Please add it to your .env.local file.')
+  }
+  return {
+    'accept': 'application/json',
+    'api-key': apiKey,
+    'content-type': 'application/json'
+  }
+}
+
+export async function getBrevoSubscribers() {
+  try {
+    const db = getDB()
+
+    // 1. Fetch all registered users from database
+    const { data: { users }, error: authErr } = await db.auth.admin.listUsers()
+    if (authErr) throw authErr
+
+    const { data: userAccounts, error: dbErr } = await db.from('user_accounts').select('user_id, newsletter')
+    if (dbErr) throw dbErr
+
+    // Map database users
+    const dbSubscribers = (users || []).map((u: any) => {
+      const account = (userAccounts || []).find((a: any) => a.user_id === u.id)
+      // default is true if account has no newsletter field, or if account.newsletter is true
+      const isSubscribed = account ? (account.newsletter !== false) : true
+      return {
+        id: u.id,
+        email: u.email || 'N/A',
+        subscribed: isSubscribed,
+        created_at: u.created_at || new Date().toISOString()
+      }
+    })
+
+    // 2. Fetch external contacts from Brevo if API key is configured
+    let brevoContacts: any[] = []
+    try {
+      const headers = getBrevoHeaders()
+      const response = await fetch(`${BREVO_API_URL}/contacts?limit=50&offset=0`, {
+        method: 'GET',
+        headers
+      })
+      if (response.ok) {
+        const data = await response.json()
+        brevoContacts = data.contacts || []
+      }
+    } catch (e) {
+      console.warn('Brevo API fetch ignored, using database subscribers primary:', e)
+    }
+
+    // Merge database users and Brevo contacts by email (prioritizing database values)
+    const mergedList: any[] = [...dbSubscribers]
+    
+    brevoContacts.forEach((bc: any) => {
+      const exists = mergedList.find(x => x.email.toLowerCase() === bc.email.toLowerCase())
+      if (!exists) {
+        // Add manual external contact
+        mergedList.push({
+          id: bc.id,
+          email: bc.email,
+          subscribed: !bc.emailBlacklisted,
+          created_at: bc.createdAt || new Date().toISOString()
+        })
+      } else {
+        // Sync subscriber status if Brevo has different blacklisted value
+        if (bc.emailBlacklisted && exists.subscribed) {
+          exists.subscribed = false
+        }
+      }
+    })
+
+    return mergedList
+  } catch (error: any) {
+    console.error('Error in getBrevoSubscribers:', error)
+    throw new Error(error.message || 'Failed to fetch subscribers')
+  }
+}
+
+export async function subscribeEmailToBrevo(email: string) {
+  try {
+    const db = getDB()
+
+    // 1. Update database local newsletter status to true
+    // Find auth user ID first
+    const { data: { users }, error: authErr } = await db.auth.admin.listUsers()
+    if (!authErr && users) {
+      const targetUser = users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase())
+      if (targetUser) {
+        await db
+          .from('user_accounts')
+          .update({ newsletter: true })
+          .eq('user_id', targetUser.id)
+      }
+    }
+
+    // 2. Sync to Brevo
+    try {
+      const headers = getBrevoHeaders()
+      const checkRes = await fetch(`${BREVO_API_URL}/contacts/${encodeURIComponent(email)}`, {
+        method: 'GET',
+        headers
+      })
+
+      if (checkRes.ok) {
+        await fetch(`${BREVO_API_URL}/contacts/${encodeURIComponent(email)}`, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ emailBlacklisted: false })
+        })
+      } else {
+        await fetch(`${BREVO_API_URL}/contacts`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            email,
+            emailBlacklisted: false,
+            updateEnabled: true
+          })
+        })
+      }
+    } catch (e) {
+      console.warn('Brevo subscribe sync failed/skipped:', e)
+    }
+
+    return true
+  } catch (error: any) {
+    console.error('Error in subscribeEmailToBrevo:', error)
+    throw error
+  }
+}
+
+export async function unsubscribeEmailFromBrevo(email: string) {
+  try {
+    const db = getDB()
+
+    // 1. Update database local newsletter status to false
+    const { data: { users }, error: authErr } = await db.auth.admin.listUsers()
+    if (!authErr && users) {
+      const targetUser = users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase())
+      if (targetUser) {
+        await db
+          .from('user_accounts')
+          .update({ newsletter: false })
+          .eq('user_id', targetUser.id)
+      }
+    }
+
+    // 2. Sync to Brevo
+    try {
+      const headers = getBrevoHeaders()
+      await fetch(`${BREVO_API_URL}/contacts/${encodeURIComponent(email)}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ emailBlacklisted: true })
+      })
+    } catch (e) {
+      console.warn('Brevo unsubscribe sync failed/skipped:', e)
+    }
+
+    return true
+  } catch (error: any) {
+    console.error('Error in unsubscribeEmailFromBrevo:', error)
+    throw error
+  }
+}
+
+export async function sendBrevoCampaign(campaign: {
+  subject: string
+  title: string
+  htmlContent: string
+}) {
+  try {
+    // 1. Fetch active subscribers from our robust hybrid function
+    const subscribers = await getBrevoSubscribers()
+    const activeRecipients = subscribers
+      .filter((s: any) => s.subscribed && s.email && s.email !== 'N/A')
+      .map((s: any) => ({ email: s.email }))
+
+    if (activeRecipients.length === 0) {
+      throw new Error('No active (subscribed) contacts found to send this newsletter to.')
+    }
+
+    const headers = getBrevoHeaders()
+
+    // Send transactional SMTP mail for each recipient individually to guarantee privacy and support custom unsubscribe links
+    const sendPromises = activeRecipients.map(async (recipient: any) => {
+      const email = recipient.email
+      const unsubscribeUrl = `https://sampleswala.com/unsubscribe?email=${encodeURIComponent(email)}`
+
+      const emailRes = await fetch(`${BREVO_API_URL}/smtp/email`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          sender: { name: 'SamplesWala News', email: 'newsletter@sampleswala.com' },
+          to: [{ email }],
+          subject: campaign.subject,
+          htmlContent: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #333; border-radius: 0px; background-color: #ffffff;">
+              <div style="background-color: #000000; padding: 25px; text-align: center; border: 3px solid #000000;">
+                <h1 style="color: #FFE600; margin: 0; font-size: 28px; text-transform: uppercase; font-family: 'Arial Black', sans-serif; letter-spacing: 3px;">SAMPLESWALA</h1>
+                <p style="color: #00BFFF; margin: 5px 0 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;">PREMIUM SOUNDS NEWSLETTER</p>
+              </div>
+              <div style="padding: 25px 15px; line-height: 1.7; color: #111111;">
+                <h2 style="color: #FF0080; margin-top: 0; font-size: 20px; font-family: 'Arial Black', sans-serif; text-transform: uppercase; border-bottom: 2px solid #FF0080; padding-bottom: 5px;">${campaign.title}</h2>
+                <div style="font-size: 14px;">
+                  ${campaign.htmlContent}
+                </div>
+              </div>
+              <div style="margin-top: 40px; padding: 20px; border-top: 3px solid #000000; background-color: #f9f9f9; font-size: 11px; color: #555; text-align: center;">
+                <p style="margin: 0;">You received this email because you subscribed to our newsletter at <a href="https://sampleswala.com" style="color: #00BFFF; text-decoration: none; font-weight: bold;">sampleswala.com</a>.</p>
+                <p style="margin: 12px 0 0 0; font-size: 12px; font-weight: bold; color: #555;">
+                  Want to stop receiving these sounds drops? 
+                  <a href="${unsubscribeUrl}" style="color: #FF0080; text-decoration: underline; font-weight: bold; margin-left: 5px;">
+                    Unsubscribe here
+                  </a>
+                </p>
+                <p style="font-weight: bold; margin-top: 15px; color: #000;">&copy; ${new Date().getFullYear()} SamplesWala. All rights reserved.</p>
+              </div>
+            </div>
+          `
+        })
+      })
+
+      if (!emailRes.ok) {
+        const errData = await emailRes.json().catch(() => ({}))
+        console.error(`Failed to send email to ${email}:`, errData.message)
+      }
+      return emailRes.ok
+    })
+
+    const results = await Promise.all(sendPromises)
+    const successfulSends = results.filter(r => r).length
+
+    if (successfulSends === 0) {
+      throw new Error('Failed to dispatch campaign to any active recipients via Brevo SMTP.')
+    }
+
+    return {
+      success: true,
+      recipientsCount: successfulSends
+    }
+  } catch (error: any) {
+    console.error('Error in sendBrevoCampaign:', error)
+    throw error
+  }
+}
+

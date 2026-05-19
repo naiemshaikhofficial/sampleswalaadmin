@@ -27,7 +27,11 @@ import {
   banUser,
   unbanUser,
   deleteUser,
-  getAllVaultSales
+  getAllVaultSales,
+  getBrevoSubscribers,
+  subscribeEmailToBrevo,
+  unsubscribeEmailFromBrevo,
+  sendBrevoCampaign
 } from './actions'
 
 import {
@@ -96,7 +100,7 @@ export default function AdminDashboard() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   // Navigation Tab
-  const [activeTab, setActiveTab] = useState<'analytics' | 'packs' | 'samples' | 'kyc' | 'coupons' | 'tickets' | 'rankings' | 'users' | 'sales' | 'logs'>('analytics')
+  const [activeTab, setActiveTab] = useState<'analytics' | 'packs' | 'samples' | 'kyc' | 'coupons' | 'tickets' | 'rankings' | 'users' | 'sales' | 'logs' | 'newsletter'>('analytics')
 
   // Client-side Memory Cache Manager for extremely fast & scalable page rendering
   const cacheRef = useRef<Record<string, { data: any; timestamp: number }>>({})
@@ -141,6 +145,34 @@ export default function AdminDashboard() {
   const [rankedPacks, setRankedPacks] = useState<any[]>([])
   const [usersList, setUsersList] = useState<any[]>([])
   const [vaultSalesList, setVaultSalesList] = useState<any[]>([])
+  
+  // Brevo Newsletter States
+  const [subscribersList, setSubscribersList] = useState<any[]>([])
+  const [showCampaignModal, setShowCampaignModal] = useState(false)
+  const [campaignSubject, setCampaignSubject] = useState('')
+  const [campaignTitle, setCampaignTitle] = useState('')
+  const [campaignContent, setCampaignContent] = useState('')
+  const [campaignSending, setCampaignSending] = useState(false)
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+  const [newsletterEmailInput, setNewsletterEmailInput] = useState('')
+  const [newsletterSearch, setNewsletterSearch] = useState('')
+  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop')
+
+  const injectHtmlElement = (type: string) => {
+    let snippet = ''
+    if (type === 'heading') {
+      snippet = `\n<h3 style="color: #FF0080; font-family: 'Arial Black', sans-serif; text-transform: uppercase; font-size: 18px; margin-top: 20px; border-bottom: 2px dashed #333; padding-bottom: 5px;">🎵 NEW PACK ARRIVED</h3>\n`
+    } else if (type === 'paragraph') {
+      snippet = `\n<p style="font-size: 14px; color: #dddddd; line-height: 1.6; margin: 15px 0;">This new collection features the most sought-after signature samples of this season. Get access now!</p>\n`
+    } else if (type === 'button') {
+      snippet = `\n<div style="margin: 25px 0; text-align: center;">\n  <a href="https://sampleswala.com" style="display: inline-block; padding: 12px 24px; background-color: #39FF14; color: #000000; text-decoration: none; font-weight: bold; border: 3px solid #000000; text-transform: uppercase; font-family: sans-serif; letter-spacing: 1px;">DOWNLOAD THE PACK</a>\n</div>\n`
+    } else if (type === 'image') {
+      snippet = `\n<img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=600&auto=format&fit=crop" style="width: 100%; border: 3px solid #000000; box-shadow: 4px 4px 0px #00BFFF; margin: 15px 0;" alt="Sound drop cover" />\n`
+    } else if (type === 'pack-card') {
+      snippet = `\n<div style="background-color: #111; border: 3px solid #000; padding: 15px; margin: 20px 0; color: #fff;">\n  <p style="margin: 0; font-weight: bold; color: #FFE600; font-size: 14px; text-transform: uppercase;">🔥 LIMITED QUANTUM BUNDLE</p>\n  <p style="margin: 5px 0 0 0; font-size: 12px; color: #aaa;">Includes 120+ Melody loops, 80 Drum oneshots, Serum presets & MIDI files.</p>\n</div>\n`
+    }
+    setCampaignContent(prev => prev + snippet)
+  }
 
   // Loadings
   const [dataLoading, setDataLoading] = useState(false)
@@ -407,6 +439,8 @@ export default function AdminDashboard() {
       setUsersList(data)
     } else if (tab === 'sales') {
       setVaultSalesList(data)
+    } else if (tab === 'newsletter') {
+      setSubscribersList(data)
     }
   }
 
@@ -473,6 +507,9 @@ export default function AdminDashboard() {
       } else if (tab === 'sales') {
         freshData = await getAllVaultSales()
         setVaultSalesList(freshData)
+      } else if (tab === 'newsletter') {
+        freshData = await getBrevoSubscribers()
+        setSubscribersList(freshData)
       }
 
       // Store in memory cache
@@ -821,6 +858,98 @@ export default function AdminDashboard() {
     setActivePack((prev: any) => ({ ...prev, name: nameStr, slug: slugged }))
   }
 
+  // --- BREVO NEWSLETTER DIRECTIVE HANDLERS ---
+  const handleNewsletterSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newsletterEmailInput) return
+
+    try {
+      setDataLoading(true)
+      await subscribeEmailToBrevo(newsletterEmailInput)
+      showToast(`Successfully subscribed "${newsletterEmailInput}" to Brevo list!`, 'success')
+      addAuditLog('NEWSLETTER_SUBSCRIBE', `Manually subscribed email to newsletter: ${newsletterEmailInput}`, 'success')
+      setNewsletterEmailInput('')
+      setShowSubscribeModal(false)
+      invalidateCacheAndReload('newsletter')
+    } catch (err: any) {
+      showToast(err.message || 'Failed to subscribe email', 'error')
+    } finally {
+      setDataLoading(false)
+    }
+  }
+
+  const handleNewsletterUnsubscribe = async (email: string) => {
+    const approved = await askConfirmation(
+      '⚠️ UNSUBSCRIBE NEWSLETTER VISITOR',
+      `Are you sure you want to UNSUBSCRIBE and blacklist "${email}" from receiving any newsletter campaigns?`,
+      true,
+      'UNSUBSCRIBE EMAIL'
+    )
+    if (!approved) return
+
+    try {
+      setDataLoading(true)
+      await unsubscribeEmailFromBrevo(email)
+      showToast(`Successfully unsubscribed "${email}"!`, 'success')
+      addAuditLog('NEWSLETTER_UNSUBSCRIBE', `Manually unsubscribed/blacklisted newsletter visitor: ${email}`, 'warning')
+      invalidateCacheAndReload('newsletter')
+    } catch (err: any) {
+      showToast(err.message || 'Failed to unsubscribe email', 'error')
+    } finally {
+      setDataLoading(false)
+    }
+  }
+
+  const handleNewsletterResubscribe = async (email: string) => {
+    try {
+      setDataLoading(true)
+      await subscribeEmailToBrevo(email)
+      showToast(`Successfully restored newsletter subscription for "${email}"!`, 'success')
+      addAuditLog('NEWSLETTER_SUBSCRIBE', `Restored active newsletter subscription: ${email}`, 'success')
+      invalidateCacheAndReload('newsletter')
+    } catch (err: any) {
+      showToast(err.message || 'Failed to subscribe email', 'error')
+    } finally {
+      setDataLoading(false)
+    }
+  }
+
+  const handleSendCampaign = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!campaignSubject || !campaignTitle || !campaignContent) {
+      showToast('Subject, Title, and HTML Content are required!', 'error')
+      return
+    }
+
+    const approved = await askConfirmation(
+      '🚀 SEND LIVE NEWSLETTER CAMPAIGN',
+      `You are composing a newsletter email campaign that will be sent immediately to ALL active newsletter subscribers in Brevo. Are you absolutely ready to send?`,
+      false,
+      'SEND NEWSLETTER'
+    )
+    if (!approved) return
+
+    setCampaignSending(true)
+    try {
+      const res = await sendBrevoCampaign({
+        subject: campaignSubject,
+        title: campaignTitle,
+        htmlContent: campaignContent
+      })
+      showToast(`Newsletter sent successfully to ${res.recipientsCount} subscribers!`, 'success')
+      addAuditLog('NEWSLETTER_DISPATCH', `Dispatched newsletter campaign: "${campaignSubject}" to ${res.recipientsCount} users`, 'success')
+      setShowCampaignModal(false)
+      setCampaignSubject('')
+      setCampaignTitle('')
+      setCampaignContent('')
+      invalidateCacheAndReload('newsletter')
+    } catch (err: any) {
+      showToast(err.message || 'Failed to dispatch newsletter campaign', 'error')
+    } finally {
+      setCampaignSending(false)
+    }
+  }
+
   // --- RENDERING ROUTINES ---
 
   // Loading Indicator
@@ -1071,6 +1200,16 @@ export default function AdminDashboard() {
           >
             <Coins className="w-4.5 h-4.5" />
             <span>💰 Orders & Sales Receipts</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('newsletter')}
+            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${
+              activeTab === 'newsletter' ? 'bg-[#FF0080] text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+            }`}
+          >
+            <Mail className="w-4.5 h-4.5" />
+            <span>📧 Newsletter Hub</span>
           </button>
 
           <button
@@ -2357,6 +2496,173 @@ export default function AdminDashboard() {
             </div>
           )}
 
+          {/* ======================================================== */}
+          {/* TAB 11: NEWSLETTER INTEGRATION PANEL                     */}
+          {/* ======================================================== */}
+          {activeTab === 'newsletter' && (
+            <div className="space-y-6 animate-fadeIn font-mono text-xs">
+              
+              {/* STATS HEADER GRID */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                
+                {/* 1. TOTAL SUBSCRIBERS */}
+                <div className="comic-panel border-4 border-black p-5 flex items-center gap-4 bg-black shadow-[4px_4px_0px_#FF0080]">
+                  <div className="w-12 h-12 bg-[#FF0080] border-3 border-black flex items-center justify-center text-black">
+                    <Mail className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-[10px] font-black uppercase text-zinc-400">TOTAL SUBSCRIBERS</h3>
+                    <p className="font-sans font-bold text-xl tracking-normal text-white mt-1">
+                      {subscribersList.length} CONTACTS
+                    </p>
+                  </div>
+                </div>
+
+                {/* 2. ACTIVE CONTACTS */}
+                <div className="comic-panel border-4 border-black p-5 flex items-center gap-4 bg-black shadow-[4px_4px_0px_#39FF14]">
+                  <div className="w-12 h-12 bg-studio-neon border-3 border-black flex items-center justify-center text-black">
+                    <ShieldCheck className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-[10px] font-black uppercase text-zinc-400">ACTIVE LISTING</h3>
+                    <p className="font-sans font-bold text-xl tracking-normal text-white mt-1">
+                      {subscribersList.filter((s: any) => s.subscribed).length} SUBSCRIBED
+                    </p>
+                  </div>
+                </div>
+
+                {/* 3. BLACKLISTED CONTACTS */}
+                <div className="comic-panel border-4 border-black p-5 flex items-center gap-4 bg-black shadow-[4px_4px_0px_#FF3131]">
+                  <div className="w-12 h-12 bg-studio-red border-3 border-black flex items-center justify-center text-white">
+                    <Ban className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-[10px] font-black uppercase text-zinc-400">UNSUBSCRIBED / BLACKLISTED</h3>
+                    <p className="font-sans font-bold text-xl tracking-normal text-white mt-1">
+                      {subscribersList.filter((s: any) => !s.subscribed).length} BLACKLISTED
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* ACTION COMMAND BAR */}
+              <div className="bg-[#121212] p-4 border-4 border-black flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex-1 relative font-sans">
+                  <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
+                  <input
+                    type="text"
+                    placeholder="SEARCH CONTACTS BY EMAIL..."
+                    value={newsletterSearch}
+                    onChange={e => setNewsletterSearch(e.target.value)}
+                    className="pl-9 pr-4 py-2 w-full max-w-md bg-black border-2 border-black text-white font-bold placeholder-zinc-600 outline-none focus:border-studio-pink uppercase text-xs"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={() => setShowSubscribeModal(true)}
+                    className="px-4 py-2 bg-studio-yellow text-black border-3 border-black shadow-[3px_3px_0px_black] hover:bg-studio-yellow-hover font-black uppercase text-xs transition-all active:translate-y-0.5 active:shadow-[1px_1px_0px_black]"
+                  >
+                    ➕ ADD SUBSCRIBER
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setCampaignSubject('')
+                      setCampaignTitle('')
+                      setCampaignContent(
+                        `<div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0c0c0c; color: #ffffff; border: 4px solid #000000;">\n  <h1 style="color: #FF0080; text-transform: uppercase;">SAMPLESWALA NEWSLETTER</h1>\n  <p>Hey producer,</p>\n  <p>We just dropped some fresh, high-fidelity sample packs in our library! Log in now to claim them using your credit balance.</p>\n  <br/>\n  <a href="https://sampleswala.com" style="display: inline-block; padding: 10px 20px; background-color: #39FF14; color: #000000; text-decoration: none; font-weight: bold; border: 2px solid #000000;">VISIT THE VAULT</a>\n</div>`
+                      )
+                      setShowCampaignModal(true)
+                    }}
+                    className="px-4 py-2 bg-[#FF0080] text-black border-3 border-black shadow-[3px_3px_0px_black] hover:bg-[#E00070] font-black uppercase text-xs transition-all active:translate-y-0.5 active:shadow-[1px_1px_0px_black]"
+                  >
+                    🚀 BROADCAST CAMPAIGN
+                  </button>
+                </div>
+              </div>
+
+              {/* LIST TABLE OF NEWSLETTER SUBSCRIBERS */}
+              <div className="border-4 border-black bg-black overflow-x-auto font-sans text-xs">
+                <table className="w-full text-left uppercase font-bold border-collapse">
+                  <thead>
+                    <tr className="bg-[#121212] border-b-4 border-black text-zinc-400">
+                      <th className="p-4">MEMBER ID</th>
+                      <th className="p-4">EMAIL ADDRESS</th>
+                      <th className="p-4 text-center">SUBSCRIPTION STATUS</th>
+                      <th className="p-4 text-center">CREATION DATE</th>
+                      <th className="p-4 text-center">ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y-3 divide-black font-sans text-xs">
+                    {(() => {
+                      const filtered = subscribersList.filter(s => {
+                        const searchLower = newsletterSearch.toLowerCase()
+                        return (s.email || '').toLowerCase().includes(searchLower)
+                      })
+
+                      if (filtered.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={5} className="p-8 text-center text-zinc-500 uppercase font-bold">
+                              No subscribers found in newsletter lists.
+                            </td>
+                          </tr>
+                        )
+                      }
+
+                      return filtered.map((s: any) => (
+                        <tr key={s.id} className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors">
+                          <td className="p-4 font-mono font-bold text-zinc-500">
+                            #{s.id}
+                          </td>
+                          <td className="p-4 font-mono text-zinc-100 select-all normal-case text-xs">
+                            {s.email}
+                          </td>
+                          <td className="p-4 text-center">
+                            {s.subscribed ? (
+                              <span className="bg-studio-neon/20 border border-studio-neon text-studio-neon text-[8px] px-2.5 py-1 font-bold uppercase tracking-wider">
+                                ACTIVE SUBSCRIBER
+                              </span>
+                            ) : (
+                              <span className="bg-studio-red/20 border border-studio-red text-studio-red text-[8px] px-2.5 py-1 font-bold uppercase tracking-wider">
+                                UNSUBSCRIBED / BLACKLISTED
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-4 text-center text-zinc-500 font-mono text-[10px]">
+                            {s.created_at ? new Date(s.created_at).toLocaleString() : 'N/A'}
+                          </td>
+                          <td className="p-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              {s.subscribed ? (
+                                <button
+                                  onClick={() => handleNewsletterUnsubscribe(s.email)}
+                                  className="px-2.5 py-1.5 border-2 border-black bg-studio-red hover:bg-studio-red/80 text-white font-bold uppercase text-[9px] transition-all cursor-pointer shadow-[2px_2px_0px_black]"
+                                >
+                                  ❌ UNSUBSCRIBE
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => handleNewsletterResubscribe(s.email)}
+                                  className="px-2.5 py-1.5 border-2 border-black bg-studio-neon hover:bg-studio-neon/80 text-black font-bold uppercase text-[9px] transition-all cursor-pointer shadow-[2px_2px_0px_black]"
+                                >
+                                  ✅ RESUBSCRIBE
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    })()}
+                  </tbody>
+                </table>
+              </div>
+
+            </div>
+          )}
+
         </div>
       </main>
 
@@ -3267,6 +3573,295 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* ======================================================== */}
+      {/* MODAL DRAWER: MANUAL NEWSLETTER EMAIL SUBSCRIBE          */}
+      {/* ======================================================== */}
+      {showSubscribeModal && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+          <form
+            onSubmit={handleNewsletterSubscribe}
+            className="w-full max-w-md border-4 border-black bg-[#121212] p-6 shadow-premium relative font-mono text-xs"
+          >
+            <button
+              type="button"
+              onClick={() => setShowSubscribeModal(false)}
+              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="font-luckiest-guy text-2xl uppercase text-studio-yellow mb-6">
+              📬 Add manual subscriber
+            </h3>
+
+            <div className="space-y-4">
+              <p className="text-zinc-400 text-[10px] leading-relaxed uppercase">
+                Manually register a contact directly to Brevo contacts database. Previously blacklisted contacts will be reactivated automatically.
+              </p>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">EMAIL ADDRESS</label>
+                <input
+                  type="email"
+                  required
+                  value={newsletterEmailInput}
+                  onChange={e => setNewsletterEmailInput(e.target.value)}
+                  placeholder="e.g. producer@gmail.com"
+                  className="w-full bg-black border-2 border-black p-3 text-white outline-none focus:border-studio-yellow font-black text-sm tracking-wide normal-case"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSubscribeModal(false)}
+                  className="flex-1 px-4 py-2.5 bg-zinc-800 text-white border-2 border-black font-bold uppercase text-[10px] hover:bg-zinc-700 active:translate-y-0.5"
+                >
+                  CANCEL / BACK
+                </button>
+                <button
+                  type="submit"
+                  disabled={dataLoading}
+                  className="flex-1 px-4 py-2.5 bg-studio-yellow text-black border-2 border-black font-black uppercase text-[10px] hover:bg-studio-yellow-hover disabled:opacity-50 active:translate-y-0.5"
+                >
+                  {dataLoading ? 'PROCESSING...' : 'SUBSCRIBE EMAIL'}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL DRAWER: COMPOSE & SEND NEWSLETTER CAMPAIGN         */}
+      {/* ======================================================== */}
+      {showCampaignModal && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-fadeIn">
+          <form
+            onSubmit={handleSendCampaign}
+            className="w-full max-w-4xl border-4 border-black bg-[#121212] p-6 shadow-premium relative max-h-[92vh] overflow-y-auto font-mono text-xs"
+          >
+            <button
+              type="button"
+              onClick={() => setShowCampaignModal(false)}
+              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <h3 className="font-luckiest-guy text-2xl uppercase text-[#FF0080] mb-2">
+              🚀 Composing Newsletter Campaign
+            </h3>
+            <p className="text-zinc-500 uppercase text-[9px] font-black tracking-widest mb-6">
+              Instant transactional SMTP broadcast agent
+            </p>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* COMPOSER FORM (7/12 cols) */}
+              <div className="lg:col-span-7 space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">CAMPAIGN SUBJECT LINE</label>
+                  <input
+                    type="text"
+                    required
+                    value={campaignSubject}
+                    onChange={e => setCampaignSubject(e.target.value)}
+                    placeholder="e.g. 🎵 WEEKLY DROP: Claim 3 New Sample Packs inside the Vault!"
+                    className="w-full bg-black border-2 border-black p-3 text-white outline-none focus:border-[#FF0080] font-black text-xs normal-case leading-relaxed"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">HERO MAIN TITLE</label>
+                  <input
+                    type="text"
+                    required
+                    value={campaignTitle}
+                    onChange={e => setCampaignTitle(e.target.value)}
+                    placeholder="e.g. FRESH VAULT RELEASES"
+                    className="w-full bg-black border-2 border-black p-3 text-white outline-none focus:border-[#FF0080] font-bold text-xs normal-case"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                    <label className="block text-[10px] font-black uppercase text-zinc-400">HTML TEMPLATE CONTENT</label>
+                    
+                    {/* HTML BLOCK COMPOSER TOOLBAR */}
+                    <div className="flex flex-wrap gap-1 bg-black p-1 border border-zinc-800">
+                      <span className="text-[8px] font-black text-zinc-600 uppercase self-center px-1.5 font-mono">QUICK INSERT:</span>
+                      <button
+                        type="button"
+                        onClick={() => injectHtmlElement('heading')}
+                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-studio-yellow text-[9px] font-black uppercase tracking-wider text-studio-yellow transition-all"
+                      >
+                        🔤 Title
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => injectHtmlElement('paragraph')}
+                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-studio-neon text-[9px] font-black uppercase tracking-wider text-studio-neon transition-all"
+                      >
+                        📝 Text
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => injectHtmlElement('button')}
+                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-studio-yellow text-[9px] font-black uppercase tracking-wider text-studio-yellow transition-all"
+                      >
+                        🟢 Button
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => injectHtmlElement('image')}
+                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-studio-neon text-[9px] font-black uppercase tracking-wider text-studio-neon transition-all"
+                      >
+                        🖼️ Image
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => injectHtmlElement('pack-card')}
+                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-white text-[9px] font-black uppercase tracking-wider text-white transition-all"
+                      >
+                        📦 Card
+                      </button>
+                    </div>
+                  </div>
+
+                  <textarea
+                    required
+                    rows={12}
+                    value={campaignContent}
+                    onChange={e => setCampaignContent(e.target.value)}
+                    placeholder="HTML body contents here... Click Quick Insert blocks above to assemble styled layouts instantly!"
+                    className="w-full bg-black border-2 border-black p-3 text-white outline-none focus:border-[#FF0080] font-mono text-[10px] normal-case leading-relaxed"
+                  />
+                </div>
+              </div>
+
+              {/* LIVE CAMPAIGN PREVIEW PANEL (5/12 cols) */}
+              <div className="lg:col-span-5 flex flex-col space-y-2">
+                <div className="flex items-center justify-between gap-4">
+                  <label className="block text-[10px] font-black uppercase text-zinc-400">👀 HIGH-FIDELITY EMAIL PREVIEW</label>
+                  
+                  {/* VIEWPORT CONTROLLER */}
+                  <div className="flex border border-zinc-800 p-0.5 bg-black">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewMode('desktop')}
+                      className={`px-2 py-0.5 text-[8px] font-black uppercase font-mono transition-all ${
+                        previewMode === 'desktop'
+                          ? 'bg-white text-black'
+                          : 'text-zinc-500 hover:text-white'
+                      }`}
+                    >
+                      💻 DESKTOP
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewMode('mobile')}
+                      className={`px-2 py-0.5 text-[8px] font-black uppercase font-mono transition-all ${
+                        previewMode === 'mobile'
+                          ? 'bg-white text-black'
+                          : 'text-zinc-500 hover:text-white'
+                      }`}
+                    >
+                      📱 MOBILE
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex-1 border-4 border-black bg-zinc-900 min-h-[350px] overflow-hidden flex flex-col">
+                  {/* Mock browser header */}
+                  <div className="bg-zinc-200 border-b-2 border-black p-2 flex items-center gap-1.5 flex-shrink-0 text-black">
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-green-400" />
+                    <span className="text-[8px] font-sans font-bold uppercase ml-2 text-zinc-500 truncate max-w-[200px]">
+                      Subject: {campaignSubject || 'No Subject'}
+                    </span>
+                  </div>
+                  
+                  {/* Render content in simulated viewport */}
+                  <div className="flex-1 overflow-y-auto bg-zinc-900 p-4 transition-all duration-300">
+                    <div 
+                      className={`bg-white border-2 border-black p-4 text-black font-sans text-xs leading-relaxed transition-all duration-300 mx-auto`}
+                      style={{
+                        width: previewMode === 'mobile' ? '320px' : '100%',
+                        maxWidth: '100%',
+                        minHeight: '280px'
+                      }}
+                    >
+                      {/* Email Header Template */}
+                      <div style={{ backgroundColor: '#000000', padding: '20px', textAlign: 'center', marginBottom: '15px' }}>
+                        <h1 style={{ color: '#FFE600', margin: 0, fontSize: '24px', textTransform: 'uppercase', fontFamily: "'Arial Black', sans-serif", letterSpacing: '2px' }}>SAMPLESWALA</h1>
+                        <p style={{ color: '#00BFFF', margin: '3px 0 0 0', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>PREMIUM SOUNDS NEWSLETTER</p>
+                      </div>
+
+                      <h2 style={{ color: '#FF0080', marginTop: 0, fontSize: '18px', fontFamily: "'Arial Black', sans-serif", textTransform: 'uppercase', borderBottom: '2px solid #FF0080', paddingBottom: '5px' }}>
+                        {campaignTitle || 'YOUR NEWS HEADER'}
+                      </h2>
+
+                      {/* Dynamic Content Preview */}
+                      <div 
+                        dangerouslySetInnerHTML={{ 
+                          __html: campaignContent 
+                            ? campaignContent.replace(/\\n/g, '<br/>') 
+                            : '<div class="text-zinc-400 text-center uppercase font-black py-12">HTML COMPOSE LOADING...</div>' 
+                        }}
+                      />
+
+                      {/* Email Footer Template */}
+                      <div style={{ marginTop: '30px', padding: '15px', borderTop: '2px solid #000000', backgroundColor: '#f9f9f9', fontSize: '10px', color: '#555', textAlign: 'center' }}>
+                        <p style={{ margin: 0 }}>You received this email because you subscribed to our newsletter at <a href="https://sampleswala.com" style={{ color: '#00BFFF', textDecoration: 'none', fontWeight: 'bold' }}>sampleswala.com</a>.</p>
+                        <p style={{ margin: '8px 0 0 0', fontSize: '11px', fontWeight: 'bold', color: '#555' }}>
+                          Want to stop receiving these? 
+                          <a href="#" onClick={(e) => e.preventDefault()} style={{ color: '#FF0080', textDecoration: 'underline', fontWeight: 'bold', marginLeft: '5px' }}>
+                            Unsubscribe here
+                          </a>
+                        </p>
+                        <p style={{ fontWeight: 'bold', marginTop: '10px', color: '#000' }}>&copy; {new Date().getFullYear()} SamplesWala. All rights reserved.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-[#181818] border-2 border-black p-3 text-zinc-500 uppercase font-bold text-[8px] leading-relaxed font-mono">
+                  ⚠️ IMPORTANT: Emails are sent individually to respect GDPR privacy. Verify responsiveness on both mobile & desktop layouts before dispatching.
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-4 pt-4 border-t-2 border-black mt-6">
+              <button
+                type="button"
+                onClick={() => setShowCampaignModal(false)}
+                className="flex-1 px-4 py-3 bg-zinc-800 text-white border-3 border-black font-black uppercase text-xs hover:bg-zinc-700 active:translate-y-0.5"
+              >
+                CANCEL / CLOSE
+              </button>
+
+              <button
+                type="submit"
+                disabled={campaignSending}
+                className="flex-1 px-4 py-3 bg-[#FF0080] text-black border-3 border-black font-black uppercase text-xs hover:bg-[#E00070] disabled:opacity-50 active:translate-y-0.5 flex items-center justify-center gap-2"
+              >
+                {campaignSending ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" /> DISPATCHING BROADCAST...
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-4 h-4" /> DISPATCH LIVE CAMPAIGN
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+      {/* ======================================================== */}
 
       {/* ======================================================== */}
       {/* COMMAND PALETTE & ENTITY SEARCH OVERLAY (Ctrl+K)         */}
