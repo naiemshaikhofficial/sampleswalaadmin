@@ -66,21 +66,19 @@ export async function getDashboardStats() {
     ] = await Promise.all([
       db.from('user_accounts').select('user_id', { count: 'exact', head: true }),
       db.from('secure_download_tokens').select('id', { count: 'exact', head: true }),
-      db.from('support_tickets').select('id', { count: 'exact' }).eq('status', 'open'),
-      db.from('artist_payout_settings').select('user_id', { count: 'exact' }).eq('verification_status', 'pending'),
-      db.from('software_orders').select('amount_paid, status'),
+      db.from('support_tickets').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+      db.from('artist_payout_settings').select('user_id', { count: 'exact', head: true }).eq('verification_status', 'pending'),
+      db.from('software_orders').select('amount_paid').in('status', ['complete', 'paid']),
       db.from('sample_packs').select('id, name, is_featured, display_rank'),
-      db.from('wishlist').select('id, sample_id'),
-      db.from('user_vault').select('amount, created_at, item_id, user_id')
+      db.from('wishlist').select('id', { count: 'exact', head: true }),
+      db.from('user_vault').select('amount')
     ])
 
     // Calculate revenue
     let totalRevenueINR = 0
     if (softwareOrdersRes.data) {
       softwareOrdersRes.data.forEach((order: any) => {
-        if (order.status === 'complete' || order.status === 'paid') {
-          totalRevenueINR += Number(order.amount_paid || 0)
-        }
+        totalRevenueINR += Number(order.amount_paid || 0)
       })
     }
     if (vaultSalesRes.data) {
@@ -107,13 +105,13 @@ export async function getDashboardStats() {
     return {
       totalUsers: usersCountRes.count || 0,
       totalDownloads: downloadsCountRes.count || 0,
-      openTickets: openTicketsRes.data?.length || 0,
-      pendingKYCs: pendingKycRes.data?.length || 0,
+      openTickets: openTicketsRes.count || 0,
+      pendingKYCs: pendingKycRes.count || 0,
       totalRevenueINR,
       recentSoftwares: recentSoftwares.data || [],
       recentVaultSales: enrichedVaultSales,
       samplePacksCount: samplePacksRes.data?.length || 0,
-      wishlistCount: wishlistRes.data?.length || 0
+      wishlistCount: wishlistRes.count || 0
     }
   } catch (error) {
     console.error('Error fetching dashboard stats:', error)
@@ -285,8 +283,16 @@ export async function getArtistsKYC() {
 
     if (error) throw error
 
-    // Fetch matching profiles
-    const { data: profiles } = await db.from('profiles').select('id, full_name, avatar_url')
+    // Fetch matching profiles selectively
+    const userIds = Array.from(new Set((kycSettings || []).map((s: any) => s.user_id).filter(Boolean)))
+    let profiles: any[] = []
+    if (userIds.length > 0) {
+      const { data: profData } = await db
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds)
+      profiles = profData || []
+    }
 
     const artists = (kycSettings || []).map((setting: any) => {
       const profile = (profiles || []).find((p: any) => p.id === setting.user_id)
@@ -330,7 +336,15 @@ export async function getArtistPayouts() {
 
     if (error) throw error
 
-    const { data: profiles } = await db.from('profiles').select('id, full_name')
+    const artistIds = Array.from(new Set((data || []).map((p: any) => p.artist_id).filter(Boolean)))
+    let profiles: any[] = []
+    if (artistIds.length > 0) {
+      const { data: profData } = await db
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', artistIds)
+      profiles = profData || []
+    }
 
     const payouts = (data || []).map((payout: any) => {
       const profile = (profiles || []).find((p: any) => p.id === payout.artist_id)
@@ -452,7 +466,15 @@ export async function getSupportTickets() {
 
     if (error) throw error
 
-    const { data: profiles } = await db.from('profiles').select('id, full_name')
+    const userIds = Array.from(new Set((tickets || []).map((t: any) => t.user_id).filter(Boolean)))
+    let profiles: any[] = []
+    if (userIds.length > 0) {
+      const { data: profData } = await db
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', userIds)
+      profiles = profData || []
+    }
 
     const mappedTickets = (tickets || []).map((ticket: any) => {
       const profile = (profiles || []).find((p: any) => p.id === ticket.user_id)
@@ -663,8 +685,17 @@ export async function getAllVaultSales() {
     const { data: packs, error: packErr } = await db.from('sample_packs').select('id, name')
     if (packErr) throw packErr
 
-    // 3. Fetch all user accounts for billing info
-    const { data: userAccounts } = await db.from('user_accounts').select('*')
+    // 3. Fetch only user accounts that correspond to these sales
+    const userIds = Array.from(new Set((sales || []).map((s: any) => s.user_id).filter(Boolean)))
+    let userAccounts: any[] = []
+    if (userIds.length > 0) {
+      const { data } = await db
+        .from('user_accounts')
+        .select('*')
+        .in('user_id', userIds)
+      userAccounts = data || []
+    }
+
     // 4. Fetch auth users for email addresses
     const { data: { users } } = await db.auth.admin.listUsers()
 

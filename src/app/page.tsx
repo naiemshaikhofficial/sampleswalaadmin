@@ -148,6 +148,7 @@ export default function AdminDashboard() {
   // Search & Filter States
   const [packFilter, setPackFilter] = useState('all')
   const [sampleSearch, setSampleSearch] = useState('')
+  const [debouncedSampleSearch, setDebouncedSampleSearch] = useState('')
   const [packSearch, setPackSearch] = useState('')
 
   // User list search/filter states
@@ -414,8 +415,11 @@ export default function AdminDashboard() {
     const cachedEntry = cacheRef.current[tab]
     const now = Date.now()
 
+    const isSearchingOrFilteringSamples = tab === 'samples' && (packFilter !== 'all' || debouncedSampleSearch !== '')
+    const shouldBypassCache = forceBypassCache || isSearchingOrFilteringSamples
+
     // SWR Pattern: Instantly render cached data while validating in the background
-    if (cachedEntry && !forceBypassCache) {
+    if (cachedEntry && !shouldBypassCache) {
       applyCachedData(tab, cachedEntry.data)
 
       // If the cache is fresh (< 60s), do not fetch again
@@ -425,7 +429,7 @@ export default function AdminDashboard() {
     }
 
     // Render loading spinner only for full initial load or manually forced reload
-    if (!cachedEntry || forceBypassCache) {
+    if (!cachedEntry || shouldBypassCache) {
       setDataLoading(true)
     }
 
@@ -440,9 +444,13 @@ export default function AdminDashboard() {
         setPacks(result.packs)
         setCategories(result.categories)
       } else if (tab === 'samples') {
-        const { packs: packsData } = await getSamplePacks()
-        setPacks(packsData)
-        freshData = await getSamples(packFilter, sampleSearch)
+        // Skip redundant getSamplePacks query if already loaded in client state
+        if (packs.length === 0) {
+          const result = await getSamplePacks()
+          setPacks(result.packs)
+          setCategories(result.categories)
+        }
+        freshData = await getSamples(packFilter, debouncedSampleSearch)
         setSamples(freshData)
       } else if (tab === 'kyc') {
         const artistsData = await getArtistsKYC()
@@ -492,12 +500,20 @@ export default function AdminDashboard() {
     invalidateCacheAndReload(activeTab)
   }
 
-  // Trigger reloading on filter or tab change
+  // Debounce the samples search to prevent redundant database hits on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSampleSearch(sampleSearch)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [sampleSearch])
+
+  // Trigger reloading on filter, tab or debounced search term change
   useEffect(() => {
     if (isAdmin) {
       loadTabContext(activeTab)
     }
-  }, [activeTab, packFilter])
+  }, [activeTab, packFilter, debouncedSampleSearch])
 
   const handleBanUser = async (userId: string, email: string) => {
     const approved = await askConfirmation(
