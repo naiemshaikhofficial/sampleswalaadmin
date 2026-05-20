@@ -534,7 +534,7 @@ export async function replyToTicket(ticketId: string, reply: string) {
 export async function getRankedPacks() {
   try {
     const db = getDB()
-    
+
     // Fetch all sample packs
     const { data: packs, error: packErr } = await db.from('sample_packs').select('*')
     if (packErr) throw packErr
@@ -554,7 +554,7 @@ export async function getRankedPacks() {
     // Calculate downloads and wishlists per pack
     const packStats = (packs || []).map((pack: any) => {
       const packSamples = (samples || []).filter((s: any) => s.pack_id === pack.id).map((s: any) => s.id)
-      
+
       // Downloads of this pack directly OR of samples inside this pack
       const directPackDownloads = (downloads || []).filter((d: any) => d.item_id === pack.id && d.item_type === 'pack').length
       const sampleDownloads = (downloads || []).filter((d: any) => d.item_type === 'sample' && packSamples.includes(d.item_id)).length
@@ -607,7 +607,7 @@ export async function getAllUsers() {
     const enrichedUsers = (users || []).map((u: any) => {
       const account = (userAccounts || []).find((a: any) => a.user_id === u.id)
       const profile = (profiles || []).find((p: any) => p.id === u.id)
-      
+
       const isBanned = u.banned_until ? new Date(u.banned_until).getTime() > Date.now() : false
 
       return {
@@ -675,7 +675,7 @@ export async function deleteUser(userId: string) {
     // Delete public user profiles and accounts first to avoid foreign key violations
     await db.from('user_accounts').delete().eq('user_id', userId)
     await db.from('profiles').delete().eq('id', userId)
-    
+
     // Delete from auth.users
     const { error } = await db.auth.admin.deleteUser(userId)
     if (error) throw error
@@ -812,7 +812,7 @@ export async function getBrevoSubscribers() {
 
     // Merge database users and Brevo contacts by email (prioritizing database values)
     const mergedList: any[] = [...dbSubscribers]
-    
+
     brevoContacts.forEach((bc: any) => {
       const exists = mergedList.find(x => x.email.toLowerCase() === bc.email.toLowerCase())
       if (!exists) {
@@ -955,7 +955,7 @@ export async function sendBrevoCampaign(campaign: {
           method: 'POST',
           headers,
           body: JSON.stringify({
-            sender: { name: 'SamplesWala News', email: 'news@sampleswala.com' },
+            sender: { name: 'SamplesWala', email: 'news@sampleswala.com' },
             to: [{ email }],
             subject: campaign.subject,
             htmlContent: `

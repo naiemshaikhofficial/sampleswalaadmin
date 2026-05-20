@@ -109,7 +109,7 @@ export default function AdminDashboard() {
 
   // Accent Switcher & Audit Log states
   const [accent, setAccent] = useState<'pink' | 'blue' | 'neon' | 'orange' | 'yellow' | 'purple'>('pink')
-  
+
   const accentDetails = {
     pink: { label: 'Neon Pink', hex: '#FF0080', borderClass: 'shadow-[6px_6px_0px_#FF0080]' },
     blue: { label: 'Electric Blue', hex: '#00BFFF', borderClass: 'shadow-[6px_6px_0px_#00BFFF]' },
@@ -146,7 +146,7 @@ export default function AdminDashboard() {
   const [rankedPacks, setRankedPacks] = useState<any[]>([])
   const [usersList, setUsersList] = useState<any[]>([])
   const [vaultSalesList, setVaultSalesList] = useState<any[]>([])
-  
+
   // Brevo Newsletter States
   const [subscribersList, setSubscribersList] = useState<any[]>([])
   const [showCampaignModal, setShowCampaignModal] = useState(false)
@@ -228,8 +228,8 @@ export default function AdminDashboard() {
     message: '',
     confirmText: 'CONFIRM',
     isDanger: false,
-    onConfirm: () => {},
-    onCancel: () => {},
+    onConfirm: () => { },
+    onCancel: () => { },
   })
 
   const askConfirmation = (title: string, message: string, isDanger = false, confirmText = 'CONFIRM') => {
@@ -1046,7 +1046,7 @@ export default function AdminDashboard() {
                   />
                 </div>
 
-                 <button
+                <button
                   type="submit"
                   disabled={loginLoading}
                   className="studio-button w-full mt-2 font-black py-4 bg-studio-pink text-black"
@@ -1072,10 +1072,10 @@ export default function AdminDashboard() {
                   className="studio-button w-full bg-white hover:bg-studio-yellow text-black font-black py-4 flex items-center justify-center gap-2"
                 >
                   <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                   </svg>
                   SSO AUTH WITH GOOGLE
                 </button>
@@ -1089,7 +1089,7 @@ export default function AdminDashboard() {
 
   // --- CORE AUTHORIZED ADMIN INTERFACE ---
   return (
-    <div 
+    <div
       className="min-h-screen flex flex-col md:flex-row bg-[#0c0c0c] text-white"
       style={{
         ['--color-studio-pink' as any]: accentDetails[accent].hex,
@@ -1107,9 +1107,8 @@ export default function AdminDashboard() {
 
       {/* STATE NOTIFICATION TOAST */}
       {toast.show && (
-        <div className={`fixed bottom-6 right-6 z-50 border-4 border-black p-4 shadow-premium transition-transform duration-300 font-mono text-xs uppercase font-black flex items-center gap-3 ${
-          toast.type === 'success' ? 'bg-studio-neon text-black' : toast.type === 'error' ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
-        }`}>
+        <div className={`fixed bottom-6 right-6 z-50 border-4 border-black p-4 shadow-premium transition-transform duration-300 font-mono text-xs uppercase font-black flex items-center gap-3 ${toast.type === 'success' ? 'bg-studio-neon text-black' : toast.type === 'error' ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
+          }`}>
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : toast.type === 'error' ? <XCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
           <span>{toast.message}</span>
         </div>
@@ -1126,7 +1125,7 @@ export default function AdminDashboard() {
               🛠️ SYSTEM CONTROL
             </span>
           </div>
-          
+
           <button
             onClick={handleReload}
             className="md:hidden p-2 bg-[#222] border-2 border-black hover:bg-studio-pink hover:text-black transition-colors"
@@ -1140,9 +1139,8 @@ export default function AdminDashboard() {
         <nav className="flex-1 p-4 space-y-2.5 font-sans text-xs font-bold uppercase overflow-y-auto">
           <button
             onClick={() => setActiveTab('analytics')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${
-              activeTab === 'analytics' ? 'bg-studio-pink text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'analytics' ? 'bg-studio-pink text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+              }`}
           >
             <LayoutDashboard className="w-4.5 h-4.5" />
             <span>📈 Overview & Earnings</span>
@@ -1150,9 +1148,8 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('packs')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${
-              activeTab === 'packs' ? 'bg-studio-yellow text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'packs' ? 'bg-studio-yellow text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+              }`}
           >
             <Library className="w-4.5 h-4.5" />
             <span>📦 Manage Audio Packs</span>
@@ -1160,9 +1157,8 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('kyc')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${
-              activeTab === 'kyc' ? 'bg-studio-orange text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'kyc' ? 'bg-studio-orange text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+              }`}
           >
             <UserCheck className="w-4.5 h-4.5" />
             <span>🎨 Artist Verification & KYC</span>
@@ -1170,9 +1166,8 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('coupons')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${
-              activeTab === 'coupons' ? 'bg-studio-blue text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'coupons' ? 'bg-studio-blue text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+              }`}
           >
             <Ticket className="w-4.5 h-4.5" />
             <span>🎟️ Promo Codes & Coupons</span>
@@ -1180,9 +1175,8 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('tickets')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${
-              activeTab === 'tickets' ? 'bg-studio-purple text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'tickets' ? 'bg-studio-purple text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+              }`}
           >
             <MessageSquare className="w-4.5 h-4.5" />
             <span>🎫 Customer Support Help</span>
@@ -1190,9 +1184,8 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('users')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${
-              activeTab === 'users' ? 'bg-studio-pink text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'users' ? 'bg-studio-pink text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+              }`}
           >
             <Users className="w-4.5 h-4.5" />
             <span>👥 Registered Users</span>
@@ -1200,9 +1193,8 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('sales')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${
-              activeTab === 'sales' ? 'bg-studio-neon text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'sales' ? 'bg-studio-neon text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+              }`}
           >
             <Coins className="w-4.5 h-4.5" />
             <span>💰 Orders & Sales Receipts</span>
@@ -1210,9 +1202,8 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('newsletter')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${
-              activeTab === 'newsletter' ? 'bg-[#FF0080] text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'newsletter' ? 'bg-[#FF0080] text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+              }`}
           >
             <Mail className="w-4.5 h-4.5" />
             <span>📧 Newsletter Hub</span>
@@ -1220,9 +1211,8 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('logs')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${
-              activeTab === 'logs' ? 'bg-studio-purple text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'logs' ? 'bg-studio-purple text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+              }`}
           >
             <Activity className="w-4.5 h-4.5" />
             <span>🛠️ Admin Activity Logs</span>
@@ -1243,9 +1233,8 @@ export default function AdminDashboard() {
                   showToast(`Accent set to ${item.label}!`, 'success')
                 }}
                 style={{ backgroundColor: item.hex }}
-                className={`h-5 w-full border-2 border-black hover:scale-110 active:scale-95 transition-all cursor-pointer ${
-                  accent === key ? 'ring-2 ring-white scale-105 opacity-100' : 'opacity-60 hover:opacity-100'
-                }`}
+                className={`h-5 w-full border-2 border-black hover:scale-110 active:scale-95 transition-all cursor-pointer ${accent === key ? 'ring-2 ring-white scale-105 opacity-100' : 'opacity-60 hover:opacity-100'
+                  }`}
                 title={`Accent: ${item.label}`}
               />
             ))}
@@ -1461,9 +1450,8 @@ export default function AdminDashboard() {
 
                           <div className="text-right">
                             <p className="font-black text-white text-[13px]">₹{order.amount_paid || 0}</p>
-                            <span className={`inline-block text-[8px] font-black uppercase px-2 py-0.5 mt-1 border border-black ${
-                              order.status === 'complete' ? 'bg-studio-neon text-black' : 'bg-studio-yellow text-black'
-                            }`}>
+                            <span className={`inline-block text-[8px] font-black uppercase px-2 py-0.5 mt-1 border border-black ${order.status === 'complete' ? 'bg-studio-neon text-black' : 'bg-studio-yellow text-black'
+                              }`}>
                               {order.status}
                             </span>
                           </div>
@@ -1690,9 +1678,8 @@ export default function AdminDashboard() {
                         <td className="p-4 text-center">
                           <button
                             onClick={() => playSamplePreview(sample.id, sample.audio_url)}
-                            className={`p-2 border-2 border-black rounded-none transition-colors ${
-                              playingSampleId === sample.id ? 'bg-studio-pink text-black' : 'bg-white text-black hover:bg-studio-neon'
-                            }`}
+                            className={`p-2 border-2 border-black rounded-none transition-colors ${playingSampleId === sample.id ? 'bg-studio-pink text-black' : 'bg-white text-black hover:bg-studio-neon'
+                              }`}
                           >
                             {playingSampleId === sample.id ? <Pause className="w-3.5 h-3.5 fill-black" /> : <Play className="w-3.5 h-3.5 fill-black" />}
                           </button>
@@ -1709,9 +1696,8 @@ export default function AdminDashboard() {
                           {sample.sample_packs?.name || 'No pack'}
                         </td>
                         <td className="p-4 text-center">
-                          <span className={`inline-block text-[9px] px-2 py-0.5 border border-black ${
-                            sample.type === 'loop' ? 'bg-studio-pink/20 text-studio-pink' : 'bg-studio-neon/20 text-studio-neon'
-                          }`}>
+                          <span className={`inline-block text-[9px] px-2 py-0.5 border border-black ${sample.type === 'loop' ? 'bg-studio-pink/20 text-studio-pink' : 'bg-studio-neon/20 text-studio-neon'
+                            }`}>
                             {sample.type}
                           </span>
                         </td>
@@ -1762,7 +1748,7 @@ export default function AdminDashboard() {
           {activeTab === 'kyc' && (
             <div className="space-y-6 animate-fadeIn font-mono text-xs">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                
+
                 {/* 1. ARTIST LIST (2/3 width) */}
                 <div className="lg:col-span-2 space-y-4">
                   <div className="bg-[#121212] p-4 border-4 border-black flex justify-between items-center">
@@ -1794,9 +1780,8 @@ export default function AdminDashboard() {
                               <p className="mt-0.5">UIDAI: {artist.aadhaar_number || 'N/A'}</p>
                             </td>
                             <td className="p-4">
-                              <span className={`inline-block text-[8px] font-bold tracking-widest px-2.5 py-1 border border-black uppercase ${
-                                artist.verification_status === 'approved' ? 'bg-studio-neon text-black' : artist.verification_status === 'rejected' ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
-                              }`}>
+                              <span className={`inline-block text-[8px] font-bold tracking-widest px-2.5 py-1 border border-black uppercase ${artist.verification_status === 'approved' ? 'bg-studio-neon text-black' : artist.verification_status === 'rejected' ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
+                                }`}>
                                 {artist.verification_status}
                               </span>
                             </td>
@@ -2005,9 +1990,8 @@ export default function AdminDashboard() {
                             </span>
                           </td>
                           <td className="p-4 text-center">
-                            <span className={`inline-block text-[8px] font-bold uppercase px-2.5 py-1 border border-black ${
-                              ticket.status === 'open' ? 'bg-studio-red text-white animate-pulse' : 'bg-studio-neon text-black'
-                            }`}>
+                            <span className={`inline-block text-[8px] font-bold uppercase px-2.5 py-1 border border-black ${ticket.status === 'open' ? 'bg-studio-red text-white animate-pulse' : 'bg-studio-neon text-black'
+                              }`}>
                               {ticket.status === 'open' ? '🚨 OPEN TICKET' : '✅ RESOLVED'}
                             </span>
                           </td>
@@ -2040,7 +2024,7 @@ export default function AdminDashboard() {
           {/* ======================================================== */}
           {activeTab === 'rankings' && (
             <div className="space-y-6 animate-fadeIn font-mono text-xs leading-relaxed">
-              
+
               {/* ALGORITHMIC FORMULA CARD */}
               <div className="border-4 border-black bg-studio-charcoal p-6 yellow-border relative">
                 <div className="absolute top-0 right-0 bg-studio-yellow text-black text-[9px] font-black uppercase px-2.5 py-1 border-l-4 border-b-4 border-black">
@@ -2083,9 +2067,8 @@ export default function AdminDashboard() {
                       return (
                         <tr key={pack.id} className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors">
                           <td className="p-4 text-center">
-                            <span className={`w-8 h-8 rounded-none flex items-center justify-center font-luckiest-guy text-lg border-2 border-black mx-auto ${
-                              idx === 0 ? 'bg-studio-yellow text-black' : idx === 1 ? 'bg-studio-pink text-black' : idx === 2 ? 'bg-studio-neon text-black' : 'bg-black text-zinc-400'
-                            }`}>
+                            <span className={`w-8 h-8 rounded-none flex items-center justify-center font-luckiest-guy text-lg border-2 border-black mx-auto ${idx === 0 ? 'bg-studio-yellow text-black' : idx === 1 ? 'bg-studio-pink text-black' : idx === 2 ? 'bg-studio-neon text-black' : 'bg-black text-zinc-400'
+                              }`}>
                               #{idx + 1}
                             </span>
                           </td>
@@ -2180,7 +2163,7 @@ export default function AdminDashboard() {
                     {(() => {
                       const filtered = usersList.filter(u => {
                         const searchLower = userSearch.toLowerCase()
-                        const matchQuery = 
+                        const matchQuery =
                           (u.email || '').toLowerCase().includes(searchLower) ||
                           (u.full_name || '').toLowerCase().includes(searchLower) ||
                           (u.address || '').toLowerCase().includes(searchLower) ||
@@ -2475,15 +2458,14 @@ export default function AdminDashboard() {
                             {l.timestamp}
                           </td>
                           <td className="p-4">
-                            <span className={`inline-block font-sans font-black text-[9px] px-2 py-0.5 border-2 border-black shadow-[2px_2px_0px_black] ${
-                              l.type === 'danger'
+                            <span className={`inline-block font-sans font-black text-[9px] px-2 py-0.5 border-2 border-black shadow-[2px_2px_0px_black] ${l.type === 'danger'
                                 ? 'bg-studio-red text-white'
                                 : l.type === 'warning'
-                                ? 'bg-studio-yellow text-black'
-                                : l.type === 'success'
-                                ? 'bg-studio-neon text-black'
-                                : 'bg-studio-pink text-black'
-                            }`}>
+                                  ? 'bg-studio-yellow text-black'
+                                  : l.type === 'success'
+                                    ? 'bg-studio-neon text-black'
+                                    : 'bg-studio-pink text-black'
+                              }`}>
                               {l.action}
                             </span>
                           </td>
@@ -2507,10 +2489,10 @@ export default function AdminDashboard() {
           {/* ======================================================== */}
           {activeTab === 'newsletter' && (
             <div className="space-y-6 animate-fadeIn font-mono text-xs">
-              
+
               {/* STATS HEADER GRID */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                
+
                 {/* 1. TOTAL SUBSCRIBERS */}
                 <div className="comic-panel border-4 border-black p-5 flex items-center gap-4 bg-black shadow-[4px_4px_0px_#FF0080]">
                   <div className="w-12 h-12 bg-[#FF0080] border-3 border-black flex items-center justify-center text-black">
@@ -2578,7 +2560,7 @@ export default function AdminDashboard() {
                       setCampaignSubject('')
                       setCampaignTitle('')
                       setCampaignContent(
-                        `<div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0c0c0c; color: #ffffff; border: 4px solid #000000;">\n  <h1 style="color: #FF0080; text-transform: uppercase;">SAMPLESWALA NEWSLETTER</h1>\n  <p>Hey producer,</p>\n  <p>We just dropped some fresh, high-fidelity sample packs in our library! Log in now to claim them using your credit balance.</p>\n  <br/>\n  <a href="https://sampleswala.com" style="display: inline-block; padding: 10px 20px; background-color: #39FF14; color: #000000; text-decoration: none; font-weight: bold; border: 2px solid #000000;">VISIT THE VAULT</a>\n</div>`
+                        `<div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0c0c0c; color: #ffffff; border: 4px solid #000000;">\n  <h1 style="color: #FF0080; text-transform: uppercase;">SAMPLESWALALETTER</h1>\n  <p>Hey producer,</p>\n  <p>We just dropped some fresh, high-fidelity sample packs in our library! Log in now to claim them using your credit balance.</p>\n  <br/>\n  <a href="https://sampleswala.com" style="display: inline-block; padding: 10px 20px; background-color: #39FF14; color: #000000; text-decoration: none; font-weight: bold; border: 2px solid #000000;">VISIT THE VAULT</a>\n</div>`
                       )
                       setShowCampaignModal(true)
                     }}
@@ -3083,7 +3065,7 @@ export default function AdminDashboard() {
             {/* SECURE KYC UPLOAD VISUAL PREVIEW */}
             <div className="space-y-2 mb-6">
               <span className="block text-[10px] font-black uppercase text-zinc-400">KYC VERIFICATION DOCUMENT (GOOGLE DRIVE LINK)</span>
-              
+
               {activeArtist.kyc_document_id ? (
                 <div className="border-4 border-black bg-black p-6 text-center space-y-4">
                   <div className="w-16 h-16 bg-studio-orange/10 border-2 border-studio-orange text-studio-orange mx-auto flex items-center justify-center">
@@ -3324,7 +3306,7 @@ export default function AdminDashboard() {
                 </div>
                 <p className="text-zinc-400 font-bold uppercase text-[9px] tracking-wider">SUBJECT:</p>
                 <p className="text-zinc-100 font-bold text-sm normal-case mt-0.5">{activeTicket.subject}</p>
-                
+
                 <p className="text-zinc-400 font-bold uppercase text-[9px] tracking-wider mt-3">CUSTOMER INQUIRY MESSAGE:</p>
                 <div className="text-zinc-200 mt-1 font-sans text-xs leading-relaxed normal-case bg-[#0d0d0d] p-3 border border-zinc-900 whitespace-pre-wrap">
                   {activeTicket.message}
@@ -3693,7 +3675,7 @@ export default function AdminDashboard() {
                 <div>
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
                     <label className="block text-[10px] font-black uppercase text-zinc-400">HTML TEMPLATE CONTENT</label>
-                    
+
                     {/* HTML BLOCK COMPOSER TOOLBAR */}
                     <div className="flex flex-wrap gap-1 bg-black p-1 border border-zinc-800">
                       <span className="text-[8px] font-black text-zinc-600 uppercase self-center px-1.5 font-mono">QUICK INSERT:</span>
@@ -3750,28 +3732,26 @@ export default function AdminDashboard() {
               <div className="lg:col-span-5 flex flex-col space-y-2">
                 <div className="flex items-center justify-between gap-4">
                   <label className="block text-[10px] font-black uppercase text-zinc-400">👀 HIGH-FIDELITY EMAIL PREVIEW</label>
-                  
+
                   {/* VIEWPORT CONTROLLER */}
                   <div className="flex border border-zinc-800 p-0.5 bg-black">
                     <button
                       type="button"
                       onClick={() => setPreviewMode('desktop')}
-                      className={`px-2 py-0.5 text-[8px] font-black uppercase font-mono transition-all ${
-                        previewMode === 'desktop'
+                      className={`px-2 py-0.5 text-[8px] font-black uppercase font-mono transition-all ${previewMode === 'desktop'
                           ? 'bg-white text-black'
                           : 'text-zinc-500 hover:text-white'
-                      }`}
+                        }`}
                     >
                       💻 DESKTOP
                     </button>
                     <button
                       type="button"
                       onClick={() => setPreviewMode('mobile')}
-                      className={`px-2 py-0.5 text-[8px] font-black uppercase font-mono transition-all ${
-                        previewMode === 'mobile'
+                      className={`px-2 py-0.5 text-[8px] font-black uppercase font-mono transition-all ${previewMode === 'mobile'
                           ? 'bg-white text-black'
                           : 'text-zinc-500 hover:text-white'
-                      }`}
+                        }`}
                     >
                       📱 MOBILE
                     </button>
@@ -3788,10 +3768,10 @@ export default function AdminDashboard() {
                       Subject: {campaignSubject || 'No Subject'}
                     </span>
                   </div>
-                  
+
                   {/* Render content in simulated viewport */}
                   <div className="flex-1 overflow-y-auto bg-zinc-900 p-4 transition-all duration-300">
-                    <div 
+                    <div
                       className={`bg-white border-2 border-black p-4 text-black font-sans text-xs leading-relaxed transition-all duration-300 mx-auto`}
                       style={{
                         width: previewMode === 'mobile' ? '320px' : '100%',
@@ -3802,11 +3782,11 @@ export default function AdminDashboard() {
 
 
                       {/* Dynamic Content Preview */}
-                      <div 
-                        dangerouslySetInnerHTML={{ 
-                          __html: campaignContent 
-                            ? campaignContent.replace(/\\n/g, '<br/>') 
-                            : '<div class="text-zinc-400 text-center uppercase font-black py-12">HTML COMPOSE LOADING...</div>' 
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: campaignContent
+                            ? campaignContent.replace(/\\n/g, '<br/>')
+                            : '<div class="text-zinc-400 text-center uppercase font-black py-12">HTML COMPOSE LOADING...</div>'
                         }}
                       />
 
@@ -3862,11 +3842,11 @@ export default function AdminDashboard() {
       {/* COMMAND PALETTE & ENTITY SEARCH OVERLAY (Ctrl+K)         */}
       {/* ======================================================== */}
       {showPalette && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/90 backdrop-blur-md z-[120] flex items-start justify-center p-4 pt-[10vh] animate-fadeIn"
           onClick={() => setShowPalette(false)}
         >
-          <div 
+          <div
             className="bg-[#121212] border-4 border-black p-6 w-full max-w-2xl relative text-left shadow-premium"
             onClick={e => e.stopPropagation()}
           >
@@ -3907,7 +3887,7 @@ export default function AdminDashboard() {
             <div className="max-h-[50vh] overflow-y-auto space-y-4 pr-1 scrollbar">
               {(() => {
                 const query = paletteSearch.trim().toLowerCase()
-                
+
                 // 1. SLASH COMMANDS
                 if (query.startsWith('/') || query === '') {
                   const allCommands = [
@@ -3950,29 +3930,29 @@ export default function AdminDashboard() {
                 // 2. LIVE DATABASE COLLECTION SEARCH
                 if (query !== '') {
                   // Search matching entities
-                  const matchedUsers = usersList.filter(u => 
+                  const matchedUsers = usersList.filter(u =>
                     (u.full_name || '').toLowerCase().includes(query) ||
                     (u.email || '').toLowerCase().includes(query)
                   ).slice(0, 5)
 
-                  const matchedPacks = packs.filter(p => 
+                  const matchedPacks = packs.filter(p =>
                     (p.name || '').toLowerCase().includes(query) ||
                     (p.slug || '').toLowerCase().includes(query)
                   ).slice(0, 5)
 
-                  const matchedOrders = vaultSalesList.filter(s => 
+                  const matchedOrders = vaultSalesList.filter(s =>
                     (s.pack_name || '').toLowerCase().includes(query) ||
                     (s.buyer_name || '').toLowerCase().includes(query) ||
                     (s.buyer_email || '').toLowerCase().includes(query)
                   ).slice(0, 5)
 
-                  const matchedTickets = tickets.filter(t => 
+                  const matchedTickets = tickets.filter(t =>
                     (t.user_name || '').toLowerCase().includes(query) ||
                     (t.user_email || '').toLowerCase().includes(query) ||
                     (t.subject || '').toLowerCase().includes(query)
                   ).slice(0, 5)
 
-                  const matchedCoupons = coupons.filter(c => 
+                  const matchedCoupons = coupons.filter(c =>
                     (c.code || '').toLowerCase().includes(query)
                   ).slice(0, 5)
 
@@ -4127,15 +4107,13 @@ export default function AdminDashboard() {
           <div className="bg-[#121212] border-4 border-black p-6 w-full max-w-md relative text-left shadow-premium">
             {/* Header Banner */}
             <div className="flex items-center gap-3 border-b-2 border-black pb-4 mb-4">
-              <div className={`w-10 h-10 rounded-none border-2 border-black flex items-center justify-center flex-shrink-0 ${
-                confirmDialog.isDanger ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
-              }`}>
+              <div className={`w-10 h-10 rounded-none border-2 border-black flex items-center justify-center flex-shrink-0 ${confirmDialog.isDanger ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
+                }`}>
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h4 className={`font-sans font-bold text-sm uppercase tracking-wide leading-none ${
-                  confirmDialog.isDanger ? 'text-studio-red' : 'text-studio-yellow'
-                }`}>
+                <h4 className={`font-sans font-bold text-sm uppercase tracking-wide leading-none ${confirmDialog.isDanger ? 'text-studio-red' : 'text-studio-yellow'
+                  }`}>
                   {confirmDialog.title}
                 </h4>
                 <span className="text-[9px] uppercase font-mono tracking-widest text-zinc-500 font-bold block mt-1.5">
@@ -4161,11 +4139,10 @@ export default function AdminDashboard() {
               <button
                 type="button"
                 onClick={confirmDialog.onConfirm}
-                className={`flex-1 studio-button font-bold uppercase py-2.5 text-xs cursor-pointer font-sans ${
-                  confirmDialog.isDanger 
-                    ? 'bg-studio-red text-white hover:bg-studio-red/80' 
+                className={`flex-1 studio-button font-bold uppercase py-2.5 text-xs cursor-pointer font-sans ${confirmDialog.isDanger
+                    ? 'bg-studio-red text-white hover:bg-studio-red/80'
                     : 'bg-studio-neon text-black hover:bg-studio-neon-hover'
-                }`}
+                  }`}
               >
                 {confirmDialog.confirmText}
               </button>
