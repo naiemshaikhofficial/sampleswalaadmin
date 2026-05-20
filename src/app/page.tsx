@@ -157,23 +157,139 @@ export default function AdminDashboard() {
   const [showSubscribeModal, setShowSubscribeModal] = useState(false)
   const [newsletterEmailInput, setNewsletterEmailInput] = useState('')
   const [newsletterSearch, setNewsletterSearch] = useState('')
-  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop')
+  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([])
+  const [recipientSearch, setRecipientSearch] = useState('')
+  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile' | 'split'>('split')
+  const [previewHtml, setPreviewHtml] = useState('')
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPreviewHtml(getPreviewHtml())
+    }, 150)
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaignContent, previewMode, showCampaignModal])
 
   const injectHtmlElement = (type: string) => {
     let snippet = ''
     if (type === 'heading') {
-      snippet = `\n<h3 style="color: #FF0080; font-family: 'Arial Black', sans-serif; text-transform: uppercase; font-size: 18px; margin-top: 20px; border-bottom: 2px dashed #333; padding-bottom: 5px;">🎵 NEW PACK ARRIVED</h3>\n`
+      snippet = `\n<h2 style="color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; margin-top: 24px; margin-bottom: 12px; letter-spacing: -0.02em;">New Sound Pack Available Now</h2>\n`
     } else if (type === 'paragraph') {
-      snippet = `\n<p style="font-size: 14px; color: #dddddd; line-height: 1.6; margin: 15px 0;">This new collection features the most sought-after signature samples of this season. Get access now!</p>\n`
+      snippet = `\n<p style="color: #94a3b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.6; margin-top: 0; margin-bottom: 16px;">This brand new sound kit delivers elite, studio-grade audio elements recorded by top-tier Indian instrumentalists. Infuse authentic acoustic textures directly into your electronic music productions today.</p>\n`
     } else if (type === 'button') {
-      snippet = `\n<div style="margin: 25px 0; text-align: center;">\n  <a href="https://sampleswala.com" style="display: inline-block; padding: 12px 24px; background-color: #39FF14; color: #000000; text-decoration: none; font-weight: bold; border: 3px solid #000000; text-transform: uppercase; font-family: sans-serif; letter-spacing: 1px;">DOWNLOAD THE PACK</a>\n</div>\n`
+      snippet = `\n<div style="margin: 28px 0; text-align: center;">\n  <a href="https://sampleswala.com" style="display: inline-block; padding: 12px 28px; background-color: #00BFFF; color: #000000; text-decoration: none; font-weight: 700; font-size: 13px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; border-radius: 6px; letter-spacing: 0.05em; text-transform: uppercase;">Download Sample Pack</a>\n</div>\n`
     } else if (type === 'image') {
-      snippet = `\n<img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=600&auto=format&fit=crop" style="width: 100%; border: 3px solid #000000; box-shadow: 4px 4px 0px #00BFFF; margin: 15px 0;" alt="Sound drop cover" />\n`
+      snippet = `\n<img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=600&auto=format&fit=crop" style="width: 100%; border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);" alt="Sound drop cover" />\n`
     } else if (type === 'pack-card') {
-      snippet = `\n<div style="background-color: #111; border: 3px solid #000; padding: 15px; margin: 20px 0; color: #fff;">\n  <p style="margin: 0; font-weight: bold; color: #FFE600; font-size: 14px; text-transform: uppercase;">🔥 LIMITED QUANTUM BUNDLE</p>\n  <p style="margin: 5px 0 0 0; font-size: 12px; color: #aaa;">Includes 120+ Melody loops, 80 Drum oneshots, Serum presets & MIDI files.</p>\n</div>\n`
+      snippet = `\n<div style="background-color: #111115; border: 1px solid #1e293b; border-radius: 8px; padding: 20px; margin: 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">\n  <span style="display: inline-block; background-color: #FFE600; color: #000000; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; margin-bottom: 12px;">Premium Release</span>\n  <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #ffffff;">🔥 Quantum Melodies & One-Shots</h4>\n  <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">Includes 120+ Melody loops, 80 high-impact drum one-shots, custom Serum synthesizer presets, and professional MIDI structures.</p>\n</div>\n`
     }
     setCampaignContent(prev => prev + snippet)
   }
+
+  const getPreviewHtml = () => {
+    if (!campaignContent) {
+      return `
+        <!DOCTYPE html>
+        <html>
+          <body style="background: transparent; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; color: #888;">
+            <div style="text-align: center; text-transform: uppercase; font-weight: bold; font-size: 11px; letter-spacing: 2px;">
+              HTML COMPOSE LOADING...
+            </div>
+          </body>
+        </html>
+      `;
+    }
+
+    const isFullHtml = /<html|<!DOCTYPE/i.test(campaignContent);
+    const unsubscribeUrl = '#';
+
+    // Premium dark-mode unsubscribe footer aligned with Brand Theme
+    const footerHtml = `
+      <!-- UN-SUBSCRIBE FOOTER BY DEFAULT -->
+      <div style="margin-top: 40px; padding: 24px; border-top: 1px solid #1e293b; background-color: #0c0c0e; font-size: 11px; color: #94a3b8; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6;">
+        <p style="margin: 0 0 8px 0;">You received this email because you subscribed to our newsletter at <a href="https://sampleswala.com" style="color: #00BFFF; text-decoration: none; font-weight: bold;">sampleswala.com</a>.</p>
+        <p style="margin: 0;">
+          Want to stop receiving these? <a href="${unsubscribeUrl}" onclick="event.preventDefault();" style="color: #ef4444; font-weight: 600; text-decoration: underline; margin-left: 4px;">Unsubscribe here</a>
+        </p>
+        <p style="font-weight: 600; margin: 12px 0 0 0; color: #f8fafc;">&copy; 2026 SamplesWala. All rights reserved.</p>
+      </div>
+    `;
+
+    if (isFullHtml) {
+      let html = campaignContent
+        .replace(/{{unsubscribe_url}}/g, unsubscribeUrl)
+        .replace(/{{unsubscribe}}/g, unsubscribeUrl);
+
+      // Enforce the default unsubscribe footer if not explicitly present in external/pasted code
+      const hasUnsubscribe = /unsubscribe/i.test(campaignContent);
+      if (!hasUnsubscribe) {
+        if (/<\/body>/i.test(html)) {
+          html = html.replace(/<\/body>/i, `${footerHtml}</body>`);
+        } else {
+          html = html + footerHtml;
+        }
+      }
+      return html;
+    }
+
+    // Wrap partial content in SamplesWala Dark Industrial Brand Theme
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              margin: 0;
+              padding: 0;
+              background-color: #030303;
+              color: #f1f5f9;
+              -webkit-font-smoothing: antialiased;
+            }
+            .email-container {
+              max-width: 600px;
+              margin: 40px auto;
+              background-color: #0c0c0c;
+              border: 1px solid #1e293b;
+              border-radius: 12px;
+              overflow: hidden;
+              box-shadow: 0 10px 25px -5px rgba(0,0,0,0.8);
+            }
+            .email-body {
+              padding: 40px 32px;
+            }
+            a {
+              color: #00BFFF;
+              text-decoration: none;
+            }
+            a:hover {
+              text-decoration: underline;
+            }
+            @media only screen and (max-width: 600px) {
+              .email-container {
+                margin: 0;
+                border-radius: 0;
+                border: none;
+                width: 100% !important;
+              }
+              .email-body {
+                padding: 24px 16px;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="email-container">
+            <div class="email-body">
+              ${campaignContent.replace(/\\n/g, '<br/>').replace(/{{unsubscribe_url}}/g, unsubscribeUrl).replace(/{{unsubscribe}}/g, unsubscribeUrl)}
+            </div>
+            ${footerHtml}
+          </div>
+        </body>
+      </html>
+    `;
+  };
 
   // Loadings
   const [dataLoading, setDataLoading] = useState(false)
@@ -927,9 +1043,19 @@ export default function AdminDashboard() {
       return
     }
 
+    if (selectedRecipients.length === 0) {
+      showToast('Please select at least 1 recipient to send the campaign to!', 'error')
+      return
+    }
+
+    const allActiveEmails = subscribersList.filter((s: any) => s.subscribed && s.email && s.email !== 'N/A').map((s: any) => s.email)
+    const isSendingToAll = selectedRecipients.length === allActiveEmails.length
+
     const approved = await askConfirmation(
       '🚀 SEND LIVE NEWSLETTER CAMPAIGN',
-      `You are composing a newsletter email campaign that will be sent immediately to ALL active newsletter subscribers in Brevo. Are you absolutely ready to send?`,
+      isSendingToAll
+        ? `You are about to send this newsletter to ALL ${selectedRecipients.length} active subscribers. Are you absolutely ready?`
+        : `You are about to send this newsletter to ${selectedRecipients.length} selected recipient${selectedRecipients.length > 1 ? 's' : ''}. Are you ready to send?`,
       false,
       'SEND NEWSLETTER'
     )
@@ -940,7 +1066,8 @@ export default function AdminDashboard() {
       const res = await sendBrevoCampaign({
         subject: campaignSubject,
         title: campaignTitle || '',
-        htmlContent: campaignContent
+        htmlContent: campaignContent,
+        targetEmails: selectedRecipients
       })
       showToast(`Newsletter sent successfully to ${res.recipientsCount} subscribers!`, 'success')
       addAuditLog('NEWSLETTER_DISPATCH', `Dispatched newsletter campaign: "${campaignSubject}" to ${res.recipientsCount} users`, 'success')
@@ -948,6 +1075,8 @@ export default function AdminDashboard() {
       setCampaignSubject('')
       setCampaignTitle('')
       setCampaignContent('')
+      setSelectedRecipients([])
+      setRecipientSearch('')
       invalidateCacheAndReload('newsletter')
     } catch (err: any) {
       showToast(err.message || 'Failed to dispatch newsletter campaign', 'error')
@@ -1279,6 +1408,7 @@ export default function AdminDashboard() {
               {activeTab === 'sales' && '💰 Sales Receipts & Orders Log'}
               {activeTab === 'logs' && '🛠️ Admin Activity Logs'}
               {activeTab === 'rankings' && '🌟 Global Ranking List Engine'}
+              {activeTab === 'newsletter' && '📧 Newsletter Hub & Campaign Manager'}
             </span>
           </div>
 
@@ -2560,8 +2690,14 @@ export default function AdminDashboard() {
                       setCampaignSubject('')
                       setCampaignTitle('')
                       setCampaignContent(
-                        `<div style="font-family: Arial, sans-serif; padding: 20px; background-color: #0c0c0c; color: #ffffff; border: 4px solid #000000;">\n  <h1 style="color: #FF0080; text-transform: uppercase;">SAMPLESWALALETTER</h1>\n  <p>Hey producer,</p>\n  <p>We just dropped some fresh, high-fidelity sample packs in our library! Log in now to claim them using your credit balance.</p>\n  <br/>\n  <a href="https://sampleswala.com" style="display: inline-block; padding: 10px 20px; background-color: #39FF14; color: #000000; text-decoration: none; font-weight: bold; border: 2px solid #000000;">VISIT THE VAULT</a>\n</div>`
+                        `<h1 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-top: 0; margin-bottom: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -0.02em;">Fresh Sound Drops inside the Vault</h1>\n<p style="font-size: 14px; color: #94a3b8; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin-bottom: 20px;">Hey Producer,</p>\n<p style="font-size: 14px; color: #94a3b8; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin-bottom: 20px;">We've just expanded our catalog with a range of premium, studio-recorded acoustic elements. These new sample packs contain authentic instruments and loops designed to add pure, live-sounding textures to your modern beats.</p>\n\n<div style="background-color: #111115; border: 1px solid #1e293b; border-radius: 8px; padding: 20px; margin: 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">\n  <span style="display: inline-block; background-color: #FFE600; color: #000000; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.05em;">New Release</span>\n  <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #ffffff;">🎶 Sitar Legends Vol. 1</h4>\n  <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">Over 150 authentic sitar loops, drone samples, and expressive ornaments recorded live in professional studios. Tailored perfectly for Trap, Lofi, and Cinematic production.</p>\n</div>\n\n<div style="margin: 28px 0; text-align: center;">\n  <a href="https://sampleswala.com" style="display: inline-block; padding: 12px 28px; background-color: #00BFFF; color: #000000; text-decoration: none; font-weight: 700; font-size: 13px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; border-radius: 6px; letter-spacing: 0.05em; text-transform: uppercase;">Explore Sample Packs</a>\n</div>\n\n<p style="font-size: 14px; color: #94a3b8; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Happy Producing,<br/><strong>The SamplesWala Team</strong></p>`
                       )
+                      // Pre-select all active subscribers
+                      const activeEmails = subscribersList
+                        .filter((s: any) => s.subscribed && s.email && s.email !== 'N/A')
+                        .map((s: any) => s.email)
+                      setSelectedRecipients(activeEmails)
+                      setRecipientSearch('')
                       setShowCampaignModal(true)
                     }}
                     className="px-4 py-2 bg-[#FF0080] text-black border-3 border-black shadow-[3px_3px_0px_black] hover:bg-[#E00070] font-black uppercase text-xs transition-all active:translate-y-0.5 active:shadow-[1px_1px_0px_black]"
@@ -3628,89 +3764,99 @@ export default function AdminDashboard() {
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-fadeIn">
           <form
             onSubmit={handleSendCampaign}
-            className="w-full max-w-4xl border-4 border-black bg-[#121212] p-6 shadow-premium relative max-h-[92vh] overflow-y-auto font-mono text-xs"
+            className="w-full max-w-[95vw] lg:max-w-7xl h-[90vh] border border-zinc-800 bg-[#090a0f] shadow-2xl relative flex flex-col font-sans text-xs rounded-xl overflow-hidden animate-scaleIn"
           >
-            <button
-              type="button"
-              onClick={() => setShowCampaignModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <h3 className="font-luckiest-guy text-2xl uppercase text-[#FF0080] mb-2">
-              🚀 Composing Newsletter Campaign
-            </h3>
-            <p className="text-zinc-500 uppercase text-[9px] font-black tracking-widest mb-6">
-              Instant transactional SMTP broadcast agent
-            </p>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* COMPOSER FORM (7/12 cols) */}
-              <div className="lg:col-span-7 space-y-4">
+            {/* Elegant Professional Editor Header - Sticky */}
+            <div className="flex items-center justify-between border-b border-zinc-850 px-6 py-4 bg-[#0d0d12] flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-zinc-900/60 border border-zinc-800 rounded-lg text-studio-pink">
+                  <Mail className="w-5 h-5" />
+                </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">CAMPAIGN SUBJECT LINE</label>
+                  <h3 className="font-bold text-base text-zinc-100 uppercase tracking-tight font-sans">
+                    Newsletter Workspace Composer
+                  </h3>
+                  <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold block mt-0.5 font-mono">
+                    Draft, Sandbox Previews (PC & Mobile), and Direct Brevo Broadcast
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCampaignModal(false)}
+                className="p-1.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-lg transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Split Editor/Preview Workspace - Body */}
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden bg-[#06070a]">
+              {/* COMPOSER FORM (5/12 cols) - Scrollable */}
+              <div className="lg:col-span-5 border-r border-zinc-850 p-6 overflow-y-auto space-y-5 h-full scrollbar">
+                <div>
+                  <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-wider mb-2 font-mono">Campaign Subject Line</label>
                   <input
                     type="text"
                     required
                     value={campaignSubject}
                     onChange={e => setCampaignSubject(e.target.value)}
                     placeholder="e.g. 🎵 WEEKLY DROP: Claim 3 New Sample Packs inside the Vault!"
-                    className="w-full bg-black border-2 border-black p-3 text-white outline-none focus:border-[#FF0080] font-black text-xs normal-case leading-relaxed"
+                    className="w-full bg-zinc-950 border border-zinc-850 p-3 text-zinc-100 rounded-lg outline-none focus:border-zinc-700 font-sans text-xs placeholder-zinc-750 leading-relaxed transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">HERO MAIN TITLE</label>
+                  <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-wider mb-2 font-mono">Hero Main Title (For Standard Templates)</label>
                   <input
                     type="text"
                     required
                     value={campaignTitle}
                     onChange={e => setCampaignTitle(e.target.value)}
                     placeholder="e.g. FRESH VAULT RELEASES"
-                    className="w-full bg-black border-2 border-black p-3 text-white outline-none focus:border-[#FF0080] font-bold text-xs normal-case"
+                    className="w-full bg-zinc-950 border border-zinc-850 p-3 text-zinc-100 rounded-lg outline-none focus:border-zinc-700 font-sans text-xs placeholder-zinc-750 leading-relaxed transition-all"
                   />
                 </div>
 
-                <div>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                    <label className="block text-[10px] font-black uppercase text-zinc-400">HTML TEMPLATE CONTENT</label>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-wider font-mono">HTML/Text Body Content</label>
 
                     {/* HTML BLOCK COMPOSER TOOLBAR */}
-                    <div className="flex flex-wrap gap-1 bg-black p-1 border border-zinc-800">
-                      <span className="text-[8px] font-black text-zinc-600 uppercase self-center px-1.5 font-mono">QUICK INSERT:</span>
+                    <div className="flex flex-wrap gap-1 bg-zinc-950 p-1 border border-zinc-850 rounded-md">
+                      <span className="text-[8px] font-bold text-zinc-600 uppercase self-center px-1.5 font-mono">Insert:</span>
                       <button
                         type="button"
                         onClick={() => injectHtmlElement('heading')}
-                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-studio-yellow text-[9px] font-black uppercase tracking-wider text-studio-yellow transition-all"
+                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:text-white text-[9px] font-bold uppercase tracking-wider text-zinc-300 rounded transition-all"
                       >
                         🔤 Title
                       </button>
                       <button
                         type="button"
                         onClick={() => injectHtmlElement('paragraph')}
-                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-studio-neon text-[9px] font-black uppercase tracking-wider text-studio-neon transition-all"
+                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:text-white text-[9px] font-bold uppercase tracking-wider text-zinc-300 rounded transition-all"
                       >
                         📝 Text
                       </button>
                       <button
                         type="button"
                         onClick={() => injectHtmlElement('button')}
-                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-studio-yellow text-[9px] font-black uppercase tracking-wider text-studio-yellow transition-all"
+                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:text-white text-[9px] font-bold uppercase tracking-wider text-zinc-300 rounded transition-all"
                       >
                         🟢 Button
                       </button>
                       <button
                         type="button"
                         onClick={() => injectHtmlElement('image')}
-                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-studio-neon text-[9px] font-black uppercase tracking-wider text-studio-neon transition-all"
+                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:text-white text-[9px] font-bold uppercase tracking-wider text-zinc-300 rounded transition-all"
                       >
                         🖼️ Image
                       </button>
                       <button
                         type="button"
                         onClick={() => injectHtmlElement('pack-card')}
-                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-white text-[9px] font-black uppercase tracking-wider text-white transition-all"
+                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:text-white text-[9px] font-bold uppercase tracking-wider text-zinc-300 rounded transition-all"
                       >
                         📦 Card
                       </button>
@@ -3719,119 +3865,299 @@ export default function AdminDashboard() {
 
                   <textarea
                     required
-                    rows={12}
+                    rows={16}
                     value={campaignContent}
                     onChange={e => setCampaignContent(e.target.value)}
-                    placeholder="HTML body contents here... Click Quick Insert blocks above to assemble styled layouts instantly!"
-                    className="w-full bg-black border-2 border-black p-3 text-white outline-none focus:border-[#FF0080] font-mono text-[10px] normal-case leading-relaxed"
+                    placeholder="Paste full HTML (<html>...</html>) or snippets here. Full HTML will be sent exactly as is, snippets will get wrapped automatically."
+                    className="w-full flex-grow min-h-[350px] bg-zinc-950 border border-zinc-850 p-3 text-zinc-200 rounded-lg outline-none focus:border-zinc-700 font-mono text-xs leading-relaxed placeholder-zinc-750 transition-all scrollbar"
                   />
+                  
+                  <div className="bg-zinc-950 border border-zinc-850 p-3 text-zinc-500 uppercase font-semibold text-[8px] leading-relaxed font-mono rounded-lg">
+                    💡 TIP: Paste raw template HTML (with &lt;html&gt; or &lt;!DOCTYPE&gt;) to override standard responsive container wrapping. Unsubscribe footer will still be auto-appended if not found.
+                  </div>
+                </div>
+
+                {/* RECIPIENT PICKER PANEL */}
+                <div className="border border-zinc-850 bg-zinc-950/50 rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-850 bg-zinc-950">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-3.5 h-3.5 text-zinc-400" />
+                      <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider font-mono">
+                        Recipients
+                      </label>
+                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full font-mono ${
+                        selectedRecipients.length > 0
+                          ? 'bg-studio-neon/15 text-studio-neon border border-studio-neon/30'
+                          : 'bg-zinc-900 text-zinc-500 border border-zinc-800'
+                      }`}>
+                        {selectedRecipients.length} SELECTED
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const activeEmails = subscribersList
+                            .filter((s: any) => s.subscribed && s.email && s.email !== 'N/A')
+                            .map((s: any) => s.email)
+                          setSelectedRecipients(activeEmails)
+                        }}
+                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-studio-neon hover:text-studio-neon text-[8px] font-bold uppercase text-zinc-400 rounded transition-all font-mono"
+                      >
+                        Select All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRecipients([])}
+                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-600 hover:text-zinc-200 text-[8px] font-bold uppercase text-zinc-400 rounded transition-all font-mono"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Search Subscribers */}
+                  <div className="px-3 py-2 border-b border-zinc-900">
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-2 w-3 h-3 text-zinc-600" />
+                      <input
+                        type="text"
+                        value={recipientSearch}
+                        onChange={e => setRecipientSearch(e.target.value)}
+                        placeholder="Filter by email..."
+                        className="w-full bg-zinc-950 border border-zinc-850 pl-7 pr-3 py-1.5 text-zinc-200 rounded outline-none focus:border-zinc-700 font-mono text-[10px] placeholder-zinc-700 transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Subscriber Checkbox List */}
+                  <div className="max-h-[180px] overflow-y-auto scrollbar">
+                    {(() => {
+                      const activeSubscribers = subscribersList
+                        .filter((s: any) => s.subscribed && s.email && s.email !== 'N/A')
+                        .filter((s: any) => !recipientSearch || s.email.toLowerCase().includes(recipientSearch.toLowerCase()))
+
+                      if (activeSubscribers.length === 0) {
+                        return (
+                          <div className="p-4 text-center text-zinc-600 text-[9px] font-mono uppercase">
+                            {subscribersList.length === 0 ? 'Loading subscribers...' : 'No matching active subscribers'}
+                          </div>
+                        )
+                      }
+
+                      return activeSubscribers.map((sub: any) => {
+                        const isChecked = selectedRecipients.includes(sub.email)
+                        return (
+                          <label
+                            key={sub.id || sub.email}
+                            className={`flex items-center gap-2.5 px-4 py-2 border-b border-zinc-900/50 cursor-pointer transition-colors hover:bg-zinc-900/40 ${
+                              isChecked ? 'bg-studio-neon/5' : ''
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={e => {
+                                if (e.target.checked) {
+                                  setSelectedRecipients(prev => [...prev, sub.email])
+                                } else {
+                                  setSelectedRecipients(prev => prev.filter(em => em !== sub.email))
+                                }
+                              }}
+                              className="accent-[#00FF94] w-3.5 h-3.5 flex-shrink-0"
+                            />
+                            <span className={`font-mono text-[10px] truncate ${isChecked ? 'text-zinc-100 font-semibold' : 'text-zinc-400'}`}>
+                              {sub.email}
+                            </span>
+                          </label>
+                        )
+                      })
+                    })()}
+                  </div>
                 </div>
               </div>
 
-              {/* LIVE CAMPAIGN PREVIEW PANEL (5/12 cols) */}
-              <div className="lg:col-span-5 flex flex-col space-y-2">
-                <div className="flex items-center justify-between gap-4">
-                  <label className="block text-[10px] font-black uppercase text-zinc-400">👀 HIGH-FIDELITY EMAIL PREVIEW</label>
+              {/* LIVE CAMPAIGN PREVIEW CANVAS (7/12 cols) - Dotted Blueprint Grid */}
+              <div className="lg:col-span-7 bg-[#050508] bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] p-6 overflow-y-auto h-full flex flex-col space-y-4 scrollbar">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-850/80 pb-3 flex-shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-studio-pink animate-pulse" />
+                    <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-wider font-mono">
+                      Sandbox Viewport Previewer
+                    </label>
+                  </div>
 
                   {/* VIEWPORT CONTROLLER */}
-                  <div className="flex border border-zinc-800 p-0.5 bg-black">
+                  <div className="flex border border-zinc-800 p-0.5 bg-zinc-950 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewMode('split')}
+                      className={`px-3 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${
+                        previewMode === 'split'
+                          ? 'bg-zinc-800 text-white shadow-sm'
+                          : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      ⚔️ Split View
+                    </button>
                     <button
                       type="button"
                       onClick={() => setPreviewMode('desktop')}
-                      className={`px-2 py-0.5 text-[8px] font-black uppercase font-mono transition-all ${previewMode === 'desktop'
-                          ? 'bg-white text-black'
-                          : 'text-zinc-500 hover:text-white'
-                        }`}
+                      className={`px-3 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${
+                        previewMode === 'desktop'
+                          ? 'bg-zinc-800 text-white shadow-sm'
+                          : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
                     >
-                      💻 DESKTOP
+                      🖥️ Desktop PC
                     </button>
                     <button
                       type="button"
                       onClick={() => setPreviewMode('mobile')}
-                      className={`px-2 py-0.5 text-[8px] font-black uppercase font-mono transition-all ${previewMode === 'mobile'
-                          ? 'bg-white text-black'
-                          : 'text-zinc-500 hover:text-white'
-                        }`}
+                      className={`px-3 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${
+                        previewMode === 'mobile'
+                          ? 'bg-zinc-800 text-white shadow-sm'
+                          : 'text-zinc-500 hover:text-zinc-300'
+                      }`}
                     >
-                      📱 MOBILE
+                      📱 Mobile Phone
                     </button>
                   </div>
                 </div>
 
-                <div className="flex-1 border-4 border-black bg-zinc-900 min-h-[350px] overflow-hidden flex flex-col">
-                  {/* Mock browser header */}
-                  <div className="bg-zinc-200 border-b-2 border-black p-2 flex items-center gap-1.5 flex-shrink-0 text-black">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-400" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-yellow-400" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-green-400" />
-                    <span className="text-[8px] font-sans font-bold uppercase ml-2 text-zinc-500 truncate max-w-[200px]">
-                      Subject: {campaignSubject || 'No Subject'}
-                    </span>
-                  </div>
+                {/* DYNAMIC CANVAS CONTAINER */}
+                <div className="flex-grow w-full flex items-center justify-center min-h-[500px] mt-4">
+                  <div className={`w-full flex items-start justify-center gap-6 ${
+                    previewMode === 'split' ? 'flex-col xl:flex-row' : 'flex-col items-center'
+                  }`}>
+                    
+                    {/* 1. Simulated PC Web Browser Frame */}
+                    <div className={`${
+                      previewMode === 'desktop'
+                        ? 'w-full max-w-[760px] h-[580px] flex flex-col'
+                        : previewMode === 'split'
+                          ? 'flex-1 w-full max-w-[500px] h-[520px] flex flex-col'
+                          : 'hidden'
+                    } border border-zinc-800 bg-[#0c0c0e] rounded-xl overflow-hidden shadow-2xl transition-all`}>
+                      
+                      {/* Browser Header Bar */}
+                      <div className="bg-[#121216] border-b border-zinc-850 px-4 py-2.5 flex items-center justify-between flex-shrink-0 select-none">
+                        <div className="flex items-center gap-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
+                          <span className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
+                        </div>
+                        <div className="bg-black/60 border border-zinc-850/80 px-3 py-0.5 rounded text-[9px] text-zinc-500 font-mono w-48 text-center truncate">
+                          https://sampleswala.com/newsletter/preview
+                        </div>
+                        <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest font-mono">
+                          {previewMode === 'split' ? 'PC' : 'Desktop Mode'}
+                        </span>
+                      </div>
+                      
+                      {/* Simulated Email Headers */}
+                      <div className="bg-[#0e0e12] border-b border-zinc-850 px-4 py-3 flex flex-col gap-1.5 text-zinc-400 font-sans text-[11px] leading-none flex-shrink-0 select-none">
+                        <div className="truncate">
+                          <span className="font-semibold text-zinc-500 mr-2 uppercase text-[8px] tracking-wider font-mono">Subject:</span> 
+                          <span className="text-zinc-200 font-medium text-xs">{campaignSubject || '(No Subject)'}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold text-zinc-500 mr-2 uppercase text-[8px] tracking-wider font-mono">Sender:</span> 
+                          <span className="text-zinc-300 font-medium font-mono text-[10px]">news@sampleswala.com</span>
+                        </div>
+                      </div>
 
-                  {/* Render content in simulated viewport */}
-                  <div className="flex-1 overflow-y-auto bg-zinc-900 p-4 transition-all duration-300">
-                    <div
-                      className={`bg-white border-2 border-black p-4 text-black font-sans text-xs leading-relaxed transition-all duration-300 mx-auto`}
-                      style={{
-                        width: previewMode === 'mobile' ? '320px' : '100%',
-                        maxWidth: '100%',
-                        minHeight: '280px'
-                      }}
-                    >
-
-
-                      {/* Dynamic Content Preview */}
-                      <div
-                        dangerouslySetInnerHTML={{
-                          __html: campaignContent
-                            ? campaignContent.replace(/\\n/g, '<br/>')
-                            : '<div class="text-zinc-400 text-center uppercase font-black py-12">HTML COMPOSE LOADING...</div>'
-                        }}
-                      />
-
-                      {/* Email Footer Template */}
-                      <div style={{ marginTop: '30px', padding: '15px', borderTop: '2px solid #000000', backgroundColor: '#f9f9f9', fontSize: '10px', color: '#555', textAlign: 'center' }}>
-                        <p style={{ margin: 0 }}>You received this email because you subscribed to our newsletter at <a href="https://sampleswala.com" style={{ color: '#00BFFF', textDecoration: 'none', fontWeight: 'bold' }}>sampleswala.com</a>.</p>
-                        <p style={{ margin: '8px 0 0 0', fontSize: '11px', fontWeight: 'bold', color: '#555' }}>
-                          Want to stop receiving these?<a href="#" onClick={(e) => e.preventDefault()} style={{ color: '#FF0080', textDecoration: 'underline', fontWeight: 'bold', marginLeft: '5px' }}>Unsubscribe here</a>
-                        </p>
-                        <p style={{ fontWeight: 'bold', marginTop: '10px', color: '#000' }}>&copy; 2026 SamplesWala. All rights reserved.</p>
+                      {/* Scrolling iframe wrapper */}
+                      <div className="flex-grow bg-[#050508] p-4 flex items-start justify-center overflow-hidden">
+                        <iframe
+                          title="Newsletter Desktop Sandbox Preview"
+                          srcDoc={previewHtml}
+                          sandbox="allow-same-origin"
+                          className="bg-[#030303] border border-zinc-800 shadow-xl rounded w-full h-full min-h-[300px]"
+                        />
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                <div className="bg-[#181818] border-2 border-black p-3 text-zinc-500 uppercase font-bold text-[8px] leading-relaxed font-mono">
-                  ⚠️ IMPORTANT: Emails are sent individually to respect GDPR privacy. Verify responsiveness on both mobile & desktop layouts before dispatching.
+                    {/* 2. Simulated Smartphone Frame Mockup Bezel */}
+                    <div className={`${
+                      previewMode === 'mobile'
+                        ? 'w-[360px] h-[580px] flex flex-col'
+                        : previewMode === 'split'
+                          ? 'w-[290px] h-[520px] flex flex-col'
+                          : 'hidden'
+                    } border-[12px] border-zinc-900 bg-zinc-950 rounded-[40px] shadow-2xl overflow-hidden relative flex-shrink-0 transition-all`}>
+                      
+                      {/* Phone Notch */}
+                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-4 bg-zinc-900 rounded-b-xl z-20 flex items-center justify-center">
+                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-950" />
+                      </div>
+                      
+                      {/* Status bar icons */}
+                      <div className="bg-[#030303] px-5 pt-2 pb-0.5 flex justify-between items-center text-[7px] font-bold text-zinc-400 z-10 font-sans select-none flex-shrink-0">
+                        <span>9:41</span>
+                        <div className="flex items-center gap-1 font-sans">
+                          <span>5G</span>
+                          <span className="inline-block w-2.5 h-1.5 bg-zinc-400 rounded-sm" />
+                        </div>
+                      </div>
+                      
+                      {/* Simulated Mobile Mail Header */}
+                      <div className="bg-[#0c0c0e] border-b border-zinc-850 px-3 py-2 flex flex-col gap-1 text-zinc-500 font-sans text-[8px] leading-none z-10 flex-shrink-0 select-none">
+                        <div className="text-[9px] font-bold text-zinc-200 truncate mb-0.5">{campaignSubject || '(No Subject)'}</div>
+                        <div>From: news@sampleswala.com</div>
+                      </div>
+                      
+                      {/* Scrollable screen */}
+                      <div className="flex-grow overflow-hidden bg-[#030303] relative">
+                        <iframe
+                          title="Newsletter Mobile Sandbox Preview"
+                          srcDoc={previewHtml}
+                          sandbox="allow-same-origin"
+                          className="w-full h-full border-0 bg-[#030303]"
+                        />
+                      </div>
+                      
+                      {/* Home indicator bar */}
+                      <div className="h-2.5 bg-[#030303] flex items-center justify-center z-20 flex-shrink-0 select-none">
+                        <span className="w-16 h-0.5 bg-zinc-700 rounded-full" />
+                      </div>
+                    </div>
+
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="flex gap-4 pt-4 border-t-2 border-black mt-6">
-              <button
-                type="button"
-                onClick={() => setShowCampaignModal(false)}
-                className="flex-1 px-4 py-3 bg-zinc-800 text-white border-3 border-black font-black uppercase text-xs hover:bg-zinc-700 active:translate-y-0.5"
-              >
-                CANCEL / CLOSE
-              </button>
+            {/* Sticky Actions Footer */}
+            <div className="flex items-center justify-between border-t border-zinc-850 px-6 py-4 bg-[#0d0d12] flex-shrink-0">
+              <div className="text-zinc-500 font-mono text-[9px] uppercase tracking-wider hidden sm:block">
+                Direct Brevo Broadcast System • Auto-Unsubscribe Footer Enabled
+              </div>
+              <div className="flex gap-3 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={() => setShowCampaignModal(false)}
+                  className="px-4 py-2.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:text-white text-zinc-300 font-semibold uppercase text-[10px] rounded-lg transition-all active:scale-95 font-mono"
+                >
+                  CANCEL / CLOSE
+                </button>
 
-              <button
-                type="submit"
-                disabled={campaignSending}
-                className="flex-1 px-4 py-3 bg-[#FF0080] text-black border-3 border-black font-black uppercase text-xs hover:bg-[#E00070] disabled:opacity-50 active:translate-y-0.5 flex items-center justify-center gap-2"
-              >
-                {campaignSending ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" /> DISPATCHING BROADCAST...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4" /> DISPATCH LIVE CAMPAIGN
-                  </>
-                )}
-              </button>
+                <button
+                  type="submit"
+                  disabled={campaignSending}
+                  className="px-5 py-2.5 bg-white hover:bg-zinc-200 text-black border border-zinc-200 font-bold uppercase text-[10px] disabled:opacity-50 flex items-center gap-2 rounded-lg transition-all shadow-md active:scale-95 font-mono"
+                >
+                  {campaignSending ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" /> DISPATCHING BROADCAST...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-3.5 h-3.5" /> DISPATCH LIVE CAMPAIGN
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </form>
         </div>

@@ -930,13 +930,22 @@ export async function sendBrevoCampaign(campaign: {
   subject: string
   title?: string
   htmlContent: string
+  targetEmails?: string[]
 }) {
   try {
     // 1. Fetch active subscribers from our robust hybrid function
     const subscribers = await getBrevoSubscribers()
-    const activeRecipients = subscribers
-      .filter((s: any) => s.subscribed && s.email && s.email !== 'N/A')
-      .map((s: any) => ({ email: s.email }))
+    let activeRecipients: { email: string }[]
+
+    if (campaign.targetEmails && campaign.targetEmails.length > 0) {
+      // Send only to specifically selected recipients
+      activeRecipients = campaign.targetEmails.map(email => ({ email }))
+    } else {
+      // Send to all active subscribers
+      activeRecipients = subscribers
+        .filter((s: any) => s.subscribed && s.email && s.email !== 'N/A')
+        .map((s: any) => ({ email: s.email }))
+    }
 
     if (activeRecipients.length === 0) {
       throw new Error('No active (subscribed) contacts found to send this newsletter to.')
@@ -950,28 +959,111 @@ export async function sendBrevoCampaign(campaign: {
       const email = recipient.email
       const unsubscribeUrl = `https://sampleswala.com/unsubscribe?email=${encodeURIComponent(email)}`
 
+      // Check if campaignContent is a full HTML page
+      const isFullHtml = /<html|<!DOCTYPE/i.test(campaign.htmlContent);
+      let finalHtml = '';
+
+      // Clean default unsubscribe footer HTML aligned with brand theme
+      const footerHtml = `
+        <!-- UN-SUBSCRIBE FOOTER BY DEFAULT -->
+        <div style="margin-top: 40px; padding: 24px; border-top: 1px solid #1e293b; background-color: #0c0c0e; font-size: 11px; color: #94a3b8; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6;">
+          <p style="margin: 0 0 8px 0;">You received this email because you subscribed to our newsletter at <a href="https://sampleswala.com" style="color: #00BFFF; text-decoration: none; font-weight: bold;">sampleswala.com</a>.</p>
+          <p style="margin: 0;">
+            Want to stop receiving these? <a href="${unsubscribeUrl}" style="color: #ef4444; font-weight: 600; text-decoration: underline; margin-left: 4px;">Unsubscribe here</a>
+          </p>
+          <p style="font-weight: 600; margin: 12px 0 0 0; color: #f8fafc;">&copy; 2026 SamplesWala. All rights reserved.</p>
+        </div>
+      `;
+
+      if (isFullHtml) {
+        // If it's a full HTML template, replace unsubscribe placeholders
+        let html = campaign.htmlContent
+          .replace(/{{unsubscribe_url}}/g, unsubscribeUrl)
+          .replace(/{{unsubscribe}}/g, unsubscribeUrl);
+
+        // Check if there is an unsubscribe trigger, if not, append the default footer automatically
+        const hasUnsubscribe = /unsubscribe/i.test(campaign.htmlContent);
+        if (!hasUnsubscribe) {
+          if (/<\/body>/i.test(html)) {
+            html = html.replace(/<\/body>/i, `${footerHtml}</body>`);
+          } else {
+            html = html + footerHtml;
+          }
+        }
+        finalHtml = html;
+      } else {
+        // If it's partial, wrap it in our default responsive email container aligned with SamplesWala Dark Industrial brand theme
+        const replacedSnippet = campaign.htmlContent
+          .replace(/{{unsubscribe_url}}/g, unsubscribeUrl)
+          .replace(/{{unsubscribe}}/g, unsubscribeUrl);
+
+        finalHtml = `
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <style>
+                body {
+                  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                  margin: 0;
+                  padding: 0;
+                  background-color: #030303;
+                  color: #f1f5f9;
+                  -webkit-font-smoothing: antialiased;
+                }
+                .email-container {
+                  max-width: 600px;
+                  margin: 40px auto;
+                  background-color: #0c0c0c;
+                  border: 1px solid #1e293b;
+                  border-radius: 12px;
+                  overflow: hidden;
+                  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.8);
+                }
+                .email-body {
+                  padding: 40px 32px;
+                }
+                a {
+                  color: #00BFFF;
+                  text-decoration: none;
+                }
+                a:hover {
+                  text-decoration: underline;
+                }
+                @media only screen and (max-width: 600px) {
+                  .email-container {
+                    margin: 0;
+                    border-radius: 0;
+                    border: none;
+                    width: 100% !important;
+                  }
+                  .email-body {
+                    padding: 24px 16px;
+                  }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="email-container">
+                <div class="email-body">
+                  ${replacedSnippet}
+                </div>
+                ${footerHtml}
+              </div>
+            </body>
+          </html>
+        `;
+      }
+
       try {
         const emailRes = await fetch(`${BREVO_API_URL}/smtp/email`, {
           method: 'POST',
           headers,
           body: JSON.stringify({
-            sender: { name: 'SamplesWala', email: 'news@sampleswala.com' },
+            sender: { name: 'Samples Wala', email: 'news@sampleswala.com' },
             to: [{ email }],
             subject: campaign.subject,
-            htmlContent: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
-                <div style="font-size: 14px; line-height: 1.7; color: #111111;">
-                  ${campaign.htmlContent}
-                </div>
-                <div style="margin-top: 40px; padding: 20px; border-top: 3px solid #000000; background-color: #f9f9f9; font-size: 11px; color: #555; text-align: center;">
-                  <p style="margin: 0;">You received this email because you subscribed to our newsletter at <a href="https://sampleswala.com" style="color: #00BFFF; text-decoration: none; font-weight: bold;">sampleswala.com</a>.</p>
-                  <p style="margin: 10px 0 0 0; font-size: 12px; font-weight: bold; color: #555;">
-                    Want to stop receiving these?<a href="${unsubscribeUrl}" style="color: #FF0080; text-decoration: underline; font-weight: bold; margin-left: 5px;">Unsubscribe here</a>
-                  </p>
-                  <p style="font-weight: bold; margin-top: 15px; color: #000;">&copy; 2026 SamplesWala. All rights reserved.</p>
-                </div>
-              </div>
-            `
+            htmlContent: finalHtml
           })
         })
 
