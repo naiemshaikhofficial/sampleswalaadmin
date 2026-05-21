@@ -1130,7 +1130,12 @@ export default function AdminDashboard() {
                 🔒 ADMIN LOGIN
               </div>
 
-              <div className="text-center mb-8 mt-4">
+              <div className="text-center mb-8 mt-4 flex flex-col items-center justify-center">
+                <img 
+                  src="/icon.png?v=3" 
+                  alt="SamplesWala Logo" 
+                  className="w-16 h-16 object-contain border-4 border-black bg-black/50 p-2 mb-3 shadow-[0_0_12px_rgba(0,255,148,0.2)] rounded-lg animate-pulse"
+                />
                 <h1 className="font-luckiest-guy text-5xl uppercase tracking-tighter text-white">
                   SAMPLES<span className="text-studio-pink">WALA</span>
                 </h1>
@@ -1246,13 +1251,20 @@ export default function AdminDashboard() {
       {/* SIDEBAR NAVIGATION BAR */}
       <aside className="w-full md:w-64 border-b-4 md:border-b-0 md:border-r-4 border-black bg-[#121212] flex flex-col flex-shrink-0 z-10">
         <div className="p-6 border-b-4 border-black bg-black flex flex-row items-center justify-between md:flex-col md:items-stretch">
-          <div>
-            <h1 className="font-luckiest-guy text-3xl tracking-tighter uppercase leading-none">
-              SAMPLES<span className="text-studio-pink">WALA</span>
-            </h1>
-            <span className="text-[9px] uppercase font-mono tracking-widest text-studio-neon font-black block mt-1">
-              🛠️ SYSTEM CONTROL
-            </span>
+          <div className="flex items-center gap-3">
+            <img 
+              src="/icon.png?v=3" 
+              alt="SamplesWala Logo" 
+              className="w-10 h-10 object-contain border-2 border-white/10 rounded shadow-[0_0_8px_rgba(255,0,128,0.3)] bg-black/50 p-1"
+            />
+            <div>
+              <h1 className="font-luckiest-guy text-3xl tracking-tighter uppercase leading-none">
+                SAMPLES<span className="text-studio-pink">WALA</span>
+              </h1>
+              <span className="text-[9px] uppercase font-mono tracking-widest text-studio-neon font-black block mt-1">
+                🛠️ SYSTEM CONTROL
+              </span>
+            </div>
           </div>
 
           <button
