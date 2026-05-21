@@ -32,6 +32,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark h-full">
+      <head>
+        <link rel="icon" href="/favicon.ico?v=3" sizes="any" />
+        <link rel="icon" href="/icon.png?v=3" type="image/png" sizes="192x192" />
+      </head>
       <body className={`${luckiestGuy.variable} ${kalam.variable} ${jetbrainsMono.variable} antialiased min-h-screen flex flex-col bg-[#0c0c0c] text-white`}>
         {children}
       </body>
