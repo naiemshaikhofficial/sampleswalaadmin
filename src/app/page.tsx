@@ -134,6 +134,104 @@ export default function AdminDashboard() {
   // Notification Toast State
   const [toast, setToast] = useState<ToastState>({ show: false, message: '', type: 'success' })
 
+  // Detailed Date-Time Filter States
+  const [filterStartDate, setFilterStartDate] = useState<string>('')
+  const [filterStartTime, setFilterStartTime] = useState<string>('00:00')
+  const [filterEndDate, setFilterEndDate] = useState<string>('')
+  const [filterEndTime, setFilterEndTime] = useState<string>('23:59')
+  const [showDateFilter, setShowDateFilter] = useState<boolean>(true)
+
+  const isDateWithinRange = (dateInput: any) => {
+    if (!dateInput) return true
+    const d = new Date(dateInput)
+    if (isNaN(d.getTime())) return true
+
+    if (filterStartDate) {
+      const startLimit = new Date(`${filterStartDate}T${filterStartTime || '00:00'}`)
+      if (d < startLimit) return false
+    }
+    if (filterEndDate) {
+      const endLimit = new Date(`${filterEndDate}T${filterEndTime || '23:59'}`)
+      if (d > endLimit) return false
+    }
+    return true
+  }
+
+  const setQuickRange = (range: 'all' | 'today' | 'yesterday' | '7days' | '30days' | 'month') => {
+    const today = new Date()
+    const getISODateStr = (d: Date) => {
+      const year = d.getFullYear()
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const date = String(d.getDate()).padStart(2, '0')
+      return `${year}-${month}-${date}`
+    }
+
+    if (range === 'all') {
+      setFilterStartDate('')
+      setFilterStartTime('00:00')
+      setFilterEndDate('')
+      setFilterEndTime('23:59')
+    } else if (range === 'today') {
+      const dateStr = getISODateStr(today)
+      setFilterStartDate(dateStr)
+      setFilterStartTime('00:00')
+      setFilterEndDate(dateStr)
+      setFilterEndTime('23:59')
+    } else if (range === 'yesterday') {
+      const yesterday = new Date()
+      yesterday.setDate(today.getDate() - 1)
+      const dateStr = getISODateStr(yesterday)
+      setFilterStartDate(dateStr)
+      setFilterStartTime('00:00')
+      setFilterEndDate(dateStr)
+      setFilterEndTime('23:59')
+    } else if (range === '7days') {
+      const past = new Date()
+      past.setDate(today.getDate() - 7)
+      setFilterStartDate(getISODateStr(past))
+      setFilterStartTime('00:00')
+      setFilterEndDate(getISODateStr(today))
+      setFilterEndTime('23:59')
+    } else if (range === '30days') {
+      const past = new Date()
+      past.setDate(today.getDate() - 30)
+      setFilterStartDate(getISODateStr(past))
+      setFilterStartTime('00:00')
+      setFilterEndDate(getISODateStr(today))
+      setFilterEndTime('23:59')
+    } else if (range === 'month') {
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+      setFilterStartDate(getISODateStr(startOfMonth))
+      setFilterStartTime('00:00')
+      setFilterEndDate(getISODateStr(today))
+      setFilterEndTime('23:59')
+    }
+    showToast(`Range set to: ${range.toUpperCase()}`, 'success')
+  }
+
+  const getFilteredMetrics = () => {
+    let revenue = 0
+    let count = 0
+    let uniqueBuyers = new Set<string>()
+
+    const filtered = vaultSalesList.filter(s => isDateWithinRange(s.created_at))
+    count = filtered.length
+    filtered.forEach(s => {
+      revenue += Number(s.amount || 0)
+      if (s.buyer_email) {
+        uniqueBuyers.add(s.buyer_email)
+      }
+    })
+
+    const aov = count > 0 ? Math.round(revenue / count) : 0
+    return {
+      revenue,
+      count,
+      uniqueBuyersCount: uniqueBuyers.size,
+      aov
+    }
+  }
+
   // Data Stores
   const [stats, setStats] = useState<any>(null)
   const [packs, setPacks] = useState<any[]>([])
@@ -594,6 +692,13 @@ export default function AdminDashboard() {
       if (tab === 'analytics') {
         freshData = await getDashboardStats()
         setStats(freshData)
+        // Load full sales for real-time period calculations
+        try {
+          const salesData = await getAllVaultSales()
+          setVaultSalesList(salesData)
+        } catch (e) {
+          console.error("Failed to load detailed sales list for period analytics", e)
+        }
       } else if (tab === 'packs') {
         const result = await getSamplePacks()
         freshData = result
@@ -1250,22 +1355,12 @@ export default function AdminDashboard() {
 
       {/* SIDEBAR NAVIGATION BAR */}
       <aside className="w-full md:w-64 border-b-4 md:border-b-0 md:border-r-4 border-black bg-[#121212] flex flex-col flex-shrink-0 z-10">
-        <div className="p-6 border-b-4 border-black bg-black flex flex-row items-center justify-between md:flex-col md:items-stretch">
-          <div className="flex items-center gap-3">
-            <img 
-              src="/icon.png?v=3" 
-              alt="SamplesWala Logo" 
-              className="w-10 h-10 object-contain border-2 border-white/10 rounded shadow-[0_0_8px_rgba(255,0,128,0.3)] bg-black/50 p-1"
-            />
-            <div>
-              <h1 className="font-luckiest-guy text-3xl tracking-tighter uppercase leading-none">
-                SAMPLES<span className="text-studio-pink">WALA</span>
-              </h1>
-              <span className="text-[9px] uppercase font-mono tracking-widest text-studio-neon font-black block mt-1">
-                🛠️ SYSTEM CONTROL
-              </span>
-            </div>
-          </div>
+        <div className="p-6 border-b-4 border-black bg-black flex flex-row items-center justify-between md:flex-col md:items-center">
+          <img 
+            src="/icon.png?v=3" 
+            alt="SamplesWala Logo" 
+            className="w-16 h-16 md:w-28 md:h-28 object-contain"
+          />
 
           <button
             onClick={handleReload}
@@ -1459,8 +1554,170 @@ export default function AdminDashboard() {
           {/* ======================================================== */}
           {activeTab === 'analytics' && stats && (
             <div className="space-y-6 animate-fadeIn">
+              {/* 📅 DETAILED DATE & TIME FILTER PANEL */}
+              <div className="studio-panel p-5 border-4 border-black bg-[#0c0c0c] font-sans">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-4 border-black pb-3 mb-4 gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <Calendar className="w-5 h-5 text-studio-pink animate-pulse" />
+                    <div>
+                      <h4 className="font-sans font-bold text-sm uppercase text-studio-pink tracking-wider">
+                        📅 DETAILED DATE-TIME RANGE FILTER
+                      </h4>
+                      <p className="text-[9px] font-mono uppercase text-zinc-500 font-bold leading-none mt-0.5">
+                        Filter all business analytics and orders down to the exact minute
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowDateFilter(!showDateFilter)}
+                      className="px-2 py-0.5 text-[9px] font-mono font-black uppercase bg-[#151515] border border-zinc-800 text-zinc-400 hover:text-white"
+                    >
+                      {showDateFilter ? '🙈 COLLAPSE FILTER' : '👁️ SHOW FILTER'}
+                    </button>
+                    {(filterStartDate || filterEndDate) && (
+                      <span className="inline-block text-[8px] bg-studio-neon/20 text-studio-neon border border-studio-neon px-2 py-0.5 font-bold uppercase animate-bounce">
+                        FILTER ACTIVE
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {showDateFilter && (
+                  <div className="space-y-4">
+                    {/* Quick Presets row */}
+                    <div className="flex flex-wrap items-center gap-1.5 pb-3 border-b border-zinc-900">
+                      <span className="text-[9px] font-mono font-black uppercase text-zinc-500 mr-2">QUICK TIME PRESETS:</span>
+                      {[
+                        { label: 'ALL TIME', key: 'all' },
+                        { label: 'TODAY', key: 'today' },
+                        { label: 'YESTERDAY', key: 'yesterday' },
+                        { label: 'LAST 7 DAYS', key: '7days' },
+                        { label: 'LAST 30 DAYS', key: '30days' },
+                        { label: 'THIS MONTH', key: 'month' },
+                      ].map(preset => (
+                        <button
+                          key={preset.key}
+                          onClick={() => setQuickRange(preset.key as any)}
+                          className="px-2 py-1 text-[9px] font-mono font-black uppercase bg-black border border-zinc-850 hover:border-studio-pink text-zinc-400 hover:text-white transition-all cursor-pointer"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Form row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end">
+                      {/* Start Date */}
+                      <div className="space-y-1">
+                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">📅 START DATE</label>
+                        <input
+                          type="date"
+                          value={filterStartDate}
+                          onChange={e => setFilterStartDate(e.target.value)}
+                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-pink"
+                        />
+                      </div>
+
+                      {/* Start Time */}
+                      <div className="space-y-1">
+                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">⏰ START TIME</label>
+                        <input
+                          type="time"
+                          value={filterStartTime}
+                          onChange={e => setFilterStartTime(e.target.value)}
+                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-pink"
+                        />
+                      </div>
+
+                      {/* End Date */}
+                      <div className="space-y-1">
+                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">📅 END DATE</label>
+                        <input
+                          type="date"
+                          value={filterEndDate}
+                          onChange={e => setFilterEndDate(e.target.value)}
+                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-pink"
+                        />
+                      </div>
+
+                      {/* End Time */}
+                      <div className="space-y-1">
+                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">⏰ END TIME</label>
+                        <input
+                          type="time"
+                          value={filterEndTime}
+                          onChange={e => setFilterEndTime(e.target.value)}
+                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-pink"
+                        />
+                      </div>
+
+                      {/* Reset Button */}
+                      <button
+                        onClick={() => {
+                          setQuickRange('all')
+                          showToast('Filters cleared!', 'warning')
+                        }}
+                        className="w-full h-[36px] border-2 border-zinc-800 hover:border-studio-pink hover:bg-studio-pink/10 text-zinc-400 hover:text-white font-sans font-black uppercase text-[9px] tracking-wide transition-all cursor-pointer"
+                      >
+                        🔄 RESET RANGE
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 🎯 DYNAMIC PERIOD METRICS SUMMARY */}
+              {(filterStartDate || filterEndDate) && (
+                <div className="studio-panel p-5 border-4 border-black bg-[#0d0d0d] animate-fadeIn">
+                  <div className="flex items-center justify-between border-b-2 border-zinc-800 pb-3 mb-4">
+                    <h3 className="font-sans font-black text-xs uppercase text-studio-neon flex items-center gap-2">
+                      🎯 DYNAMIC METRICS FOR SELECTED PERIOD
+                    </h3>
+                    <span className="text-[8px] font-mono font-black text-zinc-500 uppercase">
+                      TIME-WISE GRANULAR ANALYSIS
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-black border border-zinc-850 p-4 relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-2 text-[30px] font-black text-zinc-900 leading-none select-none">₹</div>
+                      <p className="text-[8px] font-mono font-black text-zinc-500 uppercase leading-none">PERIOD EARNINGS</p>
+                      <p className="font-sans font-bold text-2xl text-white mt-2 leading-none">
+                        ₹{getFilteredMetrics().revenue.toLocaleString()}
+                      </p>
+                    </div>
+
+                    <div className="bg-black border border-zinc-850 p-4 relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-2 text-[30px] font-black text-zinc-900 leading-none select-none">📦</div>
+                      <p className="text-[8px] font-mono font-black text-zinc-500 uppercase leading-none">ACQUISITIONS VOLUME</p>
+                      <p className="font-sans font-bold text-2xl text-white mt-2 leading-none">
+                        {getFilteredMetrics().count} SALES
+                      </p>
+                    </div>
+
+                    <div className="bg-black border border-zinc-850 p-4 relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-2 text-[30px] font-black text-zinc-900 leading-none select-none">📊</div>
+                      <p className="text-[8px] font-mono font-black text-zinc-500 uppercase leading-none">AVERAGE ORDER VALUE (AOV)</p>
+                      <p className="font-sans font-bold text-2xl text-white mt-2 leading-none">
+                        ₹{getFilteredMetrics().aov.toLocaleString()}
+                      </p>
+                    </div>
+
+                    <div className="bg-black border border-zinc-850 p-4 relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-2 text-[30px] font-black text-zinc-900 leading-none select-none">👤</div>
+                      <p className="text-[8px] font-mono font-black text-zinc-500 uppercase leading-none">UNIQUE CUSTOMERS</p>
+                      <p className="font-sans font-bold text-2xl text-white mt-2 leading-none">
+                        {getFilteredMetrics().uniqueBuyersCount} BUYERS
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* STATS HEADER GRID */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* 1. REVENUE CARD */}
                 <div className="comic-panel border-4 border-black p-5 yellow-border flex items-center gap-4">
                   <div className="w-12 h-12 bg-studio-yellow border-3 border-black flex items-center justify-center text-black">
@@ -1486,36 +1743,10 @@ export default function AdminDashboard() {
                     </p>
                   </div>
                 </div>
-
-                {/* 3. DOWNLOADS COMPLETED */}
-                <div className="comic-panel border-4 border-black p-5 neon-border flex items-center gap-4">
-                  <div className="w-12 h-12 bg-studio-neon border-3 border-black flex items-center justify-center text-black">
-                    <Download className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase text-zinc-400">SECURE AUDIO DOWNLOADS</h3>
-                    <p className="font-sans font-bold text-xl tracking-normal text-white mt-1">
-                      {stats.totalDownloads} HITS
-                    </p>
-                  </div>
-                </div>
-
-                {/* 4. PENDING ISSUES */}
-                <div className="comic-panel border-4 border-black p-5 orange-border flex items-center gap-4">
-                  <div className="w-12 h-12 bg-studio-orange border-3 border-black flex items-center justify-center text-black">
-                    <BadgeAlert className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase text-zinc-400">OPEN CASES / PENDING KYC</h3>
-                    <p className="font-sans font-bold text-xl tracking-normal text-white mt-1">
-                      {stats.openTickets} TC / {stats.pendingKYCs} KYC
-                    </p>
-                  </div>
-                </div>
               </div>
 
               {/* RECENT SALES GRID LAYOUT */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 {/* SAMPLE PACK SALES (VAULT) */}
                 <div className="studio-panel p-6 border-4 border-black">
                   <div className="flex items-center justify-between border-b-4 border-black pb-4 mb-4">
@@ -1551,50 +1782,6 @@ export default function AdminDashboard() {
                             <p className="font-black text-white text-[13px]">₹{sale.amount || 0}</p>
                             <span className="inline-block text-[8px] font-black uppercase px-2 py-0.5 mt-1 border border-black bg-studio-pink text-black">
                               VAULTED
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-                {/* SOFTWARE ORDERS */}
-                <div className="studio-panel p-6 border-4 border-black">
-                  <div className="flex items-center justify-between border-b-4 border-black pb-4 mb-4">
-                    <h3 className="font-sans font-bold text-lg uppercase text-studio-yellow flex items-center gap-2">
-                      💿 SOFTWARE LICENSES
-                    </h3>
-                    <span className="text-[10px] uppercase font-mono font-black bg-zinc-800 border border-zinc-700 px-2 py-0.5">
-                      LATEST 5
-                    </span>
-                  </div>
-
-                  <div className="space-y-4 font-mono text-xs">
-                    {stats.recentSoftwares.length === 0 ? (
-                      <div className="text-center py-8 text-zinc-500 uppercase font-black">
-                        No software products purchased yet.
-                      </div>
-                    ) : (
-                      stats.recentSoftwares.map((order: any) => (
-                        <div key={order.id} className="bg-black/50 border border-zinc-800 p-3.5 flex items-center justify-between">
-                          <div>
-                            <p className="font-bold text-white uppercase text-[11px] truncate max-w-[180px]">
-                              {order.user_email}
-                            </p>
-                            <p className="text-[10px] text-zinc-400 mt-1">
-                              PRODUCT: <span className="text-studio-yellow font-black">{order.software_name}</span>
-                            </p>
-                            <p className="text-[9px] text-zinc-500 mt-0.5">
-                              {new Date(order.created_at).toLocaleString()}
-                            </p>
-                          </div>
-
-                          <div className="text-right">
-                            <p className="font-black text-white text-[13px]">₹{order.amount_paid || 0}</p>
-                            <span className={`inline-block text-[8px] font-black uppercase px-2 py-0.5 mt-1 border border-black ${order.status === 'complete' ? 'bg-studio-neon text-black' : 'bg-studio-yellow text-black'
-                              }`}>
-                              {order.status}
                             </span>
                           </div>
                         </div>
@@ -2425,6 +2612,120 @@ export default function AdminDashboard() {
           {/* ======================================================== */}
           {activeTab === 'sales' && (
             <div className="space-y-6 animate-fadeIn font-mono text-xs">
+              {/* 📅 DETAILED DATE & TIME FILTER PANEL */}
+              <div className="studio-panel p-5 border-4 border-black bg-[#0c0c0c] font-sans">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-4 border-black pb-3 mb-4 gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <Calendar className="w-5 h-5 text-studio-neon animate-pulse" />
+                    <div>
+                      <h4 className="font-sans font-bold text-sm uppercase text-studio-neon tracking-wider">
+                        📅 DETAILED DATE-TIME RANGE FILTER
+                      </h4>
+                      <p className="text-[9px] font-mono uppercase text-zinc-500 font-bold leading-none mt-0.5">
+                        Filter all business analytics and orders down to the exact minute
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowDateFilter(!showDateFilter)}
+                      className="px-2 py-0.5 text-[9px] font-mono font-black uppercase bg-[#151515] border border-zinc-800 text-zinc-400 hover:text-white"
+                    >
+                      {showDateFilter ? '🙈 COLLAPSE FILTER' : '👁️ SHOW FILTER'}
+                    </button>
+                    {(filterStartDate || filterEndDate) && (
+                      <span className="inline-block text-[8px] bg-studio-neon/20 text-studio-neon border border-studio-neon px-2 py-0.5 font-bold uppercase animate-bounce">
+                        FILTER ACTIVE
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {showDateFilter && (
+                  <div className="space-y-4">
+                    {/* Quick Presets row */}
+                    <div className="flex flex-wrap items-center gap-1.5 pb-3 border-b border-zinc-900">
+                      <span className="text-[9px] font-mono font-black uppercase text-zinc-500 mr-2">QUICK TIME PRESETS:</span>
+                      {[
+                        { label: 'ALL TIME', key: 'all' },
+                        { label: 'TODAY', key: 'today' },
+                        { label: 'YESTERDAY', key: 'yesterday' },
+                        { label: 'LAST 7 DAYS', key: '7days' },
+                        { label: 'LAST 30 DAYS', key: '30days' },
+                        { label: 'THIS MONTH', key: 'month' },
+                      ].map(preset => (
+                        <button
+                          key={preset.key}
+                          onClick={() => setQuickRange(preset.key as any)}
+                          className="px-2 py-1 text-[9px] font-mono font-black uppercase bg-black border border-zinc-855 hover:border-studio-neon text-zinc-400 hover:text-white transition-all cursor-pointer"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Form row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end">
+                      {/* Start Date */}
+                      <div className="space-y-1">
+                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">📅 START DATE</label>
+                        <input
+                          type="date"
+                          value={filterStartDate}
+                          onChange={e => setFilterStartDate(e.target.value)}
+                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-neon"
+                        />
+                      </div>
+
+                      {/* Start Time */}
+                      <div className="space-y-1">
+                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">⏰ START TIME</label>
+                        <input
+                          type="time"
+                          value={filterStartTime}
+                          onChange={e => setFilterStartTime(e.target.value)}
+                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-neon"
+                        />
+                      </div>
+
+                      {/* End Date */}
+                      <div className="space-y-1">
+                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">📅 END DATE</label>
+                        <input
+                          type="date"
+                          value={filterEndDate}
+                          onChange={e => setFilterEndDate(e.target.value)}
+                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-neon"
+                        />
+                      </div>
+
+                      {/* End Time */}
+                      <div className="space-y-1">
+                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">⏰ END TIME</label>
+                        <input
+                          type="time"
+                          value={filterEndTime}
+                          onChange={e => setFilterEndTime(e.target.value)}
+                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-neon"
+                        />
+                      </div>
+
+                      {/* Reset Button */}
+                      <button
+                        onClick={() => {
+                          setQuickRange('all')
+                          showToast('Filters cleared!', 'warning')
+                        }}
+                        className="w-full h-[36px] border-2 border-zinc-800 hover:border-studio-neon hover:bg-studio-neon/10 text-zinc-400 hover:text-white font-sans font-black uppercase text-[9px] tracking-wide transition-all cursor-pointer"
+                      >
+                        🔄 RESET RANGE
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="bg-[#121212] p-4 border-4 border-black flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-neon">
@@ -2461,6 +2762,9 @@ export default function AdminDashboard() {
                   <tbody className="divide-y-3 divide-black font-sans text-xs">
                     {(() => {
                       const filtered = vaultSalesList.filter(s => {
+                        // Apply Date/Time-wise Filter
+                        if (!isDateWithinRange(s.created_at)) return false
+
                         const searchLower = salesSearch.toLowerCase()
                         return (
                           (s.pack_name || '').toLowerCase().includes(searchLower) ||
@@ -2540,6 +2844,120 @@ export default function AdminDashboard() {
           {/* ======================================================== */}
           {activeTab === 'logs' && (
             <div className="space-y-6 animate-fadeIn font-mono text-xs">
+              {/* 📅 DETAILED DATE & TIME FILTER PANEL */}
+              <div className="studio-panel p-5 border-4 border-black bg-[#0c0c0c] font-sans">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-4 border-black pb-3 mb-4 gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <Calendar className="w-5 h-5 text-studio-purple animate-pulse" />
+                    <div>
+                      <h4 className="font-sans font-bold text-sm uppercase text-studio-purple tracking-wider">
+                        📅 DETAILED DATE-TIME RANGE FILTER
+                      </h4>
+                      <p className="text-[9px] font-mono uppercase text-zinc-500 font-bold leading-none mt-0.5">
+                        Filter all business analytics and orders down to the exact minute
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowDateFilter(!showDateFilter)}
+                      className="px-2 py-0.5 text-[9px] font-mono font-black uppercase bg-[#151515] border border-zinc-800 text-zinc-400 hover:text-white"
+                    >
+                      {showDateFilter ? '🙈 COLLAPSE FILTER' : '👁️ SHOW FILTER'}
+                    </button>
+                    {(filterStartDate || filterEndDate) && (
+                      <span className="inline-block text-[8px] bg-studio-neon/20 text-studio-neon border border-studio-neon px-2 py-0.5 font-bold uppercase animate-bounce">
+                        FILTER ACTIVE
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {showDateFilter && (
+                  <div className="space-y-4">
+                    {/* Quick Presets row */}
+                    <div className="flex flex-wrap items-center gap-1.5 pb-3 border-b border-zinc-900">
+                      <span className="text-[9px] font-mono font-black uppercase text-zinc-500 mr-2">QUICK TIME PRESETS:</span>
+                      {[
+                        { label: 'ALL TIME', key: 'all' },
+                        { label: 'TODAY', key: 'today' },
+                        { label: 'YESTERDAY', key: 'yesterday' },
+                        { label: 'LAST 7 DAYS', key: '7days' },
+                        { label: 'LAST 30 DAYS', key: '30days' },
+                        { label: 'THIS MONTH', key: 'month' },
+                      ].map(preset => (
+                        <button
+                          key={preset.key}
+                          onClick={() => setQuickRange(preset.key as any)}
+                          className="px-2 py-1 text-[9px] font-mono font-black uppercase bg-black border border-zinc-855 hover:border-studio-purple text-zinc-400 hover:text-white transition-all cursor-pointer"
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Form row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end">
+                      {/* Start Date */}
+                      <div className="space-y-1">
+                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">📅 START DATE</label>
+                        <input
+                          type="date"
+                          value={filterStartDate}
+                          onChange={e => setFilterStartDate(e.target.value)}
+                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-purple"
+                        />
+                      </div>
+
+                      {/* Start Time */}
+                      <div className="space-y-1">
+                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">⏰ START TIME</label>
+                        <input
+                          type="time"
+                          value={filterStartTime}
+                          onChange={e => setFilterStartTime(e.target.value)}
+                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-purple"
+                        />
+                      </div>
+
+                      {/* End Date */}
+                      <div className="space-y-1">
+                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">📅 END DATE</label>
+                        <input
+                          type="date"
+                          value={filterEndDate}
+                          onChange={e => setFilterEndDate(e.target.value)}
+                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-purple"
+                        />
+                      </div>
+
+                      {/* End Time */}
+                      <div className="space-y-1">
+                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">⏰ END TIME</label>
+                        <input
+                          type="time"
+                          value={filterEndTime}
+                          onChange={e => setFilterEndTime(e.target.value)}
+                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-purple"
+                        />
+                      </div>
+
+                      {/* Reset Button */}
+                      <button
+                        onClick={() => {
+                          setQuickRange('all')
+                          showToast('Filters cleared!', 'warning')
+                        }}
+                        className="w-full h-[36px] border-2 border-zinc-800 hover:border-studio-purple hover:bg-studio-purple/10 text-zinc-400 hover:text-white font-sans font-black uppercase text-[9px] tracking-wide transition-all cursor-pointer"
+                      >
+                        🔄 RESET RANGE
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="bg-[#121212] p-4 border-4 border-black flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-purple">
@@ -2584,14 +3002,20 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y-3 divide-black font-mono text-xs">
-                    {auditLogs.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="p-8 text-center text-zinc-500 uppercase font-bold">
-                          No activity logs found.
-                        </td>
-                      </tr>
-                    ) : (
-                      auditLogs.map((l) => (
+                    {(() => {
+                      const filteredLogs = auditLogs.filter(l => isDateWithinRange(l.timestamp))
+
+                      if (filteredLogs.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={4} className="p-8 text-center text-zinc-500 uppercase font-bold">
+                              No activity logs found matching the filter range.
+                            </td>
+                          </tr>
+                        )
+                      }
+
+                      return filteredLogs.map((l) => (
                         <tr
                           key={l.id}
                           className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors"
@@ -2619,7 +3043,7 @@ export default function AdminDashboard() {
                           </td>
                         </tr>
                       ))
-                    )}
+                    })()}
                   </tbody>
                 </table>
               </div>
