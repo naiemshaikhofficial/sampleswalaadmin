@@ -1237,7 +1237,7 @@ export default function AdminDashboard() {
 
               <div className="text-center mb-8 mt-4 flex flex-col items-center justify-center">
                 <img 
-                  src="/icon.png?v=3" 
+                  src="/icon.png?v=5" 
                   alt="SamplesWala Logo" 
                   className="w-16 h-16 object-contain border-4 border-black bg-black/50 p-2 mb-3 shadow-[0_0_12px_rgba(0,255,148,0.2)] rounded-lg animate-pulse"
                 />
@@ -1357,7 +1357,7 @@ export default function AdminDashboard() {
       <aside className="w-full md:w-64 border-b-4 md:border-b-0 md:border-r-4 border-black bg-[#121212] flex flex-col flex-shrink-0 z-10">
         <div className="p-6 border-b-4 border-black bg-black flex flex-row items-center justify-between md:flex-col md:items-center">
           <img 
-            src="/icon.png?v=3" 
+            src="/icon.png?v=5" 
             alt="SamplesWala Logo" 
             className="w-16 h-16 md:w-28 md:h-28 object-contain"
           />
