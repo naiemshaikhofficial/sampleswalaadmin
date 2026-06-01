@@ -204,15 +204,124 @@ body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Form controls reset */
+/* ======================================================== */
+/* BRUTALIST TO PREMIUM EGS THEME MAPPING & OVERRIDES       */
+/* ======================================================== */
+
+.border-4.border-black {
+  border-width: 1px !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-radius: 8px !important;
+}
+
+.border-3.border-black {
+  border-width: 1px !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-radius: 6px !important;
+}
+
+.border-2.border-black {
+  border-width: 1px !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-radius: 4px !important;
+}
+
+.border-b-4.border-black {
+  border-bottom-width: 1px !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.border-t-4.border-black {
+  border-top-width: 1px !important;
+  border-top-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.border-r-4.border-black {
+  border-right-width: 1px !important;
+  border-right-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Override blocky shadows to high-end soft drop shadows */
+.\/shadow-\[3px_3px_0px_black\],
+.\/shadow-\[6px_6px_0px_black\],
+.\/shadow-\[6px_6px_0px_\#FF0080\],
+.\/shadow-\[6px_6px_0px_\#00BFFF\],
+.\/shadow-\[6px_6px_0px_\#00FF94\],
+.\/shadow-\[6px_6px_0px_\#FF5C00\],
+.\/shadow-\[6px_6px_0px_\#FFE600\],
+.\/shadow-\[6px_6px_0px_\#BF00FF\],
+.\/shadow-\[3px_3px_0px_white\] {
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.55) !important;
+}
+
+/* Modern inputs, selects, textareas overrides */
 input, select, textarea {
   border-radius: 4px !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  background-color: #1a1a1e !important;
+  background-color: #18181c !important;
   color: white !important;
+  padding: 0.65rem 0.85rem !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
 }
+
 input:focus, select:focus, textarea:focus {
   outline: none !important;
   border-color: #0074e4 !important;
-  box-shadow: 0 0 8px rgba(0, 116, 228, 0.3) !important;
+  box-shadow: 0 0 10px rgba(0, 116, 228, 0.25) !important;
+  background-color: #1c1c22 !important;
+}
+
+/* Dialog background */
+.fixed.inset-0.bg-black\/92 {
+  background-color: rgba(10, 10, 10, 0.85) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* Table styling optimization */
+table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  font-family: var(--font-mono) !important;
+}
+
+thead {
+  background-color: #0d0d0d !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+thead th {
+  color: #a1a1aa !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 10px !important;
+  padding: 0.85rem 1rem !important;
+  letter-spacing: 0.05em !important;
+}
+
+tbody tr {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+  transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+tbody td {
+  padding: 0.85rem 1rem !important;
+  color: #d4d4d8 !important;
+  font-size: 11px !important;
+  vertical-align: middle !important;
+}
+
+/* Floating custom title badges overrides */
+.absolute.-top-5.left-6 {
+  top: -12px !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  padding: 0.25rem 0.75rem !important;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4) !important;
 }
