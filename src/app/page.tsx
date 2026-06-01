@@ -378,6 +378,94 @@ export default function AdminDashboard() {
     return () => subscription.unsubscribe()
   }, [])
 
+  const playNotificationSound = () => {
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+      if (!AudioCtx) return
+      const ctx = new AudioCtx()
+      
+      const playNote = (freq: number, start: number, duration: number) => {
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        
+        osc.type = 'sine'
+        osc.frequency.setValueAtTime(freq, start)
+        
+        gain.gain.setValueAtTime(0.001, start)
+        gain.gain.exponentialRampToValueAtTime(0.15, start + 0.05)
+        gain.gain.exponentialRampToValueAtTime(0.001, start + duration)
+        
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        
+        osc.start(start)
+        osc.stop(start + duration)
+      }
+
+      const now = ctx.currentTime
+      playNote(587.33, now, 0.3) // D5
+      playNote(880.00, now + 0.1, 0.4) // A5
+    } catch (e) {
+      console.error('Failed to play synthesized chime sound:', e)
+    }
+  }
+
+  // Hook up Supabase Realtime live subscriptions for live operations alerts
+  useEffect(() => {
+    if (!isAdmin || !session?.user) return
+
+    const vaultChannel = supabase
+      .channel('realtime-vault-sales')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'user_vault' },
+        async (payload) => {
+          playNotificationSound()
+          const statsData = await getDashboardStats()
+          setStats(statsData)
+          showToast(`🚨 REALTIME ORDER: A user vaulted a pack for ₹${payload.new.amount || 'N/A'}!`, 'success')
+          addAuditLog('REALTIME_SALE', `Real-time Order: Vault purchase of ₹${payload.new.amount || 'N/A'} by user ID ${payload.new.user_id?.slice(0,8)}`, 'success')
+        }
+      )
+      .subscribe()
+
+    const userChannel = supabase
+      .channel('realtime-user-signups')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'user_accounts' },
+        async (payload) => {
+          playNotificationSound()
+          const statsData = await getDashboardStats()
+          setStats(statsData)
+          showToast(`👥 REALTIME USER: New user "${payload.new.full_name || 'Anonymous'}" registered!`, 'success')
+          addAuditLog('REALTIME_SIGNUP', `Real-time Registration: ${payload.new.full_name || 'Anonymous'} joined platform`, 'info')
+        }
+      )
+      .subscribe()
+
+    const ticketChannel = supabase
+      .channel('realtime-support-tickets')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'support_tickets' },
+        async (payload) => {
+          playNotificationSound()
+          const statsData = await getDashboardStats()
+          setStats(statsData)
+          showToast(`🎫 REALTIME TICKET: "${payload.new.subject || 'Inquiry'}" has been submitted!`, 'warning')
+          addAuditLog('REALTIME_TICKET', `Real-time Ticket: "${payload.new.subject || 'Inquiry'}" submitted`, 'warning')
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(vaultChannel)
+      supabase.removeChannel(userChannel)
+      supabase.removeChannel(ticketChannel)
+    }
+  }, [isAdmin, session])
+
   const verifyAdmin = async (uid: string) => {
     if (verifiedAdminIdRef.current === uid) {
       return
@@ -466,6 +554,8 @@ export default function AdminDashboard() {
       if (data && typeof data === 'object' && 'stats' in data) {
         setStats(data.stats)
         setVaultSalesList(data.salesList || [])
+        if (data.usersList) setUsersList(data.usersList)
+        if (data.ticketsList) setTickets(data.ticketsList)
       } else {
         setStats(data)
       }
@@ -527,7 +617,24 @@ export default function AdminDashboard() {
         } catch (e) {
           console.error("Failed to load detailed sales list for period analytics", e)
         }
-        freshData = { stats: statsData, salesList: salesData }
+
+        let usersData: any[] = []
+        try {
+          usersData = await getAllUsers()
+          setUsersList(usersData)
+        } catch (e) {
+          console.error("Failed to load users list for analytics charts", e)
+        }
+
+        let ticketsData: any[] = []
+        try {
+          ticketsData = await getSupportTickets()
+          setTickets(ticketsData)
+        } catch (e) {
+          console.error("Failed to load support tickets for analytics charts", e)
+        }
+
+        freshData = { stats: statsData, salesList: salesData, usersList: usersData, ticketsList: ticketsData }
       } else if (tab === 'packs') {
         const result = await getSamplePacks()
         freshData = result
@@ -751,6 +858,8 @@ export default function AdminDashboard() {
               filterEndDate={filterEndDate}
               filteredMetrics={getFilteredMetrics()}
               vaultSalesList={vaultSalesList}
+              usersList={usersList}
+              tickets={tickets}
             />
           )}
 
@@ -860,6 +969,7 @@ export default function AdminDashboard() {
               bannerEnabled={bannerEnabled}
               bannerPending={bannerPending}
               handleToggleLaunchOffer={handleToggleLaunchOffer}
+              user={user}
             />
           )}
 

@@ -83,21 +83,43 @@ export function Sidebar({
         </button>
       </div>
 
-      {/* MENU TABS GRID */}
+      {/* MENU TABS GRID WITH ENTERPRISE RBAC FILTERING */}
       <nav className="flex-1 p-4 space-y-1.5 font-sans text-xs font-bold uppercase overflow-y-auto">
-        {navItems.map(({ tab, icon: Icon, label, activeColor }) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${activeTab === tab
-              ? `${activeColor} shadow-sm`
-              : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
-              }`}
-          >
-            <Icon className="w-4 h-4" />
-            <span>{label}</span>
-          </button>
-        ))}
+        {(() => {
+          const adminRole = user?.app_metadata?.role || (typeof window !== 'undefined' ? localStorage.getItem(`admin_role_${user?.id}`) : null) || 'Super Admin'
+          
+          const filteredNavItems = navItems.filter(item => {
+            if (adminRole === 'Support Agent') {
+              return ['packs', 'kyc', 'coupons', 'tickets', 'users', 'logs'].includes(item.tab)
+            }
+            if (adminRole === 'Billing Manager') {
+              return ['analytics', 'sales', 'coupons', 'logs'].includes(item.tab)
+            }
+            return true // Super Admin has full clearance
+          })
+
+          // Secure tab redirection if activeTab becomes restricted
+          React.useEffect(() => {
+            const isTabAllowed = filteredNavItems.some(item => item.tab === activeTab)
+            if (!isTabAllowed && filteredNavItems.length > 0) {
+              setActiveTab(filteredNavItems[0].tab)
+            }
+          }, [adminRole, activeTab, filteredNavItems])
+
+          return filteredNavItems.map(({ tab, icon: Icon, label, activeColor }) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${activeTab === tab
+                ? `${activeColor} shadow-sm`
+                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+                }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span>{label}</span>
+            </button>
+          ))
+        })()}
       </nav>
 
       {/* ACCENT SWITCHER WIDGET */}

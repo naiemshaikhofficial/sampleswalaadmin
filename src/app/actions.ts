@@ -703,31 +703,47 @@ export async function getAllUsers() {
           account?.postal_code,
           account?.country
         ].filter(Boolean).join(', ') || 'No address provided',
-        credits: account?.credits ?? 0,
-        subscription_status: account?.subscription_status || 'INACTIVE',
-        subscription_tier: account?.subscription_tier || 'NONE',
-        device_fingerprint: account?.device_fingerprint || 'N/A',
-        provider: u.app_metadata?.provider || (u.app_metadata?.providers && u.app_metadata.providers[0]) || 'email'
-      }
-    })
-
-    return enrichedUsers
-  } catch (error) {
-    console.error('Error fetching all users:', error)
-    throw error
-  }
-}
-
-export async function banUser(userId: string) {
-  try {
-    const db = getDB()
-    // Ban for 100 years (876600 hours)
-    const { error } = await db.auth.admin.updateUserById(userId, {
-      ban_duration: '876600h'
-    })
-    if (error) throw error
-    await clearServerCache('users')
-    return true
+         credits: account?.credits ?? 0,
+         subscription_status: account?.subscription_status || 'INACTIVE',
+         subscription_tier: account?.subscription_tier || 'NONE',
+         device_fingerprint: account?.device_fingerprint || 'N/A',
+         provider: u.app_metadata?.provider || (u.app_metadata?.providers && u.app_metadata.providers[0]) || 'email',
+         role: u.app_metadata?.role || 'Super Admin'
+       }
+     })
+ 
+     return enrichedUsers
+   } catch (error) {
+     console.error('Error fetching all users:', error)
+     throw error
+   }
+ }
+ 
+ export async function updateUserRole(userId: string, role: string) {
+   try {
+     const db = getDB()
+     const { error } = await db.auth.admin.updateUserById(userId, {
+       app_metadata: { role }
+     })
+     if (error) throw error
+     await clearServerCache('users')
+     return true
+   } catch (error) {
+     console.error('Error updating admin user role:', error)
+     throw error
+   }
+ }
+ 
+ export async function banUser(userId: string) {
+   try {
+     const db = getDB()
+     // Ban for 100 years (876600 hours)
+     const { error } = await db.auth.admin.updateUserById(userId, {
+       ban_duration: '876600h'
+     })
+     if (error) throw error
+     await clearServerCache('users')
+     return true
   } catch (error) {
     console.error('Error banning user:', error)
     throw error

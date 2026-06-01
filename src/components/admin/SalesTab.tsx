@@ -51,9 +51,44 @@ export function SalesTab({
     )
   })
 
+  const handleExportCSV = () => {
+    if (filteredSales.length === 0) return
+
+    // Define CSV Headers
+    const headers = ['Order ID', 'Product', 'Amount (INR)', 'Buyer Name', 'Email', 'Phone', 'Address', 'Razorpay Order ID', 'Razorpay Payment ID', 'Timestamp']
+    
+    // Form row records
+    const rows = filteredSales.map(s => [
+      s.id || '',
+      s.pack_name || '',
+      s.amount || 0,
+      s.buyer_name || '',
+      s.buyer_email || '',
+      s.buyer_phone || '',
+      `"${(s.buyer_address || '').replace(/"/g, '""')}"`, // escape quotes
+      s.razorpay_order_id || '',
+      s.razorpay_payment_id || '',
+      new Date(s.created_at).toLocaleString()
+    ])
+
+    // Join to single CSV content string
+    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n')
+
+    // Create secure browser download URL
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `sampleswala_orders_${new Date().toISOString().slice(0, 10)}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <div className="space-y-6 animate-fadeIn font-mono text-xs">
-      <div className="bg-[#121212] p-4 border-4 border-black flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-[#121212] p-4 border-4 border-black flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-neon">
             💰 ORDERS LOG
@@ -62,15 +97,24 @@ export function SalesTab({
             Complete breakdown of cash sales, customer delivery addresses, and Razorpay settlements.
           </p>
         </div>
-        <div className="relative font-sans">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
-          <input
-            type="text"
-            placeholder="SEARCH ORDERS BY PACK/BUYER/PAYMENT..."
-            value={salesSearch}
-            onChange={e => setSalesSearch(e.target.value)}
-            className="pl-9 pr-4 py-2 bg-black border-2 border-black text-white font-bold placeholder-zinc-600 outline-none focus:border-studio-neon w-64 md:w-80 uppercase text-xs"
-          />
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={handleExportCSV}
+            className="comic-button bg-studio-pink hover:bg-studio-pink font-black text-black text-[10px] uppercase h-10 px-4 border-2 border-black flex items-center justify-center cursor-pointer shadow-premium-sm"
+          >
+            📥 CSV EXPORT
+          </button>
+          <div className="relative font-sans">
+            <Search className="absolute left-3 top-3 w-4 h-4 text-zinc-500" />
+            <input
+              type="text"
+              placeholder="SEARCH ORDERS BY PACK/BUYER/PAYMENT..."
+              value={salesSearch}
+              onChange={e => setSalesSearch(e.target.value)}
+              className="pl-9 pr-4 py-2.5 bg-black border-2 border-black text-white font-bold placeholder-zinc-600 outline-none focus:border-studio-neon w-64 md:w-80 uppercase text-xs"
+            />
+          </div>
         </div>
       </div>
 

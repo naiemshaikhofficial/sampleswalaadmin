@@ -34,6 +34,8 @@ interface AnalyticsTabProps {
   filterEndDate: string
   filteredMetrics: FilteredMetrics
   vaultSalesList: any[]
+  usersList?: any[]
+  tickets?: any[]
 }
 
 export function AnalyticsTab({
@@ -41,48 +43,67 @@ export function AnalyticsTab({
   filterStartDate,
   filterEndDate,
   filteredMetrics,
-  vaultSalesList
+  vaultSalesList,
+  usersList = [],
+  tickets = []
 }: AnalyticsTabProps) {
+  const [activeMetric, setActiveMetric] = React.useState<'revenue' | 'signups' | 'tickets'>('revenue')
+  const [hoveredPoint, setHoveredPoint] = React.useState<{ date: string; value: number } | null>(null)
 
-  // Group all vault sales by date for the line chart
-  const salesByDate = React.useMemo(() => {
+  // Group metric data by date for the line chart
+  const chartData = React.useMemo(() => {
     const groups: Record<string, number> = {}
-    vaultSalesList.forEach(s => {
-      if (!s.created_at) return
-      const d = new Date(s.created_at)
-      // Format as "MMM DD" (e.g., "Jun 01")
-      const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-      groups[dateStr] = (groups[dateStr] || 0) + Number(s.amount || 0)
-    })
+    
+    if (activeMetric === 'revenue') {
+      vaultSalesList.forEach(s => {
+        if (!s.created_at) return
+        const d = new Date(s.created_at)
+        const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        groups[dateStr] = (groups[dateStr] || 0) + Number(s.amount || 0)
+      })
+    } else if (activeMetric === 'signups') {
+      usersList.forEach(u => {
+        if (!u.created_at) return
+        const d = new Date(u.created_at)
+        const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        groups[dateStr] = (groups[dateStr] || 0) + 1
+      })
+    } else if (activeMetric === 'tickets') {
+      tickets.forEach(t => {
+        if (!t.created_at) return
+        const d = new Date(t.created_at)
+        const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        groups[dateStr] = (groups[dateStr] || 0) + 1
+      })
+    }
 
     // Sort by chronological order
     return Object.entries(groups)
-      .map(([date, amount]) => {
-        // Parse date to timestamp for sorting. We append current year.
+      .map(([date, value]) => {
         const currentYear = new Date().getFullYear()
         const timestamp = new Date(`${date}, ${currentYear}`).getTime()
-        return { date, amount, timestamp }
+        return { date, value, timestamp }
       })
       .sort((a, b) => a.timestamp - b.timestamp)
-      .slice(-7) // Show last 7 active sales days
-  }, [vaultSalesList])
+      .slice(-7) // Show last 7 active days
+  }, [activeMetric, vaultSalesList, usersList, tickets])
 
   // Get SVG coordinate points
   const lineChartPoints = React.useMemo(() => {
-    let data = salesByDate
+    let data = chartData
     if (data.length === 0) {
       data = [
-        { date: 'Day 1', amount: 0, timestamp: 0 },
-        { date: 'Day 2', amount: 0, timestamp: 0 }
+        { date: 'Day 1', value: 0, timestamp: 0 },
+        { date: 'Day 2', value: 0, timestamp: 0 }
       ]
     } else if (data.length === 1) {
       data = [
-        { date: 'Day 0', amount: 0, timestamp: 0 },
+        { date: 'Day 0', value: 0, timestamp: 0 },
         ...data
       ]
     }
 
-    const maxVal = Math.max(...data.map(d => d.amount), 500)
+    const maxVal = Math.max(...data.map(d => d.value), activeMetric === 'revenue' ? 500 : 5)
     const width = 500
     const height = 150
     const paddingLeft = 45
@@ -95,8 +116,8 @@ export function AnalyticsTab({
 
     const points = data.map((d, i) => {
       const x = paddingLeft + (i / (data.length - 1)) * graphWidth
-      const y = paddingTop + graphHeight - (d.amount / maxVal) * graphHeight
-      return { x, y, date: d.date, amount: d.amount }
+      const y = paddingTop + graphHeight - (d.value / maxVal) * graphHeight
+      return { x, y, date: d.date, value: d.value }
     })
 
     // Create line path "M x1 y1 L x2 y2 ..."
@@ -118,7 +139,7 @@ export function AnalyticsTab({
       graphWidth,
       graphHeight
     }
-  }, [salesByDate])
+  }, [chartData, activeMetric])
 
   // Top Selling Sample Packs
   const topPacks = React.useMemo(() => {
@@ -142,6 +163,7 @@ export function AnalyticsTab({
   const maxPackRevenue = React.useMemo(() => {
     return Math.max(...topPacks.map(p => p.revenue), 100)
   }, [topPacks])
+
 
   return (
     <div className="space-y-6 animate-fadeIn font-mono text-xs uppercase">
@@ -198,30 +220,95 @@ export function AnalyticsTab({
       )}
 
       {/* TWO COLUMN INTERACTIVE BODY */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* LEFT PANEL: CHARTS & TREND DETAILS */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">        {/* LEFT PANEL: CHARTS & TREND DETAILS */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* 1. SALES TREND CHART */}
-          <div className="border-4 border-black bg-[#121212] p-5 shadow-premium">
-            <div className="flex items-center justify-between border-b-2 border-black pb-3 mb-4">
+          {/* 1. INTERACTIVE MULTI-METRIC GRAPH */}
+          <div className="border-4 border-black bg-[#121212] p-5 shadow-premium relative">
+            
+            {/* NEON TOOLTIP OVERLAY */}
+            {hoveredPoint ? (
+              <div className="absolute top-4 right-4 bg-black border-2 border-black p-2 shadow-premium-sm z-10 animate-scaleIn">
+                <span className="text-[8px] text-zinc-500 block leading-none mb-1">SELECTED COORDINATE</span>
+                <span className="text-white font-bold font-mono text-[10px]">
+                  📅 {hoveredPoint.date}:{' '}
+                  <span className={
+                    activeMetric === 'revenue' ? 'text-studio-pink' :
+                    activeMetric === 'signups' ? 'text-studio-neon' : 'text-studio-purple'
+                  }>
+                    {activeMetric === 'revenue' ? `₹${hoveredPoint.value.toLocaleString()}` : `${hoveredPoint.value} COUNT`}
+                  </span>
+                </span>
+              </div>
+            ) : (
+              <div className="absolute top-4 right-4 bg-black/40 border border-zinc-800 p-1.5 z-10 text-[7px] text-zinc-500 font-bold uppercase">
+                HOVER POINTS FOR VALUES
+              </div>
+            )}
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-black pb-3 mb-4 gap-3">
               <div className="flex items-center gap-2">
                 <Activity className="w-5 h-5 text-studio-pink" />
                 <h3 className="font-sans font-black text-sm text-zinc-100 leading-none">
-                  📈 REVENUE & SALES VOLATILITY TREND
+                  📊 METRICS & VOLUME VOLATILITY PATH
                 </h3>
               </div>
-              <span className="text-[8px] font-black text-zinc-500">
-                LAST 7 ACTIVE SALES DAYS
+              <span className="text-[8px] font-black text-zinc-500 uppercase font-mono">
+                LAST 7 ACTIVE DAYS
               </span>
             </div>
 
-            {/* Inlined custom SVG Chart with zero-bundle footprint */}
+            {/* METRICS SELECTOR TAB BAR (NEO-BRUTALIST TABS) */}
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveMetric('revenue')
+                  setHoveredPoint(null)
+                }}
+                className={`py-2 px-3 border-2 border-black font-black uppercase text-[9px] transition-all ${
+                  activeMetric === 'revenue'
+                    ? 'bg-studio-pink text-black shadow-premium-sm -translate-y-0.5'
+                    : 'bg-[#18181b] text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                💸 REVENUE PATH
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveMetric('signups')
+                  setHoveredPoint(null)
+                }}
+                className={`py-2 px-3 border-2 border-black font-black uppercase text-[9px] transition-all ${
+                  activeMetric === 'signups'
+                    ? 'bg-studio-neon text-black shadow-premium-sm -translate-y-0.5'
+                    : 'bg-[#18181b] text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                👥 SIGNUPS GROWTH
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveMetric('tickets')
+                  setHoveredPoint(null)
+                }}
+                className={`py-2 px-3 border-2 border-black font-black uppercase text-[9px] transition-all ${
+                  activeMetric === 'tickets'
+                    ? 'bg-studio-purple text-white shadow-premium-sm -translate-y-0.5'
+                    : 'bg-[#18181b] text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                🎫 SUPPORT VOLUMES
+              </button>
+            </div>
+
+            {/* Dynamic Interactive SVG Chart */}
             <div className="bg-black border-2 border-black p-4 relative overflow-hidden flex items-center justify-center">
-              {salesByDate.length === 0 ? (
-                <div className="h-40 flex items-center justify-center text-zinc-500 font-bold text-[10px]">
-                  AWAITING LOGGED TRANSACTIONS FOR VOLATILITY PATH
+              {chartData.length === 0 ? (
+                <div className="h-40 flex items-center justify-center text-zinc-500 font-bold text-[10px] uppercase font-mono">
+                  AWAITING LOGGED DATA TO COMPUTE METRIC VOLATILITY
                 </div>
               ) : (
                 <div className="w-full relative">
@@ -231,8 +318,22 @@ export function AnalyticsTab({
                   >
                     <defs>
                       <linearGradient id="chartAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#FF0080" stopOpacity="0.4" />
-                        <stop offset="100%" stopColor="#FF0080" stopOpacity="0.0" />
+                        <stop 
+                          offset="0%" 
+                          stopColor={
+                            activeMetric === 'revenue' ? '#FF0080' :
+                            activeMetric === 'signups' ? '#00FF94' : '#BF00FF'
+                          } 
+                          stopOpacity="0.4" 
+                        />
+                        <stop 
+                          offset="100%" 
+                          stopColor={
+                            activeMetric === 'revenue' ? '#FF0080' :
+                            activeMetric === 'signups' ? '#00FF94' : '#BF00FF'
+                          } 
+                          stopOpacity="0.0" 
+                        />
                       </linearGradient>
                     </defs>
 
@@ -257,7 +358,7 @@ export function AnalyticsTab({
                             className="text-[8px] font-mono font-bold"
                             textAnchor="end"
                           >
-                            ₹{Math.round(r * lineChartPoints.maxVal)}
+                            {activeMetric === 'revenue' ? `₹${Math.round(r * lineChartPoints.maxVal)}` : Math.round(r * lineChartPoints.maxVal)}
                           </text>
                         </g>
                       )
@@ -273,20 +374,32 @@ export function AnalyticsTab({
                     <path 
                       d={lineChartPoints.linePath} 
                       fill="none" 
-                      stroke="#FF0080" 
+                      stroke={
+                        activeMetric === 'revenue' ? '#FF0080' :
+                        activeMetric === 'signups' ? '#00FF94' : '#BF00FF'
+                      } 
                       strokeWidth="2.5"
                     />
 
                     {/* Interactive points circles */}
                     {lineChartPoints.points.map((p, i) => (
-                      <g key={i}>
+                      <g 
+                        key={i}
+                        className="cursor-pointer"
+                        onMouseEnter={() => setHoveredPoint({ date: p.date, value: p.value })}
+                        onMouseLeave={() => setHoveredPoint(null)}
+                      >
                         <circle 
                           cx={p.x} 
                           cy={p.y} 
-                          r="4" 
-                          fill="#00FF94" 
+                          r={hoveredPoint && hoveredPoint.date === p.date ? '6' : '4'} 
+                          fill={
+                            activeMetric === 'revenue' ? '#00FF94' :
+                            activeMetric === 'signups' ? '#FF0080' : '#FFE600'
+                          } 
                           stroke="#000000" 
                           strokeWidth="1.5"
+                          className="transition-all duration-150"
                         />
                         <text
                           x={p.x}
@@ -295,7 +408,7 @@ export function AnalyticsTab({
                           className="text-[7px] font-mono font-bold"
                           textAnchor="middle"
                         >
-                          ₹{p.amount}
+                          {activeMetric === 'revenue' ? `₹${p.value}` : p.value}
                         </text>
                         <text
                           x={p.x}

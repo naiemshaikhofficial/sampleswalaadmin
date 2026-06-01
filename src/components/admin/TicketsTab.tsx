@@ -26,6 +26,33 @@ export function TicketsTab({
   const [ticketReply, setTicketReply] = useState('')
   const [saveLoading, setSaveLoading] = useState(false)
 
+  // Private CRM states persisting in client storage
+  const [internalNote, setInternalNote] = useState('')
+  const [assignedAgent, setAssignedAgent] = useState('Naiem Shaikh')
+
+  useEffect(() => {
+    if (activeTicket?.id) {
+      const savedNote = localStorage.getItem(`ticket_note_${activeTicket.id}`)
+      setInternalNote(savedNote || '')
+      const savedAgent = localStorage.getItem(`ticket_agent_${activeTicket.id}`)
+      setAssignedAgent(savedAgent || 'Naiem Shaikh')
+    }
+  }, [activeTicket])
+
+  const handleSaveInternalNote = (val: string) => {
+    setInternalNote(val)
+    if (activeTicket?.id) {
+      localStorage.setItem(`ticket_note_${activeTicket.id}`, val)
+    }
+  }
+
+  const handleSaveAssignedAgent = (val: string) => {
+    setAssignedAgent(val)
+    if (activeTicket?.id) {
+      localStorage.setItem(`ticket_agent_${activeTicket.id}`, val)
+    }
+  }
+
   useEffect(() => {
     if (paletteSelection && paletteSelection.type === 'ticket') {
       setActiveTicket(paletteSelection.data)
@@ -123,93 +150,149 @@ export function TicketsTab({
         </table>
       </div>
 
-      {/* MODAL DRAWER: SUPPORT TICKET DETAILS */}
+      {/* MODAL DRAWER: SUPPORT TICKET DETAILS & CRM CONVERSATION WORKSPACE */}
       {showTicketModal && activeTicket && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
           <form
             onSubmit={handleTicketReply}
-            className="w-full max-w-xl border-4 border-black bg-[#121212] p-6 shadow-premium relative max-h-[90vh] overflow-y-auto font-mono text-xs"
+            className="w-full max-w-4xl border-4 border-black bg-[#121212] p-6 shadow-premium relative max-h-[90vh] overflow-y-auto font-mono text-xs flex flex-col md:flex-row gap-6 animate-scaleIn"
           >
             <button
               type="button"
               onClick={() => setShowTicketModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors"
+              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors cursor-pointer z-30"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="font-sans font-bold text-xl uppercase text-studio-purple mb-6">
-              💬 support ticket conversation
-            </h3>
+            {/* LEFT COLUMN: INTERACTIVE LIVE CONVERSATION FLOW */}
+            <div className="flex-1 flex flex-col space-y-4">
+              <h3 className="font-sans font-black text-lg uppercase text-studio-purple border-b border-zinc-800 pb-2 flex items-center gap-1.5 leading-none">
+                💬 LIVE CHAT SUPPORT THREAD
+              </h3>
 
-            {/* CUSTOMER TICKET MESSAGE */}
-            <div className="space-y-4 mb-6">
-              <div className="bg-black p-4 border border-zinc-800">
-                <div className="flex justify-between border-b border-zinc-900 pb-2 mb-2 font-sans">
-                  <span className="font-bold text-zinc-100 uppercase text-sm">{activeTicket.user_name}</span>
-                  <span className="text-[10px] text-zinc-500 font-medium">{new Date(activeTicket.created_at).toLocaleString()}</span>
+              {/* CHAT MESSAGES THREAD COMPONENT */}
+              <div className="bg-black border-2 border-black p-4 space-y-4 max-h-[42vh] overflow-y-auto min-h-60 flex flex-col justify-end">
+                {/* 1. CUSTOMER CHAT BUBBLE (LEFT) */}
+                <div className="flex flex-col items-start max-w-[85%] self-start space-y-1">
+                  <span className="text-[7px] text-zinc-500 font-bold uppercase">{activeTicket.user_name} ({new Date(activeTicket.created_at).toLocaleDateString()})</span>
+                  <div className="bg-[#1b1b1f] border border-zinc-800 text-zinc-100 p-3 rounded-none text-xs font-sans normal-case leading-relaxed select-all">
+                    <p className="font-bold text-studio-purple uppercase text-[8px] tracking-wider mb-1">INQUIRY SUBJECT: {activeTicket.subject}</p>
+                    {activeTicket.message}
+                  </div>
                 </div>
-                <p className="text-zinc-400 font-bold uppercase text-[9px] tracking-wider">SUBJECT:</p>
-                <p className="text-zinc-100 font-bold text-sm normal-case mt-0.5">{activeTicket.subject}</p>
 
-                <p className="text-zinc-400 font-bold uppercase text-[9px] tracking-wider mt-3">CUSTOMER INQUIRY MESSAGE:</p>
-                <div className="text-zinc-200 mt-1 font-sans text-xs leading-relaxed normal-case bg-[#0d0d0d] p-3 border border-zinc-900 whitespace-pre-wrap">
-                  {activeTicket.message}
-                </div>
+                {/* 2. ADMIN REPLY CHAT BUBBLE (RIGHT) */}
+                {activeTicket.admin_reply && (
+                  <div className="flex flex-col items-end max-w-[85%] self-end space-y-1">
+                    <span className="text-[7px] text-zinc-500 font-bold uppercase">{assignedAgent} ({activeTicket.replied_at ? new Date(activeTicket.replied_at).toLocaleDateString() : 'Replied'})</span>
+                    <div className="bg-studio-purple border-2 border-black text-white p-3 rounded-none text-xs font-sans normal-case leading-relaxed shadow-premium-sm select-all">
+                      {activeTicket.admin_reply}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* ADMIN REPLY LOG */}
-              {activeTicket.status === 'resolved' && (
-                <div className="bg-studio-purple/5 p-4 border border-studio-purple/30">
-                  <div className="flex justify-between border-b border-studio-purple/20 pb-2 mb-2 font-sans">
-                    <span className="font-bold text-studio-purple uppercase text-xs">RESOLVED ADMIN REPLY</span>
-                    {activeTicket.replied_at && (
-                      <span className="text-[10px] text-zinc-500 font-medium">{new Date(activeTicket.replied_at).toLocaleString()}</span>
+              {/* CHAT INPUT AREA */}
+              {activeTicket.status === 'open' ? (
+                <div className="space-y-3 font-sans">
+                  <div>
+                    <label className="block text-[8px] font-black uppercase text-zinc-500 mb-1.5">COMPOSE OFFICAL TICKET RESPONSE</label>
+                    <textarea
+                      required
+                      value={ticketReply}
+                      onChange={e => setTicketReply(e.target.value)}
+                      rows={3}
+                      placeholder="Type your official resolution response... Clicking save will email the customer and resolve the ticket..."
+                      className="w-full bg-black border-2 border-black p-3 text-white outline-none focus:border-studio-purple font-medium text-xs normal-case leading-relaxed"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={saveLoading}
+                    className="studio-button w-full bg-studio-purple text-white font-bold uppercase py-2.5 text-xs flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    {saveLoading ? 'EMITTING RESPONSE...' : (
+                      <>
+                        <Send className="w-3.5 h-3.5" /> EMIT TICKET RESOLUTION REPLY
+                      </>
                     )}
-                  </div>
-                  <div className="text-zinc-300 font-sans text-xs leading-relaxed normal-case bg-black p-3 border border-zinc-900 whitespace-pre-wrap">
-                    {activeTicket.admin_reply}
-                  </div>
+                  </button>
+                </div>
+              ) : (
+                <div className="bg-[#121212] border border-studio-purple/20 p-3.5 text-center font-sans font-bold text-studio-purple text-[9px] uppercase">
+                  ✅ TICKET RESOLVED & CONVERSATION CLOSED
                 </div>
               )}
             </div>
 
-            {/* REPLY BOX */}
-            {activeTicket.status === 'open' ? (
-              <div className="space-y-4 font-sans">
-                <div>
-                  <label className="block text-[10px] font-bold uppercase text-zinc-400 mb-2">COMPOSE TICKET RESOLUTION REPLY</label>
-                  <textarea
-                    required
-                    value={ticketReply}
-                    onChange={e => setTicketReply(e.target.value)}
-                    rows={4}
-                    placeholder="Type your official response here. Clicking save will email the customer and resolve the ticket..."
-                    className="w-full bg-black border-2 border-black p-3 text-white outline-none focus:border-studio-purple font-medium text-xs normal-case leading-relaxed"
-                  />
+            {/* RIGHT COLUMN: ENTERPRISE CRM META & CONTROLS */}
+            <div className="w-full md:w-72 bg-[#0c0c0d] border-2 border-black p-4 flex flex-col space-y-4">
+              <h4 className="font-sans font-black text-xs uppercase text-zinc-400 border-b border-zinc-800 pb-1.5 leading-none">
+                ⚙️ CRM WORKSPACE METADATA
+              </h4>
+
+              {/* TICKET DETAILS */}
+              <div className="space-y-3 font-sans text-[10px]">
+                <div className="flex flex-col gap-0.5 pb-2 border-b border-zinc-900">
+                  <span className="text-zinc-500 font-bold text-[8px]">TICKET REFERENCE ID</span>
+                  <span className="text-white font-mono font-bold select-all truncate">{activeTicket.id}</span>
                 </div>
 
+                <div className="flex flex-col gap-0.5 pb-2 border-b border-zinc-900">
+                  <span className="text-zinc-500 font-bold text-[8px]">SUBMITTED BY</span>
+                  <span className="text-white font-bold normal-case">{activeTicket.user_name}</span>
+                  <span className="text-zinc-400 font-mono text-[8px] lowercase">{activeTicket.user_id}</span>
+                </div>
+
+                <div className="flex flex-col gap-0.5 pb-2 border-b border-zinc-900">
+                  <span className="text-zinc-500 font-bold text-[8px]">INQUIRY TIER</span>
+                  <div>
+                    <span className="inline-block bg-studio-purple/10 border border-studio-purple/30 text-studio-purple text-[8px] px-2 py-0.5 font-bold uppercase">
+                      {activeTicket.category}
+                    </span>
+                  </div>
+                </div>
+
+                {/* ASSIGNED AGENT CONTROL */}
+                <div className="flex flex-col gap-1 pb-2 border-b border-zinc-900">
+                  <label className="text-zinc-500 font-bold text-[8px] uppercase">ASSIGNED CRM AGENT</label>
+                  <select
+                    value={assignedAgent}
+                    onChange={e => handleSaveAssignedAgent(e.target.value)}
+                    className="bg-black border border-zinc-800 p-1.5 text-white font-bold outline-none focus:border-studio-purple text-[9px]"
+                  >
+                    <option value="Super Admin">SUPER ADMIN</option>
+                    <option value="Naiem Shaikh">NAIEM SHAIKH</option>
+                    <option value="System Agent">SYSTEM AGENT</option>
+                  </select>
+                </div>
+
+                {/* INTERNAL PRIVATE NOTES (Local Caching per Ticket ID) */}
+                <div className="flex flex-col gap-1">
+                  <label className="text-zinc-500 font-bold text-[8px] uppercase">INTERNAL PRIVATE NOTES (CRM ONLY)</label>
+                  <textarea
+                    value={internalNote}
+                    onChange={e => handleSaveInternalNote(e.target.value)}
+                    placeholder="Draft private notes, customer history, or resolution checkmarks here... (Persists locally)"
+                    rows={4}
+                    className="w-full bg-black border border-zinc-800 p-2 text-zinc-300 font-medium text-[9px] normal-case leading-relaxed outline-none focus:border-studio-purple"
+                  />
+                  <span className="text-[7px] text-zinc-600 block uppercase leading-none mt-1">notes are confidential and not shown to customer</span>
+                </div>
+              </div>
+
+              <div className="pt-2">
                 <button
-                  type="submit"
-                  disabled={saveLoading}
-                  className="studio-button w-full bg-studio-purple text-white font-bold uppercase py-2 text-xs"
+                  type="button"
+                  onClick={() => setShowTicketModal(false)}
+                  className="studio-button w-full bg-zinc-850 hover:bg-zinc-800 text-white font-bold uppercase py-2 border-2 border-black text-[9px] tracking-wide cursor-pointer font-sans"
                 >
-                  {saveLoading ? 'SENDING...' : (
-                    <>
-                      <Send className="w-3.5 h-3.5 inline mr-1" /> EMIT TICKET RESOLUTION REPLY
-                    </>
-                  )}
+                  CLOSE WORKSPACE
                 </button>
               </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setShowTicketModal(false)}
-                className="studio-button w-full bg-zinc-800 text-white border-2 border-black font-bold uppercase hover:bg-zinc-700 py-2 text-xs"
-              >
-                CLOSE CONVERSATION SCREEN
-              </button>
-            )}
+            </div>
           </form>
         </div>
       )}

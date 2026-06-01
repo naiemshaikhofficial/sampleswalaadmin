@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Search, Mail, Phone, MapPin, Ban, ShieldCheck, Trash2, X } from 'lucide-react'
-import { banUser, unbanUser, deleteUser } from '@/app/actions'
+import { banUser, unbanUser, deleteUser, updateUserRole } from '@/app/actions'
 
 interface UsersTabProps {
   usersList: any[]
@@ -116,9 +116,62 @@ export function UsersTab({
     }
   }
 
+  const handleUpdateUserRole = async (userId: string, email: string, newRole: string) => {
+    setActionLoading(true)
+    try {
+      await updateUserRole(userId, newRole)
+      showToast(`User role cleared to ${newRole}!`, 'success')
+      addAuditLog('ROLE_CHANGE', `Changed user role for ${email} to ${newRole}`, 'info')
+      invalidateCacheAndReload('users')
+      if (activeUser && activeUser.id === userId) {
+        setActiveUser((prev: any) => ({ ...prev, role: newRole }))
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Failed to change staff role', 'error')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleExportCSV = () => {
+    if (usersList.length === 0) return
+
+    // Define CSV Headers
+    const headers = ['User ID', 'Name', 'Email', 'Phone', 'Address', 'Credits', 'Subscription Status', 'Subscription Tier', 'Auth Provider', 'Banned Status', 'Registered Date']
+    
+    // Form row records
+    const rows = usersList.map(u => [
+      u.id || '',
+      u.full_name || '',
+      u.email || '',
+      u.phone_number || '',
+      `"${(u.address || '').replace(/"/g, '""')}"`, // escape quotes
+      u.credits ?? 0,
+      u.subscription_status || 'INACTIVE',
+      u.subscription_tier || 'NONE',
+      u.provider || 'email',
+      u.is_banned ? 'BANNED' : 'ACTIVE',
+      new Date(u.created_at).toLocaleString()
+    ])
+
+    // Join to single CSV content string
+    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n')
+
+    // Create secure browser download URL
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `sampleswala_users_${new Date().toISOString().slice(0, 10)}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <div className="space-y-6 animate-fadeIn font-mono text-xs">
-      <div className="bg-[#121212] p-4 border-4 border-black flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-[#121212] p-4 border-4 border-black flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-pink">
             👥 USERS HUB & ACCESS CONTROL
@@ -128,20 +181,27 @@ export function UsersTab({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleExportCSV}
+            className="comic-button bg-studio-neon hover:bg-studio-neon font-black text-black text-[10px] uppercase h-10 px-4 border-2 border-black flex items-center justify-center cursor-pointer shadow-premium-sm"
+          >
+            📥 DOWNLOAD CSV
+          </button>
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
+            <Search className="absolute left-3 top-3 w-4 h-4 text-zinc-500" />
             <input
               type="text"
               placeholder="SEARCH BY NAME/EMAIL/ADDR..."
               value={userSearch}
               onChange={e => setUserSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-black border-2 border-black text-white font-bold placeholder-zinc-600 outline-none focus:border-studio-pink uppercase"
+              className="pl-9 pr-4 py-2.5 bg-black border-2 border-black text-white font-bold placeholder-zinc-600 outline-none focus:border-studio-pink uppercase"
             />
           </div>
           <select
             value={userFilter}
             onChange={e => setUserFilter(e.target.value as any)}
-            className="bg-black border-2 border-black px-3 py-2 text-white font-bold outline-none focus:border-studio-pink"
+            className="bg-black border-2 border-black px-3 py-2.5 text-white font-bold outline-none focus:border-studio-pink h-10"
           >
             <option value="all">ALL REGISTRATIONS</option>
             <option value="active">ACTIVE USERS</option>
@@ -412,6 +472,19 @@ export function UsersTab({
               <div className="flex justify-between border-b border-zinc-900 pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">REGISTRATION TIMESTAMP</span>
                 <span className="text-zinc-400 font-mono text-[10px]">{new Date(activeUser.created_at).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between items-center border-b border-zinc-900 pb-2">
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">STAFF CLEARANCE ROLE</span>
+                <select
+                  value={activeUser.role || 'Super Admin'}
+                  onChange={e => handleUpdateUserRole(activeUser.id, activeUser.email, e.target.value)}
+                  disabled={actionLoading}
+                  className="bg-black border border-zinc-800 p-1.5 text-white font-bold outline-none focus:border-studio-pink text-[10px] cursor-pointer"
+                >
+                  <option value="Super Admin">SUPER ADMIN</option>
+                  <option value="Support Agent">SUPPORT AGENT</option>
+                  <option value="Billing Manager">BILLING MANAGER</option>
+                </select>
               </div>
               <div className="flex justify-between items-center pt-1.5">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">ACCOUNT STATUS</span>

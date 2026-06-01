@@ -30,6 +30,76 @@ export function PacksTab({
   const [activePack, setActivePack] = useState<any>(null)
   const [saveLoading, setSaveLoading] = useState(false)
 
+  // Web Audio Waveform Peak Extractor states
+  const [analyzingAudio, setAnalyzingAudio] = useState(false)
+  const [waveformPeaks, setWaveformPeaks] = useState<number[]>([])
+  const [uploadProgress, setUploadProgress] = useState(0)
+
+  const processAudioFile = async (file: File) => {
+    if (!file.type.startsWith('audio/')) {
+      showToast('Please upload a valid audio preview track (.wav or .mp3)!', 'error')
+      return
+    }
+
+    setAnalyzingAudio(true)
+    setWaveformPeaks([])
+    setUploadProgress(10)
+
+    try {
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval)
+            return 90
+          }
+          return prev + 15
+        })
+      }, 120)
+
+      const arrayBuffer = await file.arrayBuffer()
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+      if (!AudioCtx) throw new Error('Web Audio API is not supported by your browser')
+
+      const ctx = new AudioCtx()
+      const audioBuffer = await ctx.decodeAudioData(arrayBuffer)
+      
+      const channelData = audioBuffer.getChannelData(0)
+      const step = Math.ceil(channelData.length / 80)
+      const peaks: number[] = []
+
+      for (let i = 0; i < 80; i++) {
+        let max = 0
+        const start = i * step
+        const end = Math.min(start + step, channelData.length)
+        
+        for (let j = start; j < end; j++) {
+          const val = Math.abs(channelData[j])
+          if (val > max) max = val
+        }
+        peaks.push(Number(max.toFixed(3)))
+      }
+
+      clearInterval(progressInterval)
+      setUploadProgress(100)
+      setWaveformPeaks(peaks)
+      showToast('Audio parsed and waveform peaks generated successfully!', 'success')
+      
+      setActivePack((prev: any) => ({
+        ...prev,
+        description: `${prev.description || ''}\n\n[Auto Waveform Peaks: ${peaks.slice(0, 8).join(', ')} ...]`
+      }))
+
+    } catch (err: any) {
+      console.error(err)
+      showToast(err.message || 'Error processing audio preview', 'error')
+    } finally {
+      setTimeout(() => {
+        setAnalyzingAudio(false)
+        setUploadProgress(0)
+      }, 500)
+    }
+  }
+
   useEffect(() => {
     if (paletteSelection && paletteSelection.type === 'pack') {
       setActivePack(paletteSelection.data)
@@ -353,6 +423,52 @@ export function PacksTab({
                   onChange={e => setActivePack((prev: any) => ({ ...prev, full_pack_download_url: e.target.value }))}
                   className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
                 />
+              </div>
+
+              {/* DEMO AUDIO PREVIEW DRAG & DROP ZONE & DYNAMIC PARSER */}
+              <div className="md:col-span-2 border-4 border-dashed border-zinc-700 bg-black/40 p-5 relative flex flex-col items-center justify-center min-h-36 transition-all hover:bg-black/60 shadow-premium-sm">
+                <input
+                  type="file"
+                  accept="audio/*"
+                  onChange={e => {
+                    const file = e.target.files?.[0]
+                    if (file) processAudioFile(file)
+                  }}
+                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                />
+                
+                {analyzingAudio ? (
+                  <div className="flex flex-col items-center space-y-3 z-20">
+                    <div className="w-12 h-12 rounded-full border-4 border-zinc-800 border-t-studio-pink animate-spin flex items-center justify-center">
+                      <span className="text-[9px] font-black text-white">{uploadProgress}%</span>
+                    </div>
+                    <span className="text-[9px] font-black text-studio-pink uppercase animate-pulse">EXTRACTING 80 AUDIO PEAKS VIA WEB AUDIO API...</span>
+                  </div>
+                ) : waveformPeaks.length > 0 ? (
+                  <div className="w-full space-y-3 text-center z-20">
+                    <span className="text-[9px] font-black text-studio-neon uppercase">✅ AUDIO WAVEFORM GENERATED</span>
+                    
+                    {/* Retro pink neo-brutalist waveform graphic */}
+                    <div className="h-12 flex items-end justify-center gap-0.5 bg-[#080808] p-2 border-2 border-black shadow-premium-sm">
+                      {waveformPeaks.map((peak, idx) => (
+                        <div
+                          key={idx}
+                          className="w-1 bg-studio-pink transition-all duration-150"
+                          style={{
+                            height: `${Math.max(peak * 100, 10)}%`,
+                            opacity: 0.3 + peak * 0.7
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-[8px] text-zinc-500 block uppercase font-black leading-none">80 digital coordinate array calculated successfully</span>
+                  </div>
+                ) : (
+                  <div className="text-center space-y-2.5 z-20 pointer-events-none">
+                    <p className="text-[10px] font-black text-zinc-300 uppercase">🎵 DEMO TRACK UPLOADER & WAVEFORM ANALYZER</p>
+                    <p className="text-[8px] text-zinc-500 uppercase leading-none font-black tracking-wide">DRAG WAV / MP3 FILE HERE TO COMPUTE REAL-TIME AUDIO PEAKS</p>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-2">
