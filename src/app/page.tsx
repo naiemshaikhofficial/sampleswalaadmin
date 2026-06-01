@@ -31,7 +31,9 @@ import {
   getBrevoSubscribers,
   subscribeEmailToBrevo,
   unsubscribeEmailFromBrevo,
-  sendBrevoCampaign
+  sendBrevoCampaign,
+  getLaunchOfferStatus,
+  toggleLaunchOffer
 } from './actions'
 
 import {
@@ -100,7 +102,11 @@ export default function AdminDashboard() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   // Navigation Tab
-  const [activeTab, setActiveTab] = useState<'analytics' | 'packs' | 'samples' | 'kyc' | 'coupons' | 'tickets' | 'rankings' | 'users' | 'sales' | 'logs' | 'newsletter'>('analytics')
+  const [activeTab, setActiveTab] = useState<'analytics' | 'packs' | 'samples' | 'kyc' | 'coupons' | 'tickets' | 'rankings' | 'users' | 'sales' | 'logs' | 'newsletter' | 'settings'>('analytics')
+
+  // Global settings toggles states
+  const [bannerEnabled, setBannerEnabled] = useState(true)
+  const [bannerPending, setBannerPending] = useState(false)
 
   // Client-side Memory Cache Manager for extremely fast & scalable page rendering
   const cacheRef = useRef<Record<string, { data: any; timestamp: number }>>({})
@@ -737,6 +743,9 @@ export default function AdminDashboard() {
       } else if (tab === 'newsletter') {
         freshData = await getBrevoSubscribers()
         setSubscribersList(freshData)
+      } else if (tab === 'settings') {
+        freshData = await getLaunchOfferStatus()
+        setBannerEnabled(freshData)
       }
 
       // Store in memory cache
@@ -1190,6 +1199,23 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleToggleLaunchOffer = async () => {
+    setBannerPending(true)
+    const newValue = !bannerEnabled
+    try {
+      const result = await toggleLaunchOffer(newValue)
+      if (result.success) {
+        setBannerEnabled(newValue)
+        showToast(`Launch offer banner successfully ${newValue ? 'activated' : 'deactivated'}!`, 'success')
+        addAuditLog(newValue ? 'BANNER_ACTIVE' : 'BANNER_HIDE', `${newValue ? 'Activated' : 'Deactivated'} the launch offer announcement banner`, 'info')
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Failed to toggle banner', 'error')
+    } finally {
+      setBannerPending(false)
+    }
+  }
+
   // --- RENDERING ROUTINES ---
 
   // Loading Indicator
@@ -1453,6 +1479,15 @@ export default function AdminDashboard() {
             <Activity className="w-4.5 h-4.5" />
             <span>🛠️ Admin Activity Logs</span>
           </button>
+
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'settings' ? 'bg-[#FF5C00] text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
+              }`}
+          >
+            <Lock className="w-4.5 h-4.5" />
+            <span>⚙️ Global Site Settings</span>
+          </button>
         </nav>
 
         {/* ACCENT SWITCHER WIDGET */}
@@ -1516,6 +1551,7 @@ export default function AdminDashboard() {
               {activeTab === 'logs' && '🛠️ Admin Activity Logs'}
               {activeTab === 'rankings' && '🌟 Global Ranking List Engine'}
               {activeTab === 'newsletter' && '📧 Newsletter Hub & Campaign Manager'}
+              {activeTab === 'settings' && '⚙️ Global Site Settings & Configuration'}
             </span>
           </div>
 
@@ -3220,6 +3256,74 @@ export default function AdminDashboard() {
                 </table>
               </div>
 
+            </div>
+          )}
+
+          {/* ======================================================== */}
+          {/* TAB 12: GLOBAL SITE SETTINGS                             */}
+          {/* ======================================================== */}
+          {activeTab === 'settings' && (
+            <div className="space-y-6 animate-fadeIn font-mono text-xs">
+              <div className="bg-[#121212] p-6 border-4 border-black">
+                <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-[#FF5C00]">
+                  ⚙️ GLOBAL SITE CONFIGURATION
+                </h3>
+                <p className="text-zinc-400 mt-1 uppercase text-[10px] font-black">
+                  Manage application flags, configurations, and settings.
+                </p>
+              </div>
+
+              {/* Banner Settings Card */}
+              <div className="border-4 border-black bg-black p-6 font-sans">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-zinc-900">
+                  <div className="max-w-xl">
+                    <h4 className="text-lg font-bold text-white flex items-center gap-2">
+                      Announcement Banner (Launch Offer)
+                    </h4>
+                    <p className="text-zinc-400 text-xs mt-2 leading-relaxed">
+                      Toggle the visibility of the promo banner displaying the <span className="text-[#FF5C00] font-semibold">₹499 Offer</span> across the top of all main website pages. Changes apply instantly.
+                    </p>
+                  </div>
+
+                  {/* Toggle Switch */}
+                  <div className="flex items-center gap-4 self-start md:self-auto">
+                    <button
+                      onClick={handleToggleLaunchOffer}
+                      disabled={bannerPending}
+                      className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none disabled:opacity-50 cursor-pointer ${
+                        bannerEnabled ? 'bg-studio-neon shadow-[0_0_12px_rgba(0,255,148,0.3)]' : 'bg-zinc-800'
+                      }`}
+                    >
+                      <span className="sr-only">Toggle banner</span>
+                      <span
+                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-300 shadow-[0_2px_4px_black] ${
+                          bannerEnabled ? 'translate-x-7' : 'translate-x-1'
+                        } flex items-center justify-center`}
+                      >
+                        {bannerPending && <RefreshCw size={12} className="animate-spin text-zinc-900" />}
+                      </span>
+                    </button>
+                    <span className="text-xs font-black text-zinc-300 min-w-10">
+                      {bannerEnabled ? 'ACTIVE' : 'HIDDEN'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-6 bg-[#0c0c0c] border border-zinc-900 p-4 rounded-none">
+                  <span className="block text-[8px] font-mono font-black text-zinc-500 uppercase tracking-widest mb-2">
+                    Current Database Flag:
+                  </span>
+                  <div className="flex items-center gap-2 font-mono text-xs">
+                    <span className="text-zinc-400">key:</span>
+                    <span className="text-white font-bold">show_launch_offer</span>
+                    <span className="text-zinc-500">|</span>
+                    <span className="text-zinc-400">value:</span>
+                    <span className={bannerEnabled ? 'text-studio-neon font-black' : 'text-studio-red font-black'}>
+                      {String(bannerEnabled)}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 

@@ -1098,3 +1098,43 @@ export async function sendBrevoCampaign(campaign: {
   }
 }
 
+/**
+ * 11. Launch Offer Banner Toggle Settings
+ */
+export async function getLaunchOfferStatus() {
+  try {
+    const db = getDB()
+    const { data, error } = await db
+      .from('app_metadata')
+      .select('value')
+      .eq('key', 'show_launch_offer')
+      .maybeSingle()
+
+    if (error || !data) {
+      return true // default to true
+    }
+    return data.value !== 'false'
+  } catch (error) {
+    console.error('Error getting launch offer status:', error)
+    return true
+  }
+}
+
+export async function toggleLaunchOffer(value: boolean) {
+  try {
+    const db = getDB()
+    const { error } = await db
+      .from('app_metadata')
+      .upsert({
+        key: 'show_launch_offer',
+        value: String(value),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' })
+
+    if (error) throw error
+    return { success: true }
+  } catch (error) {
+    console.error('Error toggling launch offer status:', error)
+    throw error
+  }
+}
