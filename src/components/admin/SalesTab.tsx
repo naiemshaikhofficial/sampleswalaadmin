@@ -20,6 +20,14 @@ export function SalesTab({
   const [showOrderModal, setShowOrderModal] = useState(false)
   const [activeOrder, setActiveOrder] = useState<any>(null)
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 20
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [salesSearch])
+
   useEffect(() => {
     if (paletteSelection && paletteSelection.type === 'order') {
       setActiveOrder(paletteSelection.data)
@@ -85,54 +93,117 @@ export function SalesTab({
                   No sales transactions logged.
                 </td>
               </tr>
-            ) : (
-              filteredSales.map((s: any) => (
-                <tr
-                  key={s.id}
-                  onClick={() => {
-                    setActiveOrder(s)
-                    setShowOrderModal(true)
-                  }}
-                  className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors cursor-pointer"
-                  title="Click to view full detailed order transaction"
-                >
-                  <td className="p-4">
-                    <div className="bg-[#151515] border border-zinc-800 p-3 font-sans">
-                      <p className="font-sans font-bold text-sm text-zinc-100 normal-case leading-tight">{s.pack_name}</p>
-                      <span className="inline-block text-[8px] bg-studio-pink/20 text-studio-pink border border-studio-pink px-2 py-0.5 mt-2 font-bold uppercase">VAULTED ACQUISITION</span>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <p className="font-sans font-bold text-sm tracking-wide text-zinc-100 leading-none">{s.buyer_name}</p>
-                    <p className="text-[10px] text-zinc-400 lowercase font-mono mt-1.5 flex items-center gap-1 normal-case font-medium">
-                      <Mail className="w-3.5 h-3.5 text-studio-neon" /> {s.buyer_email}
-                    </p>
-                    <p className="text-[10px] text-zinc-400 font-mono mt-1.5 flex items-center gap-1 font-medium">
-                      <Phone className="w-3.5 h-3.5 text-zinc-500" /> {s.buyer_phone}
-                    </p>
-                  </td>
-                  <td className="p-4 normal-case text-zinc-400 font-medium max-w-xs text-[10px] leading-normal font-mono">
-                    <div className="flex items-start gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-studio-neon flex-shrink-0 mt-0.5" />
-                      <span>{s.buyer_address}</span>
-                    </div>
-                  </td>
-                  <td className="p-4 text-center">
-                    <div className="inline-block bg-black border border-zinc-800 p-2.5 font-mono text-left font-medium">
-                      <p className="text-[10px] text-zinc-500 font-sans">PAYMENT TOTAL:</p>
-                      <p className="text-base font-bold text-zinc-100 mt-0.5">₹{s.amount?.toLocaleString()}</p>
-                      <div className="mt-2 border-t border-zinc-900 pt-1.5 space-y-0.5 font-medium font-mono text-[8px] tracking-tight uppercase text-zinc-400">
-                        <p>ORD: <span className="text-studio-neon">{s.razorpay_order_id}</span></p>
-                        <p>PAY: <span className="text-studio-pink">{s.razorpay_payment_id}</span></p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-4 text-center font-mono text-[10px] font-medium text-zinc-500">
-                    {new Date(s.created_at).toLocaleString()}
-                  </td>
-                </tr>
-              ))
-            )}
+            ) : (() => {
+              const totalPages = Math.ceil(filteredSales.length / ITEMS_PER_PAGE)
+              const paginatedSales = filteredSales.slice(
+                (currentPage - 1) * ITEMS_PER_PAGE,
+                currentPage * ITEMS_PER_PAGE
+              )
+
+              return (
+                <>
+                  {paginatedSales.map((s: any) => (
+                    <tr
+                      key={s.id}
+                      onClick={() => {
+                        setActiveOrder(s)
+                        setShowOrderModal(true)
+                      }}
+                      className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors cursor-pointer"
+                      title="Click to view full detailed order transaction"
+                    >
+                      <td className="p-4">
+                        <div className="bg-[#151515] border border-zinc-800 p-3 font-sans">
+                          <p className="font-sans font-bold text-sm text-zinc-100 normal-case leading-tight">{s.pack_name}</p>
+                          <span className="inline-block text-[8px] bg-studio-pink/20 text-studio-pink border border-studio-pink px-2 py-0.5 mt-2 font-bold uppercase">VAULTED ACQUISITION</span>
+                        </div>
+                      </td>
+                      <td className="p-4">
+                        <p className="font-sans font-bold text-sm tracking-wide text-zinc-100 leading-none">{s.buyer_name}</p>
+                        <p className="text-[10px] text-zinc-400 lowercase font-mono mt-1.5 flex items-center gap-1 normal-case font-medium">
+                          <Mail className="w-3.5 h-3.5 text-studio-neon" /> {s.buyer_email}
+                        </p>
+                        <p className="text-[10px] text-zinc-400 font-mono mt-1.5 flex items-center gap-1 font-medium">
+                          <Phone className="w-3.5 h-3.5 text-zinc-500" /> {s.buyer_phone}
+                        </p>
+                      </td>
+                      <td className="p-4 normal-case text-zinc-400 font-medium max-w-xs text-[10px] leading-normal font-mono">
+                        <div className="flex items-start gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-studio-neon flex-shrink-0 mt-0.5" />
+                          <span>{s.buyer_address}</span>
+                        </div>
+                      </td>
+                      <td className="p-4 text-center">
+                        <div className="inline-block bg-black border border-zinc-800 p-2.5 font-mono text-left font-medium">
+                          <p className="text-[10px] text-zinc-500 font-sans">PAYMENT TOTAL:</p>
+                          <p className="text-base font-bold text-zinc-100 mt-0.5">₹{s.amount?.toLocaleString()}</p>
+                          <div className="mt-2 border-t border-zinc-900 pt-1.5 space-y-0.5 font-medium font-mono text-[8px] tracking-tight uppercase text-zinc-400">
+                            <p>ORD: <span className="text-studio-neon">{s.razorpay_order_id}</span></p>
+                            <p>PAY: <span className="text-studio-pink">{s.razorpay_payment_id}</span></p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4 text-center font-mono text-[10px] font-medium text-zinc-500">
+                        {new Date(s.created_at).toLocaleString()}
+                      </td>
+                    </tr>
+                  ))}
+                  
+                  {/* Pagination Controller Row */}
+                  {totalPages > 1 && (
+                    <tr>
+                      <td colSpan={5} className="p-4 bg-[#121212] border-t-4 border-black">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[10px] uppercase font-black">
+                          <div className="text-zinc-400">
+                            SHOWING {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredSales.length)} OF {filteredSales.length} TRANSACTIONS
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button
+                              disabled={currentPage === 1}
+                              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                              className="px-3 py-1.5 border-2 border-black bg-black text-white hover:bg-studio-neon hover:text-black font-bold uppercase transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                            >
+                              PREV
+                            </button>
+                            
+                            {Array.from({ length: totalPages }, (_, i) => i + 1)
+                              .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                              .map((p, idx, arr) => {
+                                const elements = []
+                                if (idx > 0 && p - arr[idx - 1] > 1) {
+                                  elements.push(<span key={`dot-${p}`} className="text-zinc-600 px-1">...</span>)
+                                }
+                                elements.push(
+                                  <button
+                                    key={p}
+                                    onClick={() => setCurrentPage(p)}
+                                    className={`w-7 h-7 border-2 border-black font-bold uppercase transition-all cursor-pointer ${
+                                      currentPage === p 
+                                        ? 'bg-studio-neon text-black border-studio-neon' 
+                                        : 'bg-black text-white hover:bg-zinc-800'
+                                    }`}
+                                  >
+                                    {p}
+                                  </button>
+                                )
+                                return elements
+                              })}
+
+                            <button
+                              disabled={currentPage === totalPages}
+                              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                              className="px-3 py-1.5 border-2 border-black bg-black text-white hover:bg-studio-neon hover:text-black font-bold uppercase transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                            >
+                              NEXT
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
+              )
+            })()}
           </tbody>
         </table>
       </div>

@@ -29,6 +29,15 @@ export function UsersTab({
   const [activeUser, setActiveUser] = useState<any>(null)
   const [actionLoading, setActionLoading] = useState(false)
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1)
+  const ITEMS_PER_PAGE = 20
+
+  // Reset pagination on search query or filter criteria change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [userSearch, userFilter])
+
   useEffect(() => {
     if (paletteSelection && paletteSelection.type === 'user') {
       setActiveUser(paletteSelection.data)
@@ -179,93 +188,157 @@ export function UsersTab({
                 )
               }
 
-              return filtered.map((u: any) => (
-                <tr
-                  key={u.id}
-                  onClick={() => {
-                    setActiveUser(u)
-                    setShowUserModal(true)
-                  }}
-                  className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors cursor-pointer"
-                  title="Click to view full detailed user profile, credits, and device fingerprints"
-                >
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-none bg-studio-pink border-2 border-black text-black font-sans font-black text-sm flex items-center justify-center flex-shrink-0">
-                        {u.full_name?.charAt(0) || '?'}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-sans font-bold text-sm tracking-wide text-zinc-100 leading-none">{u.full_name}</p>
-                          {u.provider === 'google' ? (
-                            <span className="bg-studio-pink/15 text-studio-pink border border-studio-pink/30 font-bold uppercase text-[7px] px-1.5 py-0.5 tracking-wider" title="Authenticated via Google SSO">
-                              GOOGLE SSO
-                            </span>
-                          ) : (
-                            <span className="bg-zinc-900 text-zinc-500 border border-zinc-800 font-bold uppercase text-[7px] px-1.5 py-0.5 tracking-wider" title="Authenticated via Email & Password">
-                              EMAIL PASS
-                            </span>
-                          )}
+              // Compute paginated subset
+              const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
+              const paginatedUsers = filtered.slice(
+                (currentPage - 1) * ITEMS_PER_PAGE,
+                currentPage * ITEMS_PER_PAGE
+              )
+
+              return (
+                <>
+                  {paginatedUsers.map((u: any) => (
+                    <tr
+                      key={u.id}
+                      onClick={() => {
+                        setActiveUser(u)
+                        setShowUserModal(true)
+                      }}
+                      className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors cursor-pointer"
+                      title="Click to view full detailed user profile, credits, and device fingerprints"
+                    >
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-none bg-studio-pink border-2 border-black text-black font-sans font-black text-sm flex items-center justify-center flex-shrink-0">
+                            {u.full_name?.charAt(0) || '?'}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-sans font-bold text-sm tracking-wide text-zinc-100 leading-none">{u.full_name}</p>
+                              {u.provider === 'google' ? (
+                                <span className="bg-studio-pink/15 text-studio-pink border border-studio-pink/30 font-bold uppercase text-[7px] px-1.5 py-0.5 tracking-wider" title="Authenticated via Google SSO">
+                                  GOOGLE SSO
+                                </span>
+                              ) : (
+                                <span className="bg-zinc-900 text-zinc-500 border border-zinc-800 font-bold uppercase text-[7px] px-1.5 py-0.5 tracking-wider" title="Authenticated via Email & Password">
+                                  EMAIL PASS
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-zinc-400 lowercase font-mono mt-1 flex items-center gap-1 normal-case font-medium">
+                              <Mail className="w-3.5 h-3.5 inline text-studio-pink" /> {u.email}
+                            </p>
+                            <p className="text-[9px] text-zinc-600 mt-0.5 font-medium">REGISTERED: {new Date(u.created_at).toLocaleDateString()}</p>
+                          </div>
                         </div>
-                        <p className="text-[10px] text-zinc-400 lowercase font-mono mt-1 flex items-center gap-1 normal-case font-medium">
-                          <Mail className="w-3.5 h-3.5 inline text-studio-pink" /> {u.email}
+                      </td>
+                      <td className="p-4 normal-case text-zinc-300 font-medium leading-normal max-w-xs">
+                        <p className="flex items-center gap-1.5 text-[10px] normal-case">
+                          <Phone className="w-3.5 h-3.5 text-zinc-500 inline flex-shrink-0" /> {u.phone_number || 'N/A'}
                         </p>
-                        <p className="text-[9px] text-zinc-600 mt-0.5 font-medium">REGISTERED: {new Date(u.created_at).toLocaleDateString()}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-4 normal-case text-zinc-300 font-medium leading-normal max-w-xs">
-                    <p className="flex items-center gap-1.5 text-[10px] normal-case">
-                      <Phone className="w-3.5 h-3.5 text-zinc-500 inline flex-shrink-0" /> {u.phone_number || 'N/A'}
-                    </p>
-                    <div className="flex items-start gap-1.5 mt-1.5 text-[10px] font-mono leading-tight normal-case">
-                      <MapPin className="w-3.5 h-3.5 text-studio-pink inline flex-shrink-0 mt-0.5" />
-                      <span className="text-zinc-400 leading-normal">{u.address || 'NO ADDRESS PROVIDED'}</span>
-                    </div>
-                  </td>
-                  <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="flex flex-col items-center justify-center gap-1">
-                        {u.is_banned ? (
-                          <>
-                            <span className="bg-studio-red text-white border-2 border-black font-black uppercase text-[8px] px-2 py-0.5 flex items-center gap-1 animate-pulse">
-                              <Ban className="w-2.5 h-2.5 text-white" /> BANNED LOCK
-                            </span>
+                        <div className="flex items-start gap-1.5 mt-1.5 text-[10px] font-mono leading-tight normal-case">
+                          <MapPin className="w-3.5 h-3.5 text-studio-pink inline flex-shrink-0 mt-0.5" />
+                          <span className="text-zinc-400 leading-normal">{u.address || 'NO ADDRESS PROVIDED'}</span>
+                        </div>
+                      </td>
+                      <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="flex flex-col items-center justify-center gap-1">
+                            {u.is_banned ? (
+                              <>
+                                <span className="bg-studio-red text-white border-2 border-black font-black uppercase text-[8px] px-2 py-0.5 flex items-center gap-1 animate-pulse">
+                                  <Ban className="w-2.5 h-2.5 text-white" /> BANNED LOCK
+                                </span>
+                                <button
+                                  disabled={actionLoading}
+                                  onClick={(e) => { e.stopPropagation(); handleUnbanUser(u.id, u.email); }}
+                                  className="px-2 py-1 border border-black bg-studio-neon hover:bg-studio-neon-hover text-black font-bold uppercase text-[8px] tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  ACTIVATE
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <span className="bg-studio-neon/10 text-studio-neon border border-studio-neon font-black uppercase text-[8px] px-2 py-0.5 flex items-center gap-1">
+                                  <ShieldCheck className="w-2.5 h-2.5 text-studio-neon" /> ACCESS OK
+                                </span>
+                                <button
+                                  disabled={actionLoading}
+                                  onClick={(e) => { e.stopPropagation(); handleBanUser(u.id, u.email); }}
+                                  className="px-2 py-1 border border-black bg-studio-red text-white hover:bg-studio-red/80 font-bold uppercase text-[8px] tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  BAN USER
+                                </button>
+                              </>
+                            )}
+                          </div>
+                          <button
+                            disabled={actionLoading}
+                            onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id, u.email); }}
+                            className="p-2 border-2 border-black bg-studio-red text-white hover:bg-studio-red/80 transition-all cursor-pointer inline-flex items-center justify-center disabled:opacity-50"
+                            title="Permanently Delete User Account"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  
+                  {/* Pagination Controller Row nested as tbody extension or separate layout block */}
+                  {totalPages > 1 && (
+                    <tr>
+                      <td colSpan={3} className="p-4 bg-[#121212] border-t-4 border-black">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[10px] uppercase font-black">
+                          <div className="text-zinc-400">
+                            SHOWING {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} OF {filtered.length} REGISTRATIONS
+                          </div>
+                          <div className="flex items-center gap-1">
                             <button
-                              disabled={actionLoading}
-                              onClick={(e) => { e.stopPropagation(); handleUnbanUser(u.id, u.email); }}
-                              className="px-2 py-1 border border-black bg-studio-neon hover:bg-studio-neon-hover text-black font-bold uppercase text-[8px] tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                              disabled={currentPage === 1}
+                              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                              className="px-3 py-1.5 border-2 border-black bg-black text-white hover:bg-studio-pink hover:text-black font-bold uppercase transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                             >
-                              ACTIVATE
+                              PREV
                             </button>
-                          </>
-                        ) : (
-                          <>
-                            <span className="bg-studio-neon/10 text-studio-neon border border-studio-neon font-black uppercase text-[8px] px-2 py-0.5 flex items-center gap-1">
-                              <ShieldCheck className="w-2.5 h-2.5 text-studio-neon" /> ACCESS OK
-                            </span>
+                            
+                            {Array.from({ length: totalPages }, (_, i) => i + 1)
+                              .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                              .map((p, idx, arr) => {
+                                const elements = []
+                                if (idx > 0 && p - arr[idx - 1] > 1) {
+                                  elements.push(<span key={`dot-${p}`} className="text-zinc-600 px-1">...</span>)
+                                }
+                                elements.push(
+                                  <button
+                                    key={p}
+                                    onClick={() => setCurrentPage(p)}
+                                    className={`w-7 h-7 border-2 border-black font-bold uppercase transition-all cursor-pointer ${
+                                      currentPage === p 
+                                        ? 'bg-studio-pink text-white border-studio-pink' 
+                                        : 'bg-black text-white hover:bg-zinc-800'
+                                    }`}
+                                  >
+                                    {p}
+                                  </button>
+                                )
+                                return elements
+                              })}
+
                             <button
-                              disabled={actionLoading}
-                              onClick={(e) => { e.stopPropagation(); handleBanUser(u.id, u.email); }}
-                              className="px-2 py-1 border border-black bg-studio-red text-white hover:bg-studio-red/80 font-bold uppercase text-[8px] tracking-wider transition-all cursor-pointer disabled:opacity-50"
+                              disabled={currentPage === totalPages}
+                              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                              className="px-3 py-1.5 border-2 border-black bg-black text-white hover:bg-studio-pink hover:text-black font-bold uppercase transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                             >
-                              BAN USER
+                              NEXT
                             </button>
-                          </>
-                        )}
-                      </div>
-                      <button
-                        disabled={actionLoading}
-                        onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id, u.email); }}
-                        className="p-2 border-2 border-black bg-studio-red text-white hover:bg-studio-red/80 transition-all cursor-pointer inline-flex items-center justify-center disabled:opacity-50"
-                        title="Permanently Delete User Account"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
+              )
             })()}
           </tbody>
         </table>

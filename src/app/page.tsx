@@ -813,7 +813,7 @@ export default function AdminDashboard() {
   // --- CORE AUTHORIZED ADMIN INTERFACE ---
   return (
     <div
-      className="min-h-screen flex flex-col md:flex-row bg-[#0c0c0c] text-white"
+      className="h-screen flex flex-col md:flex-row bg-[#0c0c0c] text-white overflow-hidden"
       style={{
         ['--color-studio-pink' as any]: accentDetails[accent].hex,
       }}
@@ -1059,7 +1059,7 @@ export default function AdminDashboard() {
       </aside>
 
       {/* MAIN VIEWPORT BODY */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      <main className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
         {/* MOBILE HEADER BAR */}
         <header className="flex md:hidden items-center justify-between bg-[#121212] border-b border-zinc-800 px-4 py-3 flex-shrink-0 z-20">
           <div className="flex items-center gap-2">
