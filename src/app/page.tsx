@@ -7,31 +7,16 @@ import {
   checkIsAdmin,
   getDashboardStats,
   getSamplePacks,
-  saveSamplePack,
-  deleteSamplePack,
   getSamples,
-  saveSample,
-  deleteSample,
   getArtistsKYC,
-  updateKYCStatus,
   getArtistPayouts,
-  triggerArtistPayout,
   getCoupons,
-  saveCoupon,
-  deleteCoupon,
   getSupportTickets,
-  replyToTicket,
   getRankedPacks,
   verifyTurnstile,
   getAllUsers,
-  banUser,
-  unbanUser,
-  deleteUser,
   getAllVaultSales,
   getBrevoSubscribers,
-  subscribeEmailToBrevo,
-  unsubscribeEmailFromBrevo,
-  sendBrevoCampaign,
   getLaunchOfferStatus,
   toggleLaunchOffer
 } from './actions'
@@ -44,8 +29,6 @@ import {
   Ticket,
   BadgeAlert,
   Plus,
-  Edit2,
-  Trash2,
   Check,
   X,
   Search,
@@ -84,7 +67,21 @@ import {
   Menu
 } from 'lucide-react'
 
-// Custom Toast Component for UI notifications
+// Modular Components
+import { SettingsTab } from '@/components/admin/SettingsTab'
+import { LogsTab } from '@/components/admin/LogsTab'
+import { RankingsTab } from '@/components/admin/RankingsTab'
+import { AnalyticsTab } from '@/components/admin/AnalyticsTab'
+import { DateFilterPanel } from '@/components/admin/DateFilterPanel'
+import { PacksTab } from '@/components/admin/PacksTab'
+import { SamplesTab } from '@/components/admin/SamplesTab'
+import { KycTab } from '@/components/admin/KycTab'
+import { CouponsTab } from '@/components/admin/CouponsTab'
+import { TicketsTab } from '@/components/admin/TicketsTab'
+import { UsersTab } from '@/components/admin/UsersTab'
+import { SalesTab } from '@/components/admin/SalesTab'
+import { NewsletterTab } from '@/components/admin/NewsletterTab'
+
 interface ToastState {
   show: boolean
   message: string
@@ -110,6 +107,9 @@ export default function AdminDashboard() {
   const [bannerPending, setBannerPending] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  // Universal Command Palette Redirect Target Selection State
+  const [paletteSelection, setPaletteSelection] = useState<{ type: string; data: any } | null>(null)
+
   useEffect(() => {
     setMobileMenuOpen(false)
   }, [activeTab])
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
   const verifiedAdminIdRef = useRef<string | null>(null)
   const CACHE_DURATION_MS = 60 * 1000 // 60 seconds cache expiry
 
-  // Accent Switcher & Audit Log states
+  // Accent Switcher
   const [accent, setAccent] = useState<'pink' | 'blue' | 'neon' | 'orange' | 'yellow' | 'purple'>('pink')
 
   const accentDetails = {
@@ -131,6 +131,7 @@ export default function AdminDashboard() {
     purple: { label: 'Neon Purple', hex: '#BF00FF', borderClass: 'shadow-[6px_6px_0px_#BF00FF]' },
   }
 
+  // Audit Logs
   const [auditLogs, setAuditLogs] = useState<Array<{
     id: string
     timestamp: string
@@ -256,198 +257,17 @@ export default function AdminDashboard() {
   const [rankedPacks, setRankedPacks] = useState<any[]>([])
   const [usersList, setUsersList] = useState<any[]>([])
   const [vaultSalesList, setVaultSalesList] = useState<any[]>([])
-
-  // Brevo Newsletter States
   const [subscribersList, setSubscribersList] = useState<any[]>([])
-  const [showCampaignModal, setShowCampaignModal] = useState(false)
-  const [campaignSubject, setCampaignSubject] = useState('')
-  const [campaignTitle, setCampaignTitle] = useState('')
-  const [campaignContent, setCampaignContent] = useState('')
-  const [campaignSending, setCampaignSending] = useState(false)
-  const [showSubscribeModal, setShowSubscribeModal] = useState(false)
-  const [newsletterEmailInput, setNewsletterEmailInput] = useState('')
-  const [newsletterSearch, setNewsletterSearch] = useState('')
-  const [selectedRecipients, setSelectedRecipients] = useState<string[]>([])
-  const [recipientSearch, setRecipientSearch] = useState('')
-  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile' | 'split'>('split')
-  const [previewHtml, setPreviewHtml] = useState('')
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPreviewHtml(getPreviewHtml())
-    }, 150)
-    return () => clearTimeout(timer)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [campaignContent, previewMode, showCampaignModal])
-
-  const injectHtmlElement = (type: string) => {
-    let snippet = ''
-    if (type === 'heading') {
-      snippet = `\n<h2 style="color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; margin-top: 24px; margin-bottom: 12px; letter-spacing: -0.02em;">New Sound Pack Available Now</h2>\n`
-    } else if (type === 'paragraph') {
-      snippet = `\n<p style="color: #94a3b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.6; margin-top: 0; margin-bottom: 16px;">This brand new sound kit delivers elite, studio-grade audio elements recorded by top-tier Indian instrumentalists. Infuse authentic acoustic textures directly into your electronic music productions today.</p>\n`
-    } else if (type === 'button') {
-      snippet = `\n<div style="margin: 28px 0; text-align: center;">\n  <a href="https://sampleswala.com" style="display: inline-block; padding: 12px 28px; background-color: #00BFFF; color: #000000; text-decoration: none; font-weight: 700; font-size: 13px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; border-radius: 6px; letter-spacing: 0.05em; text-transform: uppercase;">Download Sample Pack</a>\n</div>\n`
-    } else if (type === 'image') {
-      snippet = `\n<img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=600&auto=format&fit=crop" style="width: 100%; border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);" alt="Sound drop cover" />\n`
-    } else if (type === 'pack-card') {
-      snippet = `\n<div style="background-color: #111115; border: 1px solid #1e293b; border-radius: 8px; padding: 20px; margin: 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">\n  <span style="display: inline-block; background-color: #FFE600; color: #000000; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; margin-bottom: 12px;">Premium Release</span>\n  <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #ffffff;">🔥 Quantum Melodies & One-Shots</h4>\n  <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">Includes 120+ Melody loops, 80 high-impact drum one-shots, custom Serum synthesizer presets, and professional MIDI structures.</p>\n</div>\n`
-    }
-    setCampaignContent(prev => prev + snippet)
-  }
-
-  const getPreviewHtml = () => {
-    if (!campaignContent) {
-      return `
-        <!DOCTYPE html>
-        <html>
-          <body style="background: transparent; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; font-family: sans-serif; color: #888;">
-            <div style="text-align: center; text-transform: uppercase; font-weight: bold; font-size: 11px; letter-spacing: 2px;">
-              HTML COMPOSE LOADING...
-            </div>
-          </body>
-        </html>
-      `;
-    }
-
-    const isFullHtml = /<html|<!DOCTYPE/i.test(campaignContent);
-    const unsubscribeUrl = '#';
-
-    // Premium dark-mode unsubscribe footer aligned with Brand Theme
-    const footerHtml = `
-      <!-- UN-SUBSCRIBE FOOTER BY DEFAULT -->
-      <div style="margin-top: 40px; padding: 24px; border-top: 1px solid #1e293b; background-color: #0c0c0e; font-size: 11px; color: #94a3b8; text-align: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6;">
-        <p style="margin: 0 0 8px 0;">You received this email because you subscribed to our newsletter at <a href="https://sampleswala.com" style="color: #00BFFF; text-decoration: none; font-weight: bold;">sampleswala.com</a>.</p>
-        <p style="margin: 0;">
-          Want to stop receiving these? <a href="${unsubscribeUrl}" onclick="event.preventDefault();" style="color: #ef4444; font-weight: 600; text-decoration: underline; margin-left: 4px;">Unsubscribe here</a>
-        </p>
-        <p style="font-weight: 600; margin: 12px 0 0 0; color: #f8fafc;">&copy; 2026 SamplesWala. All rights reserved.</p>
-      </div>
-    `;
-
-    if (isFullHtml) {
-      let html = campaignContent
-        .replace(/{{unsubscribe_url}}/g, unsubscribeUrl)
-        .replace(/{{unsubscribe}}/g, unsubscribeUrl);
-
-      // Enforce the default unsubscribe footer if not explicitly present in external/pasted code
-      const hasUnsubscribe = /unsubscribe/i.test(campaignContent);
-      if (!hasUnsubscribe) {
-        if (/<\/body>/i.test(html)) {
-          html = html.replace(/<\/body>/i, `${footerHtml}</body>`);
-        } else {
-          html = html + footerHtml;
-        }
-      }
-      return html;
-    }
-
-    // Wrap partial content in SamplesWala Dark Industrial Brand Theme
-    return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-            body {
-              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              margin: 0;
-              padding: 0;
-              background-color: #030303;
-              color: #f1f5f9;
-              -webkit-font-smoothing: antialiased;
-            }
-            .email-container {
-              max-width: 600px;
-              margin: 40px auto;
-              background-color: #0c0c0c;
-              border: 1px solid #1e293b;
-              border-radius: 12px;
-              overflow: hidden;
-              box-shadow: 0 10px 25px -5px rgba(0,0,0,0.8);
-            }
-            .email-body {
-              padding: 40px 32px;
-            }
-            a {
-              color: #00BFFF;
-              text-decoration: none;
-            }
-            a:hover {
-              text-decoration: underline;
-            }
-            @media only screen and (max-width: 600px) {
-              .email-container {
-                margin: 0;
-                border-radius: 0;
-                border: none;
-                width: 100% !important;
-              }
-              .email-body {
-                padding: 24px 16px;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="email-container">
-            <div class="email-body">
-              ${campaignContent.replace(/\\n/g, '<br/>').replace(/{{unsubscribe_url}}/g, unsubscribeUrl).replace(/{{unsubscribe}}/g, unsubscribeUrl)}
-            </div>
-            ${footerHtml}
-          </div>
-        </body>
-      </html>
-    `;
-  };
 
   // Loadings
   const [dataLoading, setDataLoading] = useState(false)
 
-  // Search & Filter States
+  // Search & Filter States (Shared by SWR triggers)
   const [packFilter, setPackFilter] = useState('all')
   const [sampleSearch, setSampleSearch] = useState('')
   const [debouncedSampleSearch, setDebouncedSampleSearch] = useState('')
-  const [packSearch, setPackSearch] = useState('')
 
-  // User list search/filter states
-  const [userSearch, setUserSearch] = useState('')
-  const [userFilter, setUserFilter] = useState<'all' | 'active' | 'banned' | 'subscribed'>('all')
-
-  // Vault sales search state
-  const [salesSearch, setSalesSearch] = useState('')
-
-  // Modals & Active Edit Entities
-  const [showPackModal, setShowPackModal] = useState(false)
-  const [activePack, setActivePack] = useState<any>(null)
-
-  const [showSampleModal, setShowSampleModal] = useState(false)
-  const [activeSample, setActiveSample] = useState<any>(null)
-
-  const [showKycModal, setShowKycModal] = useState(false)
-  const [activeArtist, setActiveArtist] = useState<any>(null)
-
-  const [showPayoutModal, setShowPayoutModal] = useState(false)
-  const [payoutArtist, setPayoutArtist] = useState<any>(null)
-  const [payoutAmount, setPayoutAmount] = useState('')
-  const [payoutMonth, setPayoutMonth] = useState('')
-  const [payoutNotes, setPayoutNotes] = useState('')
-  const [payoutUtr, setPayoutUtr] = useState('')
-
-  const [showCouponModal, setShowCouponModal] = useState(false)
-  const [activeCoupon, setActiveCoupon] = useState<any>(null)
-
-  const [showTicketModal, setShowTicketModal] = useState(false)
-  const [activeTicket, setActiveTicket] = useState<any>(null)
-  const [ticketReply, setTicketReply] = useState('')
-
-  const [showOrderModal, setShowOrderModal] = useState(false)
-  const [activeOrder, setActiveOrder] = useState<any>(null)
-
-  const [showUserModal, setShowUserModal] = useState(false)
-  const [activeUser, setActiveUser] = useState<any>(null)
-
-  // Custom Confirmation Dialog State
+  // Confirmation Dialog State
   const [confirmDialog, setConfirmDialog] = useState<any>({
     show: false,
     title: '',
@@ -580,7 +400,6 @@ export default function AdminDashboard() {
   }, [])
 
   const verifyAdmin = async (uid: string) => {
-    // Avoid checking repeatedly for the same user ID
     if (verifiedAdminIdRef.current === uid) {
       return
     }
@@ -694,7 +513,6 @@ export default function AdminDashboard() {
       }
     }
 
-    // Render loading spinner only for full initial load or manually forced reload
     if (!cachedEntry || shouldBypassCache) {
       setDataLoading(true)
     }
@@ -704,7 +522,6 @@ export default function AdminDashboard() {
       if (tab === 'analytics') {
         freshData = await getDashboardStats()
         setStats(freshData)
-        // Load full sales for real-time period calculations
         try {
           const salesData = await getAllVaultSales()
           setVaultSalesList(salesData)
@@ -717,7 +534,6 @@ export default function AdminDashboard() {
         setPacks(result.packs)
         setCategories(result.categories)
       } else if (tab === 'samples') {
-        // Skip redundant getSamplePacks query if already loaded in client state
         if (packs.length === 0) {
           const result = await getSamplePacks()
           setPacks(result.packs)
@@ -754,7 +570,6 @@ export default function AdminDashboard() {
         setBannerEnabled(freshData)
       }
 
-      // Store in memory cache
       if (freshData) {
         cacheRef.current[tab] = {
           data: freshData,
@@ -768,13 +583,11 @@ export default function AdminDashboard() {
     }
   }
 
-  // Force invalidate memory cache and load fresh data (e.g. after mutating CRUD operations)
   const invalidateCacheAndReload = (tab: typeof activeTab) => {
     delete cacheRef.current[tab]
     loadTabContext(tab, true)
   }
 
-  // Reload current tab content bypassing the cache completely
   const handleReload = () => {
     invalidateCacheAndReload(activeTab)
   }
@@ -793,82 +606,6 @@ export default function AdminDashboard() {
       loadTabContext(activeTab)
     }
   }, [activeTab, packFilter, debouncedSampleSearch])
-
-  const handleBanUser = async (userId: string, email: string) => {
-    const approved = await askConfirmation(
-      '⚠️ CONFIRM USER ACCESS LOCK',
-      `Are you absolutely sure you want to BAN and lock user "${email}" from accessing SamplesWala? They will not be able to log in or download samples.`,
-      true,
-      'LOCK USER ACCOUNT'
-    )
-    if (!approved) return
-    try {
-      setDataLoading(true)
-      await banUser(userId)
-      showToast('User has been banned successfully!', 'success')
-      addAuditLog('BAN_USER', `Account lock applied to user: ${email}`, 'danger')
-      const allUsers = await getAllUsers()
-      setUsersList(allUsers)
-      cacheRef.current['users'] = { data: allUsers, timestamp: Date.now() }
-      if (activeUser && activeUser.id === userId) {
-        setActiveUser((prev: any) => ({ ...prev, is_banned: true }))
-      }
-    } catch (err: any) {
-      showToast(err.message || 'Failed to ban user', 'error')
-    } finally {
-      setDataLoading(false)
-    }
-  }
-
-  const handleUnbanUser = async (userId: string, email: string) => {
-    const approved = await askConfirmation(
-      '✅ CONFIRM USER ACTIVATION',
-      `Are you sure you want to UNBAN and restore active command access for user "${email}"?`,
-      false,
-      'ACTIVATE ACCOUNT'
-    )
-    if (!approved) return
-    try {
-      setDataLoading(true)
-      await unbanUser(userId)
-      showToast('User has been unbanned successfully!', 'success')
-      addAuditLog('UNBAN_USER', `Account access restored for user: ${email}`, 'success')
-      const allUsers = await getAllUsers()
-      setUsersList(allUsers)
-      cacheRef.current['users'] = { data: allUsers, timestamp: Date.now() }
-      if (activeUser && activeUser.id === userId) {
-        setActiveUser((prev: any) => ({ ...prev, is_banned: false }))
-      }
-    } catch (err: any) {
-      showToast(err.message || 'Failed to unban user', 'error')
-    } finally {
-      setDataLoading(false)
-    }
-  }
-
-  const handleDeleteUser = async (userId: string, email: string) => {
-    const approved = await askConfirmation(
-      '🚨 DANGER - PERMANENT USER DELETION',
-      `You are about to permanently DELETE user "${email}" from the entire database. This destroys their profile, download histories, credit packages, billing tokens, and auth credentials FOREVER. This action CANNOT BE UNDONE.`,
-      true,
-      'DELETE FOREVER'
-    )
-    if (!approved) return
-    try {
-      setDataLoading(true)
-      await deleteUser(userId)
-      showToast('User account deleted permanently!', 'success')
-      addAuditLog('DELETE_USER', `Permanently deleted user account: ${email}`, 'danger')
-      const allUsers = await getAllUsers()
-      setUsersList(allUsers)
-      cacheRef.current['users'] = { data: allUsers, timestamp: Date.now() }
-      setShowUserModal(false)
-    } catch (err: any) {
-      showToast(err.message || 'Failed to delete user', 'error')
-    } finally {
-      setDataLoading(false)
-    }
-  }
 
   // Custom audio previews handling
   const playSamplePreview = (sId: string, url: string) => {
@@ -896,315 +633,6 @@ export default function AdminDashboard() {
     }
   }
 
-  // --- CRUD DISPATCH ACTION SAVES ---
-
-  // 1. Pack Save
-  const handlePackSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!activePack.name || !activePack.slug) {
-      showToast('Name and Slug are required!', 'error')
-      return
-    }
-
-    try {
-      const saved = await saveSamplePack(activePack)
-      showToast(`Pack "${saved.name}" saved successfully!`, 'success')
-      addAuditLog(activePack.id ? 'UPDATE_PACK' : 'CREATE_PACK', `Saved sample pack: ${saved.name} (Slug: ${saved.slug})`, 'info')
-      setShowPackModal(false)
-      invalidateCacheAndReload('packs')
-    } catch (err: any) {
-      showToast(err.message || 'Failed to save pack', 'error')
-    }
-  }
-
-  const handlePackDelete = async (id: string, name: string) => {
-    const approved = await askConfirmation(
-      '🚨 DANGER - PACK INVENTORY REMOVAL',
-      `You are about to permanently delete the sample pack "${name}" and all associated audio samples contained within it. This action CANNOT BE UNDONE.`,
-      true,
-      'REMOVE PACK INVENTORY'
-    )
-    if (!approved) return
-    try {
-      await deleteSamplePack(id)
-      showToast(`Pack "${name}" deleted!`, 'success')
-      addAuditLog('DELETE_PACK', `Deleted sample pack: ${name}`, 'danger')
-      invalidateCacheAndReload('packs')
-    } catch (err: any) {
-      showToast(err.message || 'Failed to delete pack', 'error')
-    }
-  }
-
-  // 2. Sample Save
-  const handleSampleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!activeSample.name || !activeSample.pack_id) {
-      showToast('Name and Pack are required!', 'error')
-      return
-    }
-
-    try {
-      const saved = await saveSample(activeSample)
-      showToast(`Sample "${saved.name}" saved successfully!`, 'success')
-      addAuditLog(activeSample.id ? 'UPDATE_SAMPLE' : 'CREATE_SAMPLE', `Saved audio sample: ${saved.name}`, 'info')
-      setShowSampleModal(false)
-      invalidateCacheAndReload('samples')
-    } catch (err: any) {
-      showToast(err.message || 'Failed to save sample', 'error')
-    }
-  }
-
-  const handleSampleDelete = async (id: string, name: string) => {
-    const approved = await askConfirmation(
-      '⚠️ CONFIRM AUDIO REMOVAL',
-      `Are you sure you want to permanently delete the audio sample "${name}" from the system library? This will remove it from the customer search catalog immediately.`,
-      true,
-      'DELETE AUDIO SAMPLE'
-    )
-    if (!approved) return
-    try {
-      await deleteSample(id)
-      showToast(`Sample "${name}" deleted!`, 'success')
-      addAuditLog('DELETE_SAMPLE', `Deleted audio sample: ${name}`, 'danger')
-      invalidateCacheAndReload('samples')
-    } catch (err: any) {
-      showToast(err.message || 'Failed to delete sample', 'error')
-    }
-  }
-
-  // 3. KYC Actions
-  const handleKycApproval = async (artistId: string, status: 'approved' | 'rejected', artistName: string = 'this artist') => {
-    const promptTitle = status === 'approved' ? '🎨 CONFIRM KYC APPROVAL' : '⚠️ CONFIRM KYC REJECTION'
-    const promptMsg = status === 'approved'
-      ? `Are you absolutely sure you want to APPROVE the artist verification document for "${artistName}"? This grants them full publishing rights and live payouts.`
-      : `Are you sure you want to REJECT the artist verification document for "${artistName}"? They will be prompted to re-upload.`;
-    const approved = await askConfirmation(promptTitle, promptMsg, status === 'rejected', status === 'approved' ? 'APPROVE KYC' : 'REJECT KYC')
-    if (!approved) return
-    try {
-      await updateKYCStatus(artistId, status)
-      showToast(`Artist KYC status updated to ${status}!`, 'success')
-      addAuditLog(status === 'approved' ? 'KYC_APPROVE' : 'KYC_REJECT', `Artist KYC ${status === 'approved' ? 'approved' : 'rejected'} for: ${artistName}`, status === 'approved' ? 'success' : 'warning')
-      setShowKycModal(false)
-      invalidateCacheAndReload('kyc')
-    } catch (err: any) {
-      showToast(err.message || 'Failed to update KYC', 'error')
-    }
-  }
-
-  // Payout trigger
-  const handlePayoutTrigger = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!payoutAmount || !payoutMonth || !payoutUtr) {
-      showToast('Amount, Payout Month, and UTR reference number are required!', 'error')
-      return
-    }
-
-    try {
-      await triggerArtistPayout({
-        artist_id: payoutArtist.user_id,
-        amount: Number(payoutAmount),
-        payout_month: payoutMonth,
-        notes: payoutNotes,
-        utr_number: payoutUtr
-      })
-      showToast(`Simulated payout of ₹${payoutAmount} registered successfully!`, 'success')
-      addAuditLog('TRIGGER_PAYOUT', `Triggered simulated payout of ₹${payoutAmount} to artist: ${payoutArtist.full_name}`, 'success')
-      setShowPayoutModal(false)
-      setPayoutAmount('')
-      setPayoutMonth('')
-      setPayoutNotes('')
-      setPayoutUtr('')
-      invalidateCacheAndReload('kyc')
-    } catch (err: any) {
-      showToast(err.message || 'Failed to trigger payout', 'error')
-    }
-  }
-
-  // 4. Coupon Save
-  const handleCouponSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!activeCoupon.code || !activeCoupon.discount_percent) {
-      showToast('Coupon code and discount percentage are required!', 'error')
-      return
-    }
-
-    try {
-      const saved = await saveCoupon(activeCoupon)
-      showToast(`Coupon "${saved.code}" saved!`, 'success')
-      addAuditLog(activeCoupon.id ? 'UPDATE_COUPON' : 'CREATE_COUPON', `Saved discount coupon: ${saved.code} (${saved.discount_percent}% off)`, 'info')
-      setShowCouponModal(false)
-      invalidateCacheAndReload('coupons')
-    } catch (err: any) {
-      showToast(err.message || 'Failed to save coupon', 'error')
-    }
-  }
-
-  const handleCouponDelete = async (id: string, code: string) => {
-    const approved = await askConfirmation(
-      '⚠️ CONFIRM DISCOUNT COUPON DELETION',
-      `Are you sure you want to permanently delete coupon "${code}"? This discount code will instantly stop working for all active customers.`,
-      true,
-      'DELETE COUPON'
-    )
-    if (!approved) return
-    try {
-      await deleteCoupon(id)
-      showToast(`Coupon "${code}" deleted`, 'success')
-      addAuditLog('DELETE_COUPON', `Deleted discount coupon: ${code}`, 'danger')
-      invalidateCacheAndReload('coupons')
-    } catch (err: any) {
-      showToast(err.message || 'Failed to delete coupon', 'error')
-    }
-  }
-
-  // 5. Support Ticket Actions
-  const handleTicketReply = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!ticketReply) return
-    try {
-      await replyToTicket(activeTicket.id, ticketReply)
-      showToast('Reply submitted and ticket resolved!', 'success')
-      addAuditLog('RESOLVE_TICKET', `Replied and resolved support ticket ID: ${activeTicket.id} (user: ${activeTicket.user_email || 'N/A'})`, 'success')
-      setShowTicketModal(false)
-      setTicketReply('')
-      invalidateCacheAndReload('tickets')
-    } catch (err: any) {
-      showToast(err.message || 'Failed to resolve ticket', 'error')
-    }
-  }
-
-  // Quick Rank update in Rankings Engine
-  const updatePackRankInline = async (pack: any, rankVal: string) => {
-    const parsedRank = parseInt(rankVal)
-    if (isNaN(parsedRank)) {
-      showToast('Please specify a valid rank number', 'error')
-      return
-    }
-
-    try {
-      await saveSamplePack({ ...pack, display_rank: parsedRank })
-      showToast(`Rank for "${pack.name}" updated to ${parsedRank}!`, 'success')
-      addAuditLog('UPDATE_RANK', `Updated priority rank for pack "${pack.name}" to #${parsedRank}`, 'info')
-      invalidateCacheAndReload('rankings')
-    } catch (err: any) {
-      showToast(err.message || 'Failed to update priority rank', 'error')
-    }
-  }
-
-  // Generate automatically slugs for packs
-  const handlePackNameChange = (nameStr: string) => {
-    const slugged = nameStr
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/(^-|-$)+/g, '')
-    setActivePack((prev: any) => ({ ...prev, name: nameStr, slug: slugged }))
-  }
-
-  // --- BREVO NEWSLETTER DIRECTIVE HANDLERS ---
-  const handleNewsletterSubscribe = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!newsletterEmailInput) return
-
-    try {
-      setDataLoading(true)
-      await subscribeEmailToBrevo(newsletterEmailInput)
-      showToast(`Successfully subscribed "${newsletterEmailInput}" to Brevo list!`, 'success')
-      addAuditLog('NEWSLETTER_SUBSCRIBE', `Manually subscribed email to newsletter: ${newsletterEmailInput}`, 'success')
-      setNewsletterEmailInput('')
-      setShowSubscribeModal(false)
-      invalidateCacheAndReload('newsletter')
-    } catch (err: any) {
-      showToast(err.message || 'Failed to subscribe email', 'error')
-    } finally {
-      setDataLoading(false)
-    }
-  }
-
-  const handleNewsletterUnsubscribe = async (email: string) => {
-    const approved = await askConfirmation(
-      '⚠️ UNSUBSCRIBE NEWSLETTER VISITOR',
-      `Are you sure you want to UNSUBSCRIBE and blacklist "${email}" from receiving any newsletter campaigns?`,
-      true,
-      'UNSUBSCRIBE EMAIL'
-    )
-    if (!approved) return
-
-    try {
-      setDataLoading(true)
-      await unsubscribeEmailFromBrevo(email)
-      showToast(`Successfully unsubscribed "${email}"!`, 'success')
-      addAuditLog('NEWSLETTER_UNSUBSCRIBE', `Manually unsubscribed/blacklisted newsletter visitor: ${email}`, 'warning')
-      invalidateCacheAndReload('newsletter')
-    } catch (err: any) {
-      showToast(err.message || 'Failed to unsubscribe email', 'error')
-    } finally {
-      setDataLoading(false)
-    }
-  }
-
-  const handleNewsletterResubscribe = async (email: string) => {
-    try {
-      setDataLoading(true)
-      await subscribeEmailToBrevo(email)
-      showToast(`Successfully restored newsletter subscription for "${email}"!`, 'success')
-      addAuditLog('NEWSLETTER_SUBSCRIBE', `Restored active newsletter subscription: ${email}`, 'success')
-      invalidateCacheAndReload('newsletter')
-    } catch (err: any) {
-      showToast(err.message || 'Failed to subscribe email', 'error')
-    } finally {
-      setDataLoading(false)
-    }
-  }
-
-  const handleSendCampaign = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!campaignSubject || !campaignContent) {
-      showToast('Subject and HTML Content are required!', 'error')
-      return
-    }
-
-    if (selectedRecipients.length === 0) {
-      showToast('Please select at least 1 recipient to send the campaign to!', 'error')
-      return
-    }
-
-    const allActiveEmails = subscribersList.filter((s: any) => s.subscribed && s.email && s.email !== 'N/A').map((s: any) => s.email)
-    const isSendingToAll = selectedRecipients.length === allActiveEmails.length
-
-    const approved = await askConfirmation(
-      '🚀 SEND LIVE NEWSLETTER CAMPAIGN',
-      isSendingToAll
-        ? `You are about to send this newsletter to ALL ${selectedRecipients.length} active subscribers. Are you absolutely ready?`
-        : `You are about to send this newsletter to ${selectedRecipients.length} selected recipient${selectedRecipients.length > 1 ? 's' : ''}. Are you ready to send?`,
-      false,
-      'SEND NEWSLETTER'
-    )
-    if (!approved) return
-
-    setCampaignSending(true)
-    try {
-      const res = await sendBrevoCampaign({
-        subject: campaignSubject,
-        title: campaignTitle || '',
-        htmlContent: campaignContent,
-        targetEmails: selectedRecipients
-      })
-      showToast(`Newsletter sent successfully to ${res.recipientsCount} subscribers!`, 'success')
-      addAuditLog('NEWSLETTER_DISPATCH', `Dispatched newsletter campaign: "${campaignSubject}" to ${res.recipientsCount} users`, 'success')
-      setShowCampaignModal(false)
-      setCampaignSubject('')
-      setCampaignTitle('')
-      setCampaignContent('')
-      setSelectedRecipients([])
-      setRecipientSearch('')
-      invalidateCacheAndReload('newsletter')
-    } catch (err: any) {
-      showToast(err.message || 'Failed to dispatch newsletter campaign', 'error')
-    } finally {
-      setCampaignSending(false)
-    }
-  }
-
   const handleToggleLaunchOffer = async () => {
     setBannerPending(true)
     const newValue = !bannerEnabled
@@ -1222,9 +650,6 @@ export default function AdminDashboard() {
     }
   }
 
-  // --- RENDERING ROUTINES ---
-
-  // Loading Indicator
   if (checkingAdmin) {
     return null
   }
@@ -1378,8 +803,9 @@ export default function AdminDashboard() {
 
       {/* STATE NOTIFICATION TOAST */}
       {toast.show && (
-        <div className={`fixed bottom-6 right-6 z-50 border-4 border-black p-4 shadow-premium transition-transform duration-300 font-mono text-xs uppercase font-black flex items-center gap-3 ${toast.type === 'success' ? 'bg-studio-neon text-black' : toast.type === 'error' ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
-          }`}>
+        <div className={`fixed bottom-6 right-6 z-50 border-4 border-black p-4 shadow-premium transition-transform duration-300 font-mono text-xs uppercase font-black flex items-center gap-3 ${
+          toast.type === 'success' ? 'bg-studio-neon text-black' : toast.type === 'error' ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
+        }`}>
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : toast.type === 'error' ? <XCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
           <span>{toast.message}</span>
         </div>
@@ -1437,6 +863,18 @@ export default function AdminDashboard() {
           >
             <Library className="w-4 h-4" />
             <span>📦 Manage Audio Packs</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('samples')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
+              activeTab === 'samples'
+                ? 'bg-studio-neon text-black border-studio-neon/30 shadow-sm'
+                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+            }`}
+          >
+            <Music className="w-4 h-4" />
+            <span>🎵 Individual Samples</span>
           </button>
 
           <button
@@ -1509,6 +947,18 @@ export default function AdminDashboard() {
           >
             <Mail className="w-4 h-4" />
             <span>📧 Newsletter Hub</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('rankings')}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
+              activeTab === 'rankings'
+                ? 'bg-studio-yellow text-black border-studio-yellow/30 shadow-sm'
+                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+            }`}
+          >
+            <TrendingUp className="w-4 h-4" />
+            <span>🌟 Display Rankings</span>
           </button>
 
           <button
@@ -1647,7 +1097,6 @@ export default function AdminDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Command Palette Trigger Button */}
             <button
               onClick={() => setShowPalette(true)}
               className="flex items-center gap-2 px-3 py-1.5 border border-zinc-800 rounded bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all font-mono text-[10px] cursor-pointer"
@@ -1665,7 +1114,7 @@ export default function AdminDashboard() {
             )}
             <button
               onClick={handleReload}
-              className="p-2 border-3 border-black bg-white hover:bg-studio-pink text-black transition-colors"
+              className="p-2 border-3 border-black bg-white hover:bg-studio-pink text-black transition-colors cursor-pointer"
               title="Refresh database collections"
             >
               <RefreshCw className="w-4 h-4" />
@@ -1676,3128 +1125,183 @@ export default function AdminDashboard() {
         {/* CONTAINER CONTENT */}
         <div className="flex-1 p-6 space-y-6">
 
-          {/* ======================================================== */}
-          {/* TAB 1: PERFORMANCE ANALYTICS & STATS                     */}
-          {/* ======================================================== */}
+          {['analytics', 'sales', 'logs'].includes(activeTab) && (
+            <DateFilterPanel
+              filterStartDate={filterStartDate}
+              setFilterStartDate={setFilterStartDate}
+              filterStartTime={filterStartTime}
+              setFilterStartTime={setFilterStartTime}
+              filterEndDate={filterEndDate}
+              setFilterEndDate={setFilterEndDate}
+              filterEndTime={filterEndTime}
+              setFilterEndTime={setFilterEndTime}
+              showDateFilter={showDateFilter}
+              setShowDateFilter={setShowDateFilter}
+              setQuickRange={setQuickRange}
+              showToast={showToast}
+            />
+          )}
+
+          {/* TAB 1: PERFORMANCE ANALYTICS & STATS */}
           {activeTab === 'analytics' && stats && (
-            <div className="space-y-6 animate-fadeIn">
-              {/* 📅 DETAILED DATE & TIME FILTER PANEL */}
-              <div className="studio-panel p-5 border-4 border-black bg-[#0c0c0c] font-sans">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-4 border-black pb-3 mb-4 gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <Calendar className="w-5 h-5 text-studio-pink animate-pulse" />
-                    <div>
-                      <h4 className="font-sans font-bold text-sm uppercase text-studio-pink tracking-wider">
-                        📅 DETAILED DATE-TIME RANGE FILTER
-                      </h4>
-                      <p className="text-[9px] font-mono uppercase text-zinc-500 font-bold leading-none mt-0.5">
-                        Filter all business analytics and orders down to the exact minute
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setShowDateFilter(!showDateFilter)}
-                      className="px-2 py-0.5 text-[9px] font-mono font-black uppercase bg-[#151515] border border-zinc-800 text-zinc-400 hover:text-white"
-                    >
-                      {showDateFilter ? '🙈 COLLAPSE FILTER' : '👁️ SHOW FILTER'}
-                    </button>
-                    {(filterStartDate || filterEndDate) && (
-                      <span className="inline-block text-[8px] bg-studio-neon/20 text-studio-neon border border-studio-neon px-2 py-0.5 font-bold uppercase animate-bounce">
-                        FILTER ACTIVE
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {showDateFilter && (
-                  <div className="space-y-4">
-                    {/* Quick Presets row */}
-                    <div className="flex flex-wrap items-center gap-1.5 pb-3 border-b border-zinc-900">
-                      <span className="text-[9px] font-mono font-black uppercase text-zinc-500 mr-2">QUICK TIME PRESETS:</span>
-                      {[
-                        { label: 'ALL TIME', key: 'all' },
-                        { label: 'TODAY', key: 'today' },
-                        { label: 'YESTERDAY', key: 'yesterday' },
-                        { label: 'LAST 7 DAYS', key: '7days' },
-                        { label: 'LAST 30 DAYS', key: '30days' },
-                        { label: 'THIS MONTH', key: 'month' },
-                      ].map(preset => (
-                        <button
-                          key={preset.key}
-                          onClick={() => setQuickRange(preset.key as any)}
-                          className="px-2 py-1 text-[9px] font-mono font-black uppercase bg-black border border-zinc-850 hover:border-studio-pink text-zinc-400 hover:text-white transition-all cursor-pointer"
-                        >
-                          {preset.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Form row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end">
-                      {/* Start Date */}
-                      <div className="space-y-1">
-                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">📅 START DATE</label>
-                        <input
-                          type="date"
-                          value={filterStartDate}
-                          onChange={e => setFilterStartDate(e.target.value)}
-                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-pink"
-                        />
-                      </div>
-
-                      {/* Start Time */}
-                      <div className="space-y-1">
-                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">⏰ START TIME</label>
-                        <input
-                          type="time"
-                          value={filterStartTime}
-                          onChange={e => setFilterStartTime(e.target.value)}
-                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-pink"
-                        />
-                      </div>
-
-                      {/* End Date */}
-                      <div className="space-y-1">
-                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">📅 END DATE</label>
-                        <input
-                          type="date"
-                          value={filterEndDate}
-                          onChange={e => setFilterEndDate(e.target.value)}
-                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-pink"
-                        />
-                      </div>
-
-                      {/* End Time */}
-                      <div className="space-y-1">
-                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">⏰ END TIME</label>
-                        <input
-                          type="time"
-                          value={filterEndTime}
-                          onChange={e => setFilterEndTime(e.target.value)}
-                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-pink"
-                        />
-                      </div>
-
-                      {/* Reset Button */}
-                      <button
-                        onClick={() => {
-                          setQuickRange('all')
-                          showToast('Filters cleared!', 'warning')
-                        }}
-                        className="w-full h-[36px] border-2 border-zinc-800 hover:border-studio-pink hover:bg-studio-pink/10 text-zinc-400 hover:text-white font-sans font-black uppercase text-[9px] tracking-wide transition-all cursor-pointer"
-                      >
-                        🔄 RESET RANGE
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* 🎯 DYNAMIC PERIOD METRICS SUMMARY */}
-              {(filterStartDate || filterEndDate) && (
-                <div className="studio-panel p-5 border-4 border-black bg-[#0d0d0d] animate-fadeIn">
-                  <div className="flex items-center justify-between border-b-2 border-zinc-800 pb-3 mb-4">
-                    <h3 className="font-sans font-black text-xs uppercase text-studio-neon flex items-center gap-2">
-                      🎯 DYNAMIC METRICS FOR SELECTED PERIOD
-                    </h3>
-                    <span className="text-[8px] font-mono font-black text-zinc-500 uppercase">
-                      TIME-WISE GRANULAR ANALYSIS
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-black border border-zinc-850 p-4 relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 p-2 text-[30px] font-black text-zinc-900 leading-none select-none">₹</div>
-                      <p className="text-[8px] font-mono font-black text-zinc-500 uppercase leading-none">PERIOD EARNINGS</p>
-                      <p className="font-sans font-bold text-2xl text-white mt-2 leading-none">
-                        ₹{getFilteredMetrics().revenue.toLocaleString()}
-                      </p>
-                    </div>
-
-                    <div className="bg-black border border-zinc-850 p-4 relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 p-2 text-[30px] font-black text-zinc-900 leading-none select-none">📦</div>
-                      <p className="text-[8px] font-mono font-black text-zinc-500 uppercase leading-none">ACQUISITIONS VOLUME</p>
-                      <p className="font-sans font-bold text-2xl text-white mt-2 leading-none">
-                        {getFilteredMetrics().count} SALES
-                      </p>
-                    </div>
-
-                    <div className="bg-black border border-zinc-850 p-4 relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 p-2 text-[30px] font-black text-zinc-900 leading-none select-none">📊</div>
-                      <p className="text-[8px] font-mono font-black text-zinc-500 uppercase leading-none">AVERAGE ORDER VALUE (AOV)</p>
-                      <p className="font-sans font-bold text-2xl text-white mt-2 leading-none">
-                        ₹{getFilteredMetrics().aov.toLocaleString()}
-                      </p>
-                    </div>
-
-                    <div className="bg-black border border-zinc-850 p-4 relative overflow-hidden group">
-                      <div className="absolute top-0 right-0 p-2 text-[30px] font-black text-zinc-900 leading-none select-none">👤</div>
-                      <p className="text-[8px] font-mono font-black text-zinc-500 uppercase leading-none">UNIQUE CUSTOMERS</p>
-                      <p className="font-sans font-bold text-2xl text-white mt-2 leading-none">
-                        {getFilteredMetrics().uniqueBuyersCount} BUYERS
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* STATS HEADER GRID */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {/* 1. REVENUE CARD */}
-                <div className="comic-panel border-4 border-black p-5 yellow-border flex items-center gap-4">
-                  <div className="w-12 h-12 bg-studio-yellow border-3 border-black flex items-center justify-center text-black">
-                    <DollarSign className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase text-zinc-400">TOTAL COMBINED SALES</h3>
-                    <p className="font-sans font-bold text-xl tracking-normal text-white mt-1">
-                      ₹{stats.totalRevenueINR.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-
-                {/* 2. USERS REGISTERED */}
-                <div className="comic-panel border-4 border-black p-5 pink-border flex items-center gap-4">
-                  <div className="w-12 h-12 bg-studio-pink border-3 border-black flex items-center justify-center text-black">
-                    <Users className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase text-zinc-400">REGISTERED CUSTOMERS</h3>
-                    <p className="font-sans font-bold text-xl tracking-normal text-white mt-1">
-                      {stats.totalUsers} USERS
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* RECENT SALES GRID LAYOUT */}
-              <div className="grid grid-cols-1 gap-6">
-                {/* SAMPLE PACK SALES (VAULT) */}
-                <div className="studio-panel p-6 border-4 border-black">
-                  <div className="flex items-center justify-between border-b-4 border-black pb-4 mb-4">
-                    <h3 className="font-sans font-bold text-lg uppercase text-studio-neon flex items-center gap-2">
-                      📦 SAMPLE PACK SALES
-                    </h3>
-                    <span className="text-[10px] uppercase font-mono font-black bg-zinc-800 border border-zinc-700 px-2 py-0.5">
-                      LATEST 5
-                    </span>
-                  </div>
-
-                  <div className="space-y-4 font-mono text-xs">
-                    {!stats.recentVaultSales || stats.recentVaultSales.length === 0 ? (
-                      <div className="text-center py-8 text-zinc-500 uppercase font-black">
-                        No sample pack sales from vault.
-                      </div>
-                    ) : (
-                      stats.recentVaultSales.map((sale: any, idx: number) => (
-                        <div key={idx} className="bg-black/50 border border-zinc-800 p-3.5 flex items-center justify-between">
-                          <div>
-                            <p className="font-bold text-white uppercase text-[11px] truncate max-w-[180px]" title={sale.pack_name}>
-                              {sale.pack_name}
-                            </p>
-                            <p className="text-[10px] text-zinc-400 mt-1">
-                              BUYER: <span className="text-zinc-500 font-bold">{sale.user_id ? `${sale.user_id.slice(0, 8)}...` : 'Customer'}</span>
-                            </p>
-                            <p className="text-[9px] text-zinc-500 mt-0.5">
-                              {new Date(sale.created_at).toLocaleString()}
-                            </p>
-                          </div>
-
-                          <div className="text-right">
-                            <p className="font-black text-white text-[13px]">₹{sale.amount || 0}</p>
-                            <span className="inline-block text-[8px] font-black uppercase px-2 py-0.5 mt-1 border border-black bg-studio-pink text-black">
-                              VAULTED
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <AnalyticsTab
+              stats={stats}
+              filterStartDate={filterStartDate}
+              filterEndDate={filterEndDate}
+              filteredMetrics={getFilteredMetrics()}
+            />
           )}
 
-          {/* ======================================================== */}
-          {/* TAB 2: SAMPLE PACKS INVENTORY CRUD                       */}
-          {/* ======================================================== */}
+          {/* TAB 2: SAMPLE PACKS INVENTORY CRUD */}
           {activeTab === 'packs' && (
-            <div className="space-y-6 animate-fadeIn font-mono">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-[#121212] p-4 border-4 border-black">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-3 w-4 h-4 text-zinc-500" />
-                  <input
-                    type="text"
-                    value={packSearch}
-                    onChange={e => setPackSearch(e.target.value)}
-                    placeholder="SEARCH PACKS BY TITLE..."
-                    className="w-full bg-black border-2 border-black p-2.5 pl-10 text-white text-xs outline-none focus:border-studio-pink font-bold"
-                  />
-                </div>
-
-                <button
-                  onClick={() => {
-                    setActivePack({
-                      name: '',
-                      slug: '',
-                      description: '',
-                      price_inr: 999,
-                      price_usd: 12.99,
-                      bundle_credit_cost: 50,
-                      cover_url: '',
-                      category_id: categories[0]?.id || '',
-                      is_featured: false,
-                      is_bundle_only: false,
-                      video_url: '',
-                      melody_count: 0,
-                      loop_count: 0,
-                      one_shot_count: 0,
-                      preset_count: 0,
-                      total_credits: 0,
-                      mrp_inr: 1999
-                    })
-                    setShowPackModal(true)
-                  }}
-                  className="comic-button bg-studio-neon hover:bg-studio-neon"
-                >
-                  <Plus className="w-4 h-4 text-black" /> NEW PACK INVENTORY
-                </button>
-              </div>
-
-              {/* LIST TABLE OF PACKS */}
-              <div className="border-4 border-black bg-black overflow-x-auto font-sans text-xs">
-                <table className="w-full text-left uppercase font-bold border-collapse">
-                  <thead>
-                    <tr className="bg-[#121212] border-b-4 border-black text-zinc-400">
-                      <th className="p-4 w-16">COVER</th>
-                      <th className="p-4">PACK DETAILS</th>
-                      <th className="p-4">CATEGORY</th>
-                      <th className="p-4 text-right">PRICES (INR / USD)</th>
-                      <th className="p-4 text-center">CREDITS</th>
-                      <th className="p-4 text-center">RANKING (PRIO)</th>
-                      <th className="p-4 text-center">FEATURED</th>
-                      <th className="p-4 text-center">ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y-3 divide-black font-sans text-xs">
-                    {packs
-                      .filter(p => p.name.toLowerCase().includes(packSearch.toLowerCase()))
-                      .map((pack: any) => {
-                        const cat = categories.find(c => c.id === pack.category_id)
-                        return (
-                          <tr key={pack.id} className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors">
-                            <td className="p-4">
-                              <div className="w-12 h-12 bg-zinc-900 border-2 border-black flex-shrink-0 relative overflow-hidden">
-                                {pack.cover_url ? (
-                                  <img src={pack.cover_url} alt="" className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-zinc-500">NO IMG</div>
-                                )}
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <p className="font-sans font-bold text-sm text-zinc-100 normal-case leading-tight">{pack.name}</p>
-                              <p className="text-[9px] text-studio-pink mt-1 lowercase font-mono font-medium">{pack.slug}</p>
-                            </td>
-                            <td className="p-4">
-                              <span className="bg-zinc-800 text-zinc-300 border border-zinc-700 px-2 py-0.5 text-[9px] font-bold">
-                                {cat?.name || 'No category'}
-                              </span>
-                            </td>
-                            <td className="p-4 text-right font-mono font-medium">
-                              <p className="text-white text-xs">₹{pack.price_inr} <span className="text-[9px] text-zinc-500 line-through">₹{pack.mrp_inr}</span></p>
-                              <p className="text-studio-neon mt-0.5 text-[10px]">${pack.price_usd}</p>
-                            </td>
-                            <td className="p-4 text-center font-mono text-xs text-white font-medium">
-                              {pack.bundle_credit_cost} CR
-                            </td>
-                            <td className="p-4 text-center font-mono font-bold text-studio-pink">
-                              {pack.display_rank || 0}
-                            </td>
-                            <td className="p-4 text-center">
-                              {pack.is_featured ? (
-                                <span className="bg-studio-neon/20 border border-studio-neon text-studio-neon text-[8px] px-2 py-0.5 font-bold">FEATURED</span>
-                              ) : (
-                                <span className="text-zinc-600 text-[8px] font-bold">STANDARD</span>
-                              )}
-                            </td>
-                            <td className="p-4 text-center">
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  onClick={() => {
-                                    setActivePack(pack)
-                                    setShowPackModal(true)
-                                  }}
-                                  className="p-1.5 border-2 border-black bg-studio-yellow text-black hover:bg-studio-yellow-hover cursor-pointer"
-                                >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={() => handlePackDelete(pack.id, pack.name)}
-                                  className="p-1.5 border-2 border-black bg-studio-red text-white hover:bg-studio-red/80 cursor-pointer"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <PacksTab
+              packs={packs}
+              categories={categories}
+              invalidateCacheAndReload={invalidateCacheAndReload}
+              showToast={showToast}
+              addAuditLog={addAuditLog}
+              askConfirmation={askConfirmation}
+              paletteSelection={paletteSelection}
+              setPaletteSelection={setPaletteSelection}
+            />
           )}
 
-          {/* ======================================================== */}
-          {/* TAB 3: SAMPLES LIBRARY CRUD                              */}
-          {/* ======================================================== */}
+          {/* TAB 3: SAMPLES LIBRARY CRUD */}
           {activeTab === 'samples' && (
-            <div className="space-y-6 animate-fadeIn font-mono">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-[#121212] p-4 border-4 border-black">
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 w-4 h-4 text-zinc-500" />
-                  <input
-                    type="text"
-                    value={sampleSearch}
-                    onChange={e => setSampleSearch(e.target.value)}
-                    placeholder="SEARCH BY SAMPLE NAME..."
-                    className="w-full bg-black border-2 border-black p-2.5 pl-10 text-white text-xs outline-none focus:border-studio-pink font-bold animate-none"
-                  />
-                </div>
-
-                {/* Filter */}
-                <div className="relative">
-                  <Filter className="absolute left-3 top-3 w-4 h-4 text-zinc-500" />
-                  <select
-                    value={packFilter}
-                    onChange={e => setPackFilter(e.target.value)}
-                    className="w-full bg-black border-2 border-black p-2.5 pl-10 text-white text-xs outline-none focus:border-studio-pink font-black uppercase appearance-none"
-                  >
-                    <option value="all">ALL SAMPLE PACKS</option>
-                    {packs.map((p: any) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Create */}
-                <button
-                  onClick={() => {
-                    setActiveSample({
-                      name: '',
-                      pack_id: packFilter !== 'all' ? packFilter : packs[0]?.id || '',
-                      audio_url: '',
-                      download_url: '',
-                      bpm: 120,
-                      key: 'C Min',
-                      credit_cost: 10,
-                      tags: '',
-                      is_preview_only: false,
-                      type: 'loop',
-                      time_signature: '4/4',
-                      ai_mood: 'Chill',
-                      ai_genre: 'Hip Hop',
-                      ai_description: '',
-                      ai_vibe_score: 5.0,
-                      ai_is_processed: false
-                    })
-                    setShowSampleModal(true)
-                  }}
-                  className="comic-button bg-studio-neon hover:bg-studio-neon py-2.5"
-                >
-                  <Plus className="w-4 h-4 text-black" /> NEW AUDIO SAMPLE
-                </button>
-              </div>
-
-              {/* LIST TABLE OF SAMPLES */}
-              <div className="border-4 border-black bg-black overflow-x-auto">
-                <table className="w-full text-left text-xs uppercase font-black border-collapse">
-                  <thead>
-                    <tr className="bg-[#121212] border-b-4 border-black">
-                      <th className="p-4 w-12 text-center">PLAY</th>
-                      <th className="p-4">SAMPLE NAME</th>
-                      <th className="p-4">PACK SOURCE</th>
-                      <th className="p-4 text-center">TYPE</th>
-                      <th className="p-4 text-center">KEY / BPM</th>
-                      <th className="p-4 text-center">CREDIT COST</th>
-                      <th className="p-4 text-center">AI VIBE</th>
-                      <th className="p-4 text-center">ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y-3 divide-black">
-                    {samples.map((sample: any) => (
-                      <tr key={sample.id} className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors">
-                        <td className="p-4 text-center">
-                          <button
-                            onClick={() => playSamplePreview(sample.id, sample.audio_url)}
-                            className={`p-2 border-2 border-black rounded-none transition-colors ${playingSampleId === sample.id ? 'bg-studio-pink text-black' : 'bg-white text-black hover:bg-studio-neon'
-                              }`}
-                          >
-                            {playingSampleId === sample.id ? <Pause className="w-3.5 h-3.5 fill-black" /> : <Play className="w-3.5 h-3.5 fill-black" />}
-                          </button>
-                        </td>
-                        <td className="p-4">
-                          <p className="font-bold text-white text-sm normal-case">{sample.name}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            {sample.tags?.map((t: string) => (
-                              <span key={t} className="text-[8px] bg-zinc-900 border border-zinc-800 text-zinc-500 px-1 py-0.5 lowercase">{t}</span>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="p-4 text-zinc-400 font-bold">
-                          {sample.sample_packs?.name || 'No pack'}
-                        </td>
-                        <td className="p-4 text-center">
-                          <span className={`inline-block text-[9px] px-2 py-0.5 border border-black ${sample.type === 'loop' ? 'bg-studio-pink/20 text-studio-pink' : 'bg-studio-neon/20 text-studio-neon'
-                            }`}>
-                            {sample.type}
-                          </span>
-                        </td>
-                        <td className="p-4 text-center font-mono font-bold text-zinc-300">
-                          {sample.key || 'N/A'} / {sample.bpm || 0} BPM
-                        </td>
-                        <td className="p-4 text-center text-white font-mono">
-                          {sample.credit_cost} CR
-                        </td>
-                        <td className="p-4 text-center">
-                          <span className="text-studio-yellow font-black text-xs font-mono">
-                            ★ {sample.ai_vibe_score || '0.0'}
-                          </span>
-                        </td>
-                        <td className="p-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => {
-                                setActiveSample({
-                                  ...sample,
-                                  tags: sample.tags?.join(', ') || ''
-                                })
-                                setShowSampleModal(true)
-                              }}
-                              className="p-1.5 border-2 border-black bg-studio-yellow text-black hover:bg-studio-yellow-hover"
-                            >
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              onClick={() => handleSampleDelete(sample.id, sample.name)}
-                              className="p-1.5 border-2 border-black bg-studio-red text-white hover:bg-studio-red/80"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <SamplesTab
+              packs={packs}
+              samples={samples}
+              playingSampleId={playingSampleId}
+              playSamplePreview={playSamplePreview}
+              packFilter={packFilter}
+              setPackFilter={setPackFilter}
+              sampleSearch={sampleSearch}
+              setSampleSearch={setSampleSearch}
+              invalidateCacheAndReload={invalidateCacheAndReload}
+              showToast={showToast}
+              addAuditLog={addAuditLog}
+              askConfirmation={askConfirmation}
+            />
           )}
 
-          {/* ======================================================== */}
-          {/* TAB 4: ARTIST PORTAL KYCS & PAYOUTS MANAGEMENT           */}
-          {/* ======================================================== */}
+          {/* TAB 4: ARTIST PORTAL KYCS & PAYOUTS MANAGEMENT */}
           {activeTab === 'kyc' && (
-            <div className="space-y-6 animate-fadeIn font-mono text-xs">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-                {/* 1. ARTIST LIST (2/3 width) */}
-                <div className="lg:col-span-2 space-y-4">
-                  <div className="bg-[#121212] p-4 border-4 border-black flex justify-between items-center">
-                    <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-orange">
-                      🎨 KYC PORTAL VERIFICATION
-                    </h3>
-                  </div>
-
-                  <div className="border-4 border-black bg-black overflow-x-auto">
-                    <table className="w-full text-left uppercase font-bold border-collapse">
-                      <thead>
-                        <tr className="bg-[#121212] border-b-4 border-black text-zinc-400">
-                          <th className="p-4">ARTIST</th>
-                          <th className="p-4">PAN / AADHAAR</th>
-                          <th className="p-4">KYC STATE</th>
-                          <th className="p-4 text-center">KYC DOCUMENT</th>
-                          <th className="p-4 text-center">ACTIONS</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y-3 divide-black font-sans text-xs">
-                        {artists.map((artist: any) => (
-                          <tr key={artist.user_id} className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors">
-                            <td className="p-4">
-                              <p className="text-white font-bold text-sm normal-case">{artist.full_name}</p>
-                              <p className="text-[10px] text-zinc-500 leading-none mt-1 lowercase font-mono">{artist.user_id}</p>
-                            </td>
-                            <td className="p-4 font-mono font-medium text-zinc-300">
-                              <p>PAN: {artist.pan_number || 'N/A'}</p>
-                              <p className="mt-0.5">UIDAI: {artist.aadhaar_number || 'N/A'}</p>
-                            </td>
-                            <td className="p-4">
-                              <span className={`inline-block text-[8px] font-bold tracking-widest px-2.5 py-1 border border-black uppercase ${artist.verification_status === 'approved' ? 'bg-studio-neon text-black' : artist.verification_status === 'rejected' ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
-                                }`}>
-                                {artist.verification_status}
-                              </span>
-                            </td>
-                            <td className="p-4 text-center">
-                              {artist.kyc_document_id ? (
-                                <button
-                                  onClick={() => {
-                                    setActiveArtist(artist)
-                                    setShowKycModal(true)
-                                  }}
-                                  className="px-3 py-1.5 bg-black border-2 border-black hover:border-studio-orange text-studio-orange hover:text-white transition-all inline-flex items-center gap-1.5 font-bold"
-                                >
-                                  <Eye className="w-3.5 h-3.5" /> PREVIEW FILE
-                                </button>
-                              ) : (
-                                <span className="text-zinc-600 font-bold">NO FILE</span>
-                              )}
-                            </td>
-                            <td className="p-4 text-center">
-                              <div className="flex items-center justify-center gap-2">
-                                <button
-                                  onClick={() => {
-                                    setPayoutArtist(artist)
-                                    setShowPayoutModal(true)
-                                  }}
-                                  className="px-2.5 py-1.5 border-2 border-black bg-studio-neon hover:bg-studio-neon/80 text-black font-bold uppercase text-[10px]"
-                                >
-                                  ₹ PAYOUT
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* 2. RECENT PAYOUTS (1/3 width) */}
-                <div className="space-y-4">
-                  <div className="bg-[#121212] p-4 border-4 border-black">
-                    <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-neon">
-                      💹 PAYOUT LOGS
-                    </h3>
-                  </div>
-
-                  <div className="border-4 border-black bg-black p-4 space-y-4 max-h-[500px] overflow-y-auto">
-                    {payouts.length === 0 ? (
-                      <div className="text-center py-8 text-zinc-500 uppercase font-black">
-                        No payouts registered yet.
-                      </div>
-                    ) : (
-                      payouts.map((pay: any) => (
-                        <div key={pay.id} className="bg-black/50 border border-zinc-800 p-3.5 font-mono text-[11px] leading-relaxed">
-                          <div className="flex items-center justify-between border-b border-zinc-800 pb-1.5 mb-2">
-                            <span className="font-black text-white normal-case text-xs">{pay.artist_name}</span>
-                            <span className="bg-studio-neon/20 text-studio-neon border border-studio-neon px-1.5 text-[8px] uppercase">{pay.status}</span>
-                          </div>
-                          <p className="text-white font-black text-sm">₹{pay.amount.toLocaleString()}</p>
-                          <p className="text-zinc-400 mt-1">MONTH: <span className="text-white">{pay.payout_month}</span></p>
-                          <p className="text-zinc-400">UTR: <span className="text-white text-[10px] uppercase font-bold">{pay.utr_number}</span></p>
-                          {pay.notes && <p className="text-zinc-500 mt-1 italic font-mono lowercase">"{pay.notes}"</p>}
-                          <p className="text-[9px] text-zinc-500 mt-1.5">{new Date(pay.created_at).toLocaleString()}</p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-
-              </div>
-            </div>
+            <KycTab
+              artists={artists}
+              payouts={payouts}
+              invalidateCacheAndReload={invalidateCacheAndReload}
+              showToast={showToast}
+              addAuditLog={addAuditLog}
+              askConfirmation={askConfirmation}
+            />
           )}
 
-          {/* ======================================================== */}
-          {/* TAB 5: COUPONS & DISCOUNTS MANAGEMENT                    */}
-          {/* ======================================================== */}
+          {/* TAB 5: COUPONS & DISCOUNTS MANAGEMENT */}
           {activeTab === 'coupons' && (
-            <div className="space-y-6 animate-fadeIn font-mono">
-              <div className="bg-[#121212] p-4 border-4 border-black flex justify-between items-center">
-                <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-blue">
-                  🎟️ COUPON DISCOUNTS
-                </h3>
-                <button
-                  onClick={() => {
-                    setActiveCoupon({
-                      code: '',
-                      discount_percent: 15,
-                      is_active: true,
-                      expires_at: ''
-                    })
-                    setShowCouponModal(true)
-                  }}
-                  className="comic-button bg-studio-blue hover:bg-studio-blue text-white"
-                >
-                  <Plus className="w-4 h-4" /> ADD DISCOUNT COUPON
-                </button>
-              </div>
-
-              {/* LIST TABLE OF COUPONS */}
-              <div className="border-4 border-black bg-black overflow-x-auto">
-                <table className="w-full text-left text-xs uppercase font-black border-collapse">
-                  <thead>
-                    <tr className="bg-[#121212] border-b-4 border-black">
-                      <th className="p-4">COUPON CODE</th>
-                      <th className="p-4 text-center">DISCOUNT PERCENTAGE</th>
-                      <th className="p-4 text-center">STATUS</th>
-                      <th className="p-4 text-center">EXPIRATION DATE</th>
-                      <th className="p-4 text-center">ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y-3 divide-black">
-                    {coupons.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="p-8 text-center text-zinc-500 uppercase font-black">
-                          No coupons created yet.
-                        </td>
-                      </tr>
-                    ) : (
-                      coupons.map((coupon: any) => (
-                        <tr key={coupon.id} className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors">
-                          <td className="p-4 text-white font-black text-sm tracking-wider">
-                            {coupon.code}
-                          </td>
-                          <td className="p-4 text-center font-mono font-black text-studio-blue text-lg">
-                            {coupon.discount_percent}% OFF
-                          </td>
-                          <td className="p-4 text-center">
-                            {coupon.is_active ? (
-                              <span className="bg-studio-neon/20 border border-studio-neon text-studio-neon text-[8px] px-2 py-0.5">ACTIVE</span>
-                            ) : (
-                              <span className="bg-studio-red/20 border border-studio-red text-studio-red text-[8px] px-2 py-0.5">EXPIRED/INACTIVE</span>
-                            )}
-                          </td>
-                          <td className="p-4 text-center font-mono text-zinc-400 font-bold">
-                            {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : 'INFINITE / NO EXPIRY'}
-                          </td>
-                          <td className="p-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <button
-                                onClick={() => {
-                                  setActiveCoupon(coupon)
-                                  setShowCouponModal(true)
-                                }}
-                                className="p-1.5 border-2 border-black bg-studio-yellow text-black hover:bg-studio-yellow-hover"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                onClick={() => handleCouponDelete(coupon.id, coupon.code)}
-                                className="p-1.5 border-2 border-black bg-studio-red text-white hover:bg-studio-red/80"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <CouponsTab
+              coupons={coupons}
+              invalidateCacheAndReload={invalidateCacheAndReload}
+              showToast={showToast}
+              addAuditLog={addAuditLog}
+              askConfirmation={askConfirmation}
+              paletteSelection={paletteSelection}
+              setPaletteSelection={setPaletteSelection}
+            />
           )}
 
-          {/* ======================================================== */}
-          {/* TAB 6: SUPPORT TICKETS LIST                              */}
-          {/* ======================================================== */}
+          {/* TAB 6: SUPPORT TICKETS LIST */}
           {activeTab === 'tickets' && (
-            <div className="space-y-6 animate-fadeIn font-mono">
-              <div className="bg-[#121212] p-4 border-4 border-black">
-                <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-purple">
-                  🎫 ACTIVE SUPPORT TICKETS
-                </h3>
-              </div>
-
-              {/* TICKETS TABLE LIST */}
-              <div className="border-4 border-black bg-black overflow-x-auto">
-                <table className="w-full text-left text-xs uppercase font-bold border-collapse">
-                  <thead>
-                    <tr className="bg-[#121212] border-b-4 border-black text-zinc-400">
-                      <th className="p-4">USER</th>
-                      <th className="p-4">SUBJECT & CATEGORY</th>
-                      <th className="p-4 text-center">STATUS</th>
-                      <th className="p-4 text-center">CREATED DATE</th>
-                      <th className="p-4 text-center">ACTION</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y-3 divide-black">
-                    {tickets.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="p-8 text-center text-zinc-500 uppercase font-bold">
-                          No support tickets submitted yet.
-                        </td>
-                      </tr>
-                    ) : (
-                      tickets.map((ticket: any) => (
-                        <tr key={ticket.id} className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors">
-                          <td className="p-4">
-                            <p className="text-zinc-100 font-bold text-sm normal-case">{ticket.user_name}</p>
-                            <p className="text-[10px] text-zinc-500 leading-none mt-1 lowercase font-mono font-medium">{ticket.user_id}</p>
-                          </td>
-                          <td className="p-4">
-                            <p className="text-zinc-100 font-semibold text-sm normal-case">{ticket.subject}</p>
-                            <span className="inline-block text-[8px] bg-studio-purple/20 border border-studio-purple text-studio-purple px-2 py-0.5 mt-1 font-bold">
-                              {ticket.category}
-                            </span>
-                          </td>
-                          <td className="p-4 text-center">
-                            <span className={`inline-block text-[8px] font-bold uppercase px-2.5 py-1 border border-black ${ticket.status === 'open' ? 'bg-studio-red text-white animate-pulse' : 'bg-studio-neon text-black'
-                              }`}>
-                              {ticket.status === 'open' ? '🚨 OPEN TICKET' : '✅ RESOLVED'}
-                            </span>
-                          </td>
-                          <td className="p-4 text-center text-zinc-400 font-mono font-medium text-[10px]">
-                            {new Date(ticket.created_at).toLocaleString()}
-                          </td>
-                          <td className="p-4 text-center">
-                            <button
-                              onClick={() => {
-                                setActiveTicket(ticket)
-                                setTicketReply(ticket.admin_reply || '')
-                                setShowTicketModal(true)
-                              }}
-                              className="px-3 py-1.5 border-2 border-black bg-white text-black font-bold uppercase text-[10px] hover:bg-studio-purple hover:text-white transition-colors"
-                            >
-                              {ticket.status === 'open' ? '💬 QUICK REPLY' : '🔍 VIEW CHAT'}
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <TicketsTab
+              tickets={tickets}
+              invalidateCacheAndReload={invalidateCacheAndReload}
+              showToast={showToast}
+              addAuditLog={addAuditLog}
+              paletteSelection={paletteSelection}
+              setPaletteSelection={setPaletteSelection}
+            />
           )}
 
-          {/* ======================================================== */}
-          {/* TAB 7: RANKING & POPULARITY ENGINE                       */}
-          {/* ======================================================== */}
+          {/* TAB 7: RANKING & POPULARITY ENGINE */}
           {activeTab === 'rankings' && (
-            <div className="space-y-6 animate-fadeIn font-mono text-xs leading-relaxed">
-
-              {/* ALGORITHMIC FORMULA CARD */}
-              <div className="border-4 border-black bg-studio-charcoal p-6 yellow-border relative">
-                <div className="absolute top-0 right-0 bg-studio-yellow text-black text-[9px] font-black uppercase px-2.5 py-1 border-l-4 border-b-4 border-black">
-                  POPULARITY FORMULA
-                </div>
-                <h3 className="font-luckiest-guy text-2xl uppercase tracking-wider text-studio-yellow mb-2">
-                  🌟 algometric compound scoring
-                </h3>
-                <p className="text-zinc-300 text-xs font-mono max-w-3xl mb-4 leading-relaxed">
-                  Store display ordering uses a weighted compound algorithm. Standard featured flags boost ranking scores by 50, manual display priorities inject high multipliers (+10 per rank value), and real customer interactions provide dynamic trending telemetry.
-                </p>
-                <div className="bg-black border border-zinc-800 p-4 font-mono text-studio-neon font-black text-center text-sm tracking-wider">
-                  SCORE = (DOWNLOADS * 2) + (WISHLISTS * 5) + (FEATURED ? 50 : 0) + (PRIORITY_RANK * 10)
-                </div>
-              </div>
-
-              {/* GLOBAL LEADERBOARD */}
-              <div className="bg-[#121212] p-4 border-4 border-black">
-                <h3 className="font-luckiest-guy text-2xl uppercase tracking-wider text-white">
-                  🏆 STORE LEADERBOARD RANKINGS
-                </h3>
-              </div>
-
-              <div className="border-4 border-black bg-black overflow-x-auto">
-                <table className="w-full text-left uppercase font-black border-collapse">
-                  <thead>
-                    <tr className="bg-[#121212] border-b-4 border-black">
-                      <th className="p-4 w-12 text-center">RANK</th>
-                      <th className="p-4">PACK NAME</th>
-                      <th className="p-4 text-center">TELEMETRY DOWNLOADS</th>
-                      <th className="p-4 text-center">WISHLIST SAVES</th>
-                      <th className="p-4 text-center">FEATURED BOOST</th>
-                      <th className="p-4 text-center">MANUAL PRIORITY RANK</th>
-                      <th className="p-4 text-center text-studio-neon">COMPOUND SCORE</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y-3 divide-black">
-                    {rankedPacks.map((pack: any, idx: number) => {
-                      // Inline local rank value tracker
-                      return (
-                        <tr key={pack.id} className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors">
-                          <td className="p-4 text-center">
-                            <span className={`w-8 h-8 rounded-none flex items-center justify-center font-luckiest-guy text-lg border-2 border-black mx-auto ${idx === 0 ? 'bg-studio-yellow text-black' : idx === 1 ? 'bg-studio-pink text-black' : idx === 2 ? 'bg-studio-neon text-black' : 'bg-black text-zinc-400'
-                              }`}>
-                              #{idx + 1}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            <p className="font-luckiest-guy text-lg normal-case text-white">{pack.name}</p>
-                            <p className="text-[9px] text-zinc-500 font-mono mt-0.5 lowercase">{pack.slug}</p>
-                          </td>
-                          <td className="p-4 text-center font-mono font-black text-zinc-300">
-                            {pack.downloads} HITS
-                          </td>
-                          <td className="p-4 text-center font-mono font-black text-zinc-300">
-                            {pack.wishlists} SAVES
-                          </td>
-                          <td className="p-4 text-center font-mono font-black">
-                            {pack.is_featured ? (
-                              <span className="text-studio-neon bg-studio-neon/10 border border-studio-neon px-2 py-0.5 text-[9px]">+50 BOOST</span>
-                            ) : (
-                              <span className="text-zinc-600">0</span>
-                            )}
-                          </td>
-                          <td className="p-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              <input
-                                type="number"
-                                defaultValue={pack.display_rank || 0}
-                                onBlur={(e) => updatePackRankInline(pack, e.target.value)}
-                                className="w-16 bg-black border-2 border-black p-1 text-center font-bold font-mono text-white text-xs outline-none focus:border-studio-pink"
-                              />
-                            </div>
-                          </td>
-                          <td className="p-4 text-center font-luckiest-guy text-xl text-studio-neon tracking-wider">
-                            {pack.popularityScore} PTS
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-            </div>
+            <RankingsTab
+              rankedPacks={rankedPacks}
+              updatePackRankInline={async (pack, rankVal) => {
+                const parsedRank = parseInt(rankVal)
+                if (isNaN(parsedRank)) {
+                  showToast('Please specify a valid rank number', 'error')
+                  return
+                }
+                const { saveSamplePack } = await import('./actions')
+                try {
+                  await saveSamplePack({ ...pack, display_rank: parsedRank })
+                  showToast(`Rank for "${pack.name}" updated to ${parsedRank}!`, 'success')
+                  addAuditLog('UPDATE_RANK', `Updated priority rank for pack "${pack.name}" to #${parsedRank}`, 'info')
+                  invalidateCacheAndReload('rankings')
+                } catch (err: any) {
+                  showToast(err.message || 'Failed to update priority rank', 'error')
+                }
+              }}
+            />
           )}
 
-          {/* ======================================================== */}
-          {/* TAB 8: USERS HUB & BAN SYSTEM                            */}
-          {/* ======================================================== */}
+          {/* TAB 8: USERS HUB & BAN SYSTEM */}
           {activeTab === 'users' && (
-            <div className="space-y-6 animate-fadeIn font-mono text-xs">
-              <div className="bg-[#121212] p-4 border-4 border-black flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-pink">
-                    👥 USERS HUB & ACCESS CONTROL
-                  </h3>
-                  <p className="text-zinc-400 mt-1 uppercase text-[10px] font-black">
-                    Manage accounts, track billing details, view addresses, and issue bans.
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
-                    <input
-                      type="text"
-                      placeholder="SEARCH BY NAME/EMAIL/ADDR..."
-                      value={userSearch}
-                      onChange={e => setUserSearch(e.target.value)}
-                      className="pl-9 pr-4 py-2 bg-black border-2 border-black text-white font-bold placeholder-zinc-600 outline-none focus:border-studio-pink uppercase"
-                    />
-                  </div>
-                  <select
-                    value={userFilter}
-                    onChange={e => setUserFilter(e.target.value as any)}
-                    className="bg-black border-2 border-black px-3 py-2 text-white font-bold outline-none focus:border-studio-pink"
-                  >
-                    <option value="all">ALL REGISTRATIONS</option>
-                    <option value="active">ACTIVE USERS</option>
-                    <option value="banned">BANNED ONLY</option>
-                    <option value="subscribed">ACTIVE SUBSCRIBERS</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="border-4 border-black bg-black overflow-x-auto">
-                <table className="w-full text-left uppercase font-bold border-collapse">
-                  <thead>
-                    <tr className="bg-[#121212] border-b-4 border-black text-zinc-400">
-                      <th className="p-4">USER PROFILE</th>
-                      <th className="p-4">CONTACT & ADDRESS</th>
-                      <th className="p-4 text-center">ACCESS LOCK</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y-3 divide-black">
-                    {(() => {
-                      const filtered = usersList.filter(u => {
-                        const searchLower = userSearch.toLowerCase()
-                        const matchQuery =
-                          (u.email || '').toLowerCase().includes(searchLower) ||
-                          (u.full_name || '').toLowerCase().includes(searchLower) ||
-                          (u.address || '').toLowerCase().includes(searchLower) ||
-                          (u.phone_number || '').includes(searchLower)
-
-                        if (!matchQuery) return false
-
-                        if (userFilter === 'banned') return u.is_banned
-                        if (userFilter === 'active') return !u.is_banned
-                        if (userFilter === 'subscribed') return u.subscription_status === 'ACTIVE' || u.subscription_tier !== 'NONE'
-                        return true
-                      })
-
-                      if (filtered.length === 0) {
-                        return (
-                          <tr>
-                            <td colSpan={3} className="p-8 text-center text-zinc-500 uppercase font-black">
-                              No matching users found.
-                            </td>
-                          </tr>
-                        )
-                      }
-
-                      return filtered.map((u: any) => (
-                        <tr
-                          key={u.id}
-                          onClick={() => {
-                            setActiveUser(u)
-                            setShowUserModal(true)
-                          }}
-                          className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors cursor-pointer"
-                          title="Click to view full detailed user profile, credits, and device fingerprints"
-                        >
-                          <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-none bg-studio-pink border-2 border-black text-black font-sans font-black text-sm flex items-center justify-center flex-shrink-0">
-                                {u.full_name.charAt(0)}
-                              </div>
-                              <div>
-                                <div className="flex items-center gap-2">
-                                  <p className="font-sans font-bold text-sm tracking-wide text-zinc-100 leading-none">{u.full_name}</p>
-                                  {u.provider === 'google' ? (
-                                    <span className="bg-studio-pink/15 text-studio-pink border border-studio-pink/30 font-bold uppercase text-[7px] px-1.5 py-0.5 tracking-wider" title="Authenticated via Google SSO">
-                                      GOOGLE SSO
-                                    </span>
-                                  ) : (
-                                    <span className="bg-zinc-900 text-zinc-500 border border-zinc-800 font-bold uppercase text-[7px] px-1.5 py-0.5 tracking-wider" title="Authenticated via Email & Password">
-                                      EMAIL PASS
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-[10px] text-zinc-400 lowercase font-mono mt-1 flex items-center gap-1 normal-case font-medium">
-                                  <Mail className="w-3.5 h-3.5 inline text-studio-pink" /> {u.email}
-                                </p>
-                                <p className="text-[9px] text-zinc-600 mt-0.5 font-medium">REGISTERED: {new Date(u.created_at).toLocaleDateString()}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-4 normal-case text-zinc-300 font-medium leading-normal max-w-xs">
-                            <p className="flex items-center gap-1.5 text-[10px] normal-case">
-                              <Phone className="w-3.5 h-3.5 text-zinc-500 inline flex-shrink-0" /> {u.phone_number || 'N/A'}
-                            </p>
-                            <div className="flex items-start gap-1.5 mt-1.5 text-[10px] font-mono leading-tight normal-case">
-                              <MapPin className="w-3.5 h-3.5 text-studio-pink inline flex-shrink-0 mt-0.5" />
-                              <span className="text-zinc-400 leading-normal">{u.address || 'NO ADDRESS PROVIDED'}</span>
-                            </div>
-                          </td>
-                          <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center justify-center gap-2">
-                              <div className="flex flex-col items-center justify-center gap-1">
-                                {u.is_banned ? (
-                                  <>
-                                    <span className="bg-studio-red text-white border-2 border-black font-black uppercase text-[8px] px-2 py-0.5 flex items-center gap-1 animate-pulse">
-                                      <Ban className="w-2.5 h-2.5 text-white" /> BANNED LOCK
-                                    </span>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleUnbanUser(u.id, u.email); }}
-                                      className="px-2 py-1 border border-black bg-studio-neon hover:bg-studio-neon-hover text-black font-bold uppercase text-[8px] tracking-wider transition-all cursor-pointer"
-                                    >
-                                      ACTIVATE
-                                    </button>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span className="bg-studio-neon/10 text-studio-neon border border-studio-neon font-black uppercase text-[8px] px-2 py-0.5 flex items-center gap-1">
-                                      <ShieldCheck className="w-2.5 h-2.5 text-studio-neon" /> ACCESS OK
-                                    </span>
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleBanUser(u.id, u.email); }}
-                                      className="px-2 py-1 border border-black bg-studio-red text-white hover:bg-studio-red/80 font-bold uppercase text-[8px] tracking-wider transition-all cursor-pointer"
-                                    >
-                                      BAN USER
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id, u.email); }}
-                                className="p-2 border-2 border-black bg-studio-red text-white hover:bg-studio-red/80 transition-all cursor-pointer inline-flex items-center justify-center"
-                                title="Permanently Delete User Account"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    })()}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <UsersTab
+              usersList={usersList}
+              invalidateCacheAndReload={invalidateCacheAndReload}
+              showToast={showToast}
+              addAuditLog={addAuditLog}
+              askConfirmation={askConfirmation}
+              paletteSelection={paletteSelection}
+              setPaletteSelection={setPaletteSelection}
+            />
           )}
 
-          {/* ======================================================== */}
-          {/* TAB 9: DETAILED VAULT PURCHASES LOG                      */}
-          {/* ======================================================== */}
+          {/* TAB 9: DETAILED VAULT PURCHASES LOG */}
           {activeTab === 'sales' && (
-            <div className="space-y-6 animate-fadeIn font-mono text-xs">
-              {/* 📅 DETAILED DATE & TIME FILTER PANEL */}
-              <div className="studio-panel p-5 border-4 border-black bg-[#0c0c0c] font-sans">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-4 border-black pb-3 mb-4 gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <Calendar className="w-5 h-5 text-studio-neon animate-pulse" />
-                    <div>
-                      <h4 className="font-sans font-bold text-sm uppercase text-studio-neon tracking-wider">
-                        📅 DETAILED DATE-TIME RANGE FILTER
-                      </h4>
-                      <p className="text-[9px] font-mono uppercase text-zinc-500 font-bold leading-none mt-0.5">
-                        Filter all business analytics and orders down to the exact minute
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setShowDateFilter(!showDateFilter)}
-                      className="px-2 py-0.5 text-[9px] font-mono font-black uppercase bg-[#151515] border border-zinc-800 text-zinc-400 hover:text-white"
-                    >
-                      {showDateFilter ? '🙈 COLLAPSE FILTER' : '👁️ SHOW FILTER'}
-                    </button>
-                    {(filterStartDate || filterEndDate) && (
-                      <span className="inline-block text-[8px] bg-studio-neon/20 text-studio-neon border border-studio-neon px-2 py-0.5 font-bold uppercase animate-bounce">
-                        FILTER ACTIVE
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {showDateFilter && (
-                  <div className="space-y-4">
-                    {/* Quick Presets row */}
-                    <div className="flex flex-wrap items-center gap-1.5 pb-3 border-b border-zinc-900">
-                      <span className="text-[9px] font-mono font-black uppercase text-zinc-500 mr-2">QUICK TIME PRESETS:</span>
-                      {[
-                        { label: 'ALL TIME', key: 'all' },
-                        { label: 'TODAY', key: 'today' },
-                        { label: 'YESTERDAY', key: 'yesterday' },
-                        { label: 'LAST 7 DAYS', key: '7days' },
-                        { label: 'LAST 30 DAYS', key: '30days' },
-                        { label: 'THIS MONTH', key: 'month' },
-                      ].map(preset => (
-                        <button
-                          key={preset.key}
-                          onClick={() => setQuickRange(preset.key as any)}
-                          className="px-2 py-1 text-[9px] font-mono font-black uppercase bg-black border border-zinc-855 hover:border-studio-neon text-zinc-400 hover:text-white transition-all cursor-pointer"
-                        >
-                          {preset.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Form row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end">
-                      {/* Start Date */}
-                      <div className="space-y-1">
-                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">📅 START DATE</label>
-                        <input
-                          type="date"
-                          value={filterStartDate}
-                          onChange={e => setFilterStartDate(e.target.value)}
-                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-neon"
-                        />
-                      </div>
-
-                      {/* Start Time */}
-                      <div className="space-y-1">
-                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">⏰ START TIME</label>
-                        <input
-                          type="time"
-                          value={filterStartTime}
-                          onChange={e => setFilterStartTime(e.target.value)}
-                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-neon"
-                        />
-                      </div>
-
-                      {/* End Date */}
-                      <div className="space-y-1">
-                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">📅 END DATE</label>
-                        <input
-                          type="date"
-                          value={filterEndDate}
-                          onChange={e => setFilterEndDate(e.target.value)}
-                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-neon"
-                        />
-                      </div>
-
-                      {/* End Time */}
-                      <div className="space-y-1">
-                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">⏰ END TIME</label>
-                        <input
-                          type="time"
-                          value={filterEndTime}
-                          onChange={e => setFilterEndTime(e.target.value)}
-                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-neon"
-                        />
-                      </div>
-
-                      {/* Reset Button */}
-                      <button
-                        onClick={() => {
-                          setQuickRange('all')
-                          showToast('Filters cleared!', 'warning')
-                        }}
-                        className="w-full h-[36px] border-2 border-zinc-800 hover:border-studio-neon hover:bg-studio-neon/10 text-zinc-400 hover:text-white font-sans font-black uppercase text-[9px] tracking-wide transition-all cursor-pointer"
-                      >
-                        🔄 RESET RANGE
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-[#121212] p-4 border-4 border-black flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-neon">
-                    💰 ORDERS LOG
-                  </h3>
-                  <p className="text-zinc-400 mt-1 uppercase text-[10px] font-bold">
-                    Complete breakdown of cash sales, customer delivery addresses, and Razorpay settlements.
-                  </p>
-                </div>
-                <div className="relative font-sans">
-                  <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
-                  <input
-                    type="text"
-                    placeholder="SEARCH ORDERS BY PACK/BUYER/PAYMENT..."
-                    value={salesSearch}
-                    onChange={e => setSalesSearch(e.target.value)}
-                    className="pl-9 pr-4 py-2 bg-black border-2 border-black text-white font-bold placeholder-zinc-600 outline-none focus:border-studio-neon w-64 md:w-80 uppercase text-xs"
-                  />
-                </div>
-              </div>
-
-              {/* SALES DATA GRID */}
-              <div className="border-4 border-black bg-black overflow-x-auto">
-                <table className="w-full text-left uppercase font-bold border-collapse">
-                  <thead>
-                    <tr className="bg-[#121212] border-b-4 border-black text-zinc-400">
-                      <th className="p-4">PRODUCT PURCHASED</th>
-                      <th className="p-4">BUYER PROFILE & METADATA</th>
-                      <th className="p-4">SHIPPING & BILLING ADDRESS</th>
-                      <th className="p-4 text-center">GATEWAY SETTLEMENT</th>
-                      <th className="p-4 text-center">TIMESTAMP</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y-3 divide-black font-sans text-xs">
-                    {(() => {
-                      const filtered = vaultSalesList.filter(s => {
-                        // Apply Date/Time-wise Filter
-                        if (!isDateWithinRange(s.created_at)) return false
-
-                        const searchLower = salesSearch.toLowerCase()
-                        return (
-                          (s.pack_name || '').toLowerCase().includes(searchLower) ||
-                          (s.buyer_name || '').toLowerCase().includes(searchLower) ||
-                          (s.buyer_email || '').toLowerCase().includes(searchLower) ||
-                          (s.buyer_address || '').toLowerCase().includes(searchLower) ||
-                          (s.razorpay_order_id || '').toLowerCase().includes(searchLower) ||
-                          (s.razorpay_payment_id || '').toLowerCase().includes(searchLower)
-                        )
-                      })
-
-                      if (filtered.length === 0) {
-                        return (
-                          <tr>
-                            <td colSpan={5} className="p-8 text-center text-zinc-500 uppercase font-bold">
-                              No sales transactions logged.
-                            </td>
-                          </tr>
-                        )
-                      }
-
-                      return filtered.map((s: any) => (
-                        <tr
-                          key={s.id}
-                          onClick={() => {
-                            setActiveOrder(s)
-                            setShowOrderModal(true)
-                          }}
-                          className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors cursor-pointer"
-                          title="Click to view full detailed order transaction"
-                        >
-                          <td className="p-4">
-                            <div className="bg-[#151515] border border-zinc-800 p-3 font-sans">
-                              <p className="font-sans font-bold text-sm text-zinc-100 normal-case leading-tight">{s.pack_name}</p>
-                              <span className="inline-block text-[8px] bg-studio-pink/20 text-studio-pink border border-studio-pink px-2 py-0.5 mt-2 font-bold uppercase">VAULTED ACQUISITION</span>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <p className="font-sans font-bold text-sm tracking-wide text-zinc-100 leading-none">{s.buyer_name}</p>
-                            <p className="text-[10px] text-zinc-400 lowercase font-mono mt-1.5 flex items-center gap-1 normal-case font-medium">
-                              <Mail className="w-3.5 h-3.5 text-studio-neon" /> {s.buyer_email}
-                            </p>
-                            <p className="text-[10px] text-zinc-400 font-mono mt-1.5 flex items-center gap-1 font-medium">
-                              <Phone className="w-3.5 h-3.5 text-zinc-500" /> {s.buyer_phone}
-                            </p>
-                          </td>
-                          <td className="p-4 normal-case text-zinc-400 font-medium max-w-xs text-[10px] leading-normal font-mono">
-                            <div className="flex items-start gap-1.5">
-                              <MapPin className="w-3.5 h-3.5 text-studio-neon flex-shrink-0 mt-0.5" />
-                              <span>{s.buyer_address}</span>
-                            </div>
-                          </td>
-                          <td className="p-4 text-center">
-                            <div className="inline-block bg-black border border-zinc-800 p-2.5 font-mono text-left font-medium">
-                              <p className="text-[10px] text-zinc-500 font-sans">PAYMENT TOTAL:</p>
-                              <p className="text-base font-bold text-zinc-100 mt-0.5">₹{s.amount.toLocaleString()}</p>
-                              <div className="mt-2 border-t border-zinc-900 pt-1.5 space-y-0.5 font-medium font-mono text-[8px] tracking-tight uppercase text-zinc-400">
-                                <p>ORD: <span className="text-studio-neon">{s.razorpay_order_id}</span></p>
-                                <p>PAY: <span className="text-studio-pink">{s.razorpay_payment_id}</span></p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-4 text-center font-mono text-[10px] font-medium text-zinc-500">
-                            {new Date(s.created_at).toLocaleString()}
-                          </td>
-                        </tr>
-                      ))
-                    })()}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <SalesTab
+              vaultSalesList={vaultSalesList}
+              isDateWithinRange={isDateWithinRange}
+              paletteSelection={paletteSelection}
+              setPaletteSelection={setPaletteSelection}
+            />
           )}
 
-          {/* ======================================================== */}
-          {/* TAB 10: SYSTEM AUDIT TRAILS LOG                          */}
-          {/* ======================================================== */}
+          {/* TAB 10: SYSTEM AUDIT TRAILS LOG */}
           {activeTab === 'logs' && (
-            <div className="space-y-6 animate-fadeIn font-mono text-xs">
-              {/* 📅 DETAILED DATE & TIME FILTER PANEL */}
-              <div className="studio-panel p-5 border-4 border-black bg-[#0c0c0c] font-sans">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-4 border-black pb-3 mb-4 gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <Calendar className="w-5 h-5 text-studio-purple animate-pulse" />
-                    <div>
-                      <h4 className="font-sans font-bold text-sm uppercase text-studio-purple tracking-wider">
-                        📅 DETAILED DATE-TIME RANGE FILTER
-                      </h4>
-                      <p className="text-[9px] font-mono uppercase text-zinc-500 font-bold leading-none mt-0.5">
-                        Filter all business analytics and orders down to the exact minute
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setShowDateFilter(!showDateFilter)}
-                      className="px-2 py-0.5 text-[9px] font-mono font-black uppercase bg-[#151515] border border-zinc-800 text-zinc-400 hover:text-white"
-                    >
-                      {showDateFilter ? '🙈 COLLAPSE FILTER' : '👁️ SHOW FILTER'}
-                    </button>
-                    {(filterStartDate || filterEndDate) && (
-                      <span className="inline-block text-[8px] bg-studio-neon/20 text-studio-neon border border-studio-neon px-2 py-0.5 font-bold uppercase animate-bounce">
-                        FILTER ACTIVE
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {showDateFilter && (
-                  <div className="space-y-4">
-                    {/* Quick Presets row */}
-                    <div className="flex flex-wrap items-center gap-1.5 pb-3 border-b border-zinc-900">
-                      <span className="text-[9px] font-mono font-black uppercase text-zinc-500 mr-2">QUICK TIME PRESETS:</span>
-                      {[
-                        { label: 'ALL TIME', key: 'all' },
-                        { label: 'TODAY', key: 'today' },
-                        { label: 'YESTERDAY', key: 'yesterday' },
-                        { label: 'LAST 7 DAYS', key: '7days' },
-                        { label: 'LAST 30 DAYS', key: '30days' },
-                        { label: 'THIS MONTH', key: 'month' },
-                      ].map(preset => (
-                        <button
-                          key={preset.key}
-                          onClick={() => setQuickRange(preset.key as any)}
-                          className="px-2 py-1 text-[9px] font-mono font-black uppercase bg-black border border-zinc-855 hover:border-studio-purple text-zinc-400 hover:text-white transition-all cursor-pointer"
-                        >
-                          {preset.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Form row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end">
-                      {/* Start Date */}
-                      <div className="space-y-1">
-                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">📅 START DATE</label>
-                        <input
-                          type="date"
-                          value={filterStartDate}
-                          onChange={e => setFilterStartDate(e.target.value)}
-                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-purple"
-                        />
-                      </div>
-
-                      {/* Start Time */}
-                      <div className="space-y-1">
-                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">⏰ START TIME</label>
-                        <input
-                          type="time"
-                          value={filterStartTime}
-                          onChange={e => setFilterStartTime(e.target.value)}
-                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-purple"
-                        />
-                      </div>
-
-                      {/* End Date */}
-                      <div className="space-y-1">
-                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">📅 END DATE</label>
-                        <input
-                          type="date"
-                          value={filterEndDate}
-                          onChange={e => setFilterEndDate(e.target.value)}
-                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-purple"
-                        />
-                      </div>
-
-                      {/* End Time */}
-                      <div className="space-y-1">
-                        <label className="block text-[8px] font-mono font-black text-zinc-400 uppercase">⏰ END TIME</label>
-                        <input
-                          type="time"
-                          value={filterEndTime}
-                          onChange={e => setFilterEndTime(e.target.value)}
-                          className="w-full bg-black border-2 border-zinc-850 text-white font-mono font-bold text-xs p-2 outline-none focus:border-studio-purple"
-                        />
-                      </div>
-
-                      {/* Reset Button */}
-                      <button
-                        onClick={() => {
-                          setQuickRange('all')
-                          showToast('Filters cleared!', 'warning')
-                        }}
-                        className="w-full h-[36px] border-2 border-zinc-800 hover:border-studio-purple hover:bg-studio-purple/10 text-zinc-400 hover:text-white font-sans font-black uppercase text-[9px] tracking-wide transition-all cursor-pointer"
-                      >
-                        🔄 RESET RANGE
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-[#121212] p-4 border-4 border-black flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-purple">
-                    🛠️ Admin Activity Logs
-                  </h3>
-                  <p className="text-zinc-400 mt-1 uppercase text-[10px] font-bold">
-                    This shows a list of all recent actions done by administrators (e.g. banning users, deleting items, or approving artist KYCs).
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      localStorage.removeItem('sw_audit_logs')
-                      setAuditLogs([
-                        {
-                          id: 'log-clear',
-                          timestamp: new Date().toLocaleString(),
-                          action: 'LOGS_CLEARED',
-                          type: 'warning',
-                          target: 'Audit trail logs cleared by administrative command.',
-                          admin: session?.user?.email || 'Admin'
-                        }
-                      ])
-                      showToast('Audit trail logs wiped!', 'warning')
-                    }}
-                    className="px-3 py-2 border-2 border-black bg-studio-red hover:bg-studio-red/80 text-white font-bold uppercase text-[10px] transition-all cursor-pointer"
-                  >
-                    🗑️ Clear Log History
-                  </button>
-                </div>
-              </div>
-
-              {/* AUDIT LOG TABLE */}
-              <div className="border-4 border-black bg-black overflow-x-auto">
-                <table className="w-full text-left uppercase font-bold border-collapse">
-                  <thead>
-                    <tr className="bg-[#121212] border-b-4 border-black text-zinc-400">
-                      <th className="p-4">Date & Time</th>
-                      <th className="p-4">Action Done</th>
-                      <th className="p-4">Details of Change</th>
-                      <th className="p-4">Done By (Admin)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y-3 divide-black font-mono text-xs">
-                    {(() => {
-                      const filteredLogs = auditLogs.filter(l => isDateWithinRange(l.timestamp))
-
-                      if (filteredLogs.length === 0) {
-                        return (
-                          <tr>
-                            <td colSpan={4} className="p-8 text-center text-zinc-500 uppercase font-bold">
-                              No activity logs found matching the filter range.
-                            </td>
-                          </tr>
-                        )
-                      }
-
-                      return filteredLogs.map((l) => (
-                        <tr
-                          key={l.id}
-                          className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors"
-                        >
-                          <td className="p-4 text-zinc-500 font-mono text-[10px] font-medium min-w-[140px]">
-                            {l.timestamp}
-                          </td>
-                          <td className="p-4">
-                            <span className={`inline-block font-sans font-black text-[9px] px-2 py-0.5 border-2 border-black shadow-[2px_2px_0px_black] ${l.type === 'danger'
-                                ? 'bg-studio-red text-white'
-                                : l.type === 'warning'
-                                  ? 'bg-studio-yellow text-black'
-                                  : l.type === 'success'
-                                    ? 'bg-studio-neon text-black'
-                                    : 'bg-studio-pink text-black'
-                              }`}>
-                              {l.action}
-                            </span>
-                          </td>
-                          <td className="p-4 text-zinc-200 normal-case font-medium max-w-md leading-relaxed">
-                            {l.target}
-                          </td>
-                          <td className="p-4 text-zinc-400 font-mono text-[10px]">
-                            {l.admin}
-                          </td>
-                        </tr>
-                      ))
-                    })()}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            <LogsTab
+              isDateWithinRange={isDateWithinRange}
+              auditLogs={auditLogs}
+              setAuditLogs={setAuditLogs}
+              session={session}
+              showToast={showToast}
+            />
           )}
 
-          {/* ======================================================== */}
-          {/* TAB 11: NEWSLETTER INTEGRATION PANEL                     */}
-          {/* ======================================================== */}
+          {/* TAB 11: NEWSLETTER INTEGRATION PANEL */}
           {activeTab === 'newsletter' && (
-            <div className="space-y-6 animate-fadeIn font-mono text-xs">
-
-              {/* STATS HEADER GRID */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-
-                {/* 1. TOTAL SUBSCRIBERS */}
-                <div className="comic-panel border-4 border-black p-5 flex items-center gap-4 bg-black shadow-[4px_4px_0px_#FF0080]">
-                  <div className="w-12 h-12 bg-[#FF0080] border-3 border-black flex items-center justify-center text-black">
-                    <Mail className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase text-zinc-400">TOTAL SUBSCRIBERS</h3>
-                    <p className="font-sans font-bold text-xl tracking-normal text-white mt-1">
-                      {subscribersList.length} CONTACTS
-                    </p>
-                  </div>
-                </div>
-
-                {/* 2. ACTIVE CONTACTS */}
-                <div className="comic-panel border-4 border-black p-5 flex items-center gap-4 bg-black shadow-[4px_4px_0px_#39FF14]">
-                  <div className="w-12 h-12 bg-studio-neon border-3 border-black flex items-center justify-center text-black">
-                    <ShieldCheck className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase text-zinc-400">ACTIVE LISTING</h3>
-                    <p className="font-sans font-bold text-xl tracking-normal text-white mt-1">
-                      {subscribersList.filter((s: any) => s.subscribed).length} SUBSCRIBED
-                    </p>
-                  </div>
-                </div>
-
-                {/* 3. BLACKLISTED CONTACTS */}
-                <div className="comic-panel border-4 border-black p-5 flex items-center gap-4 bg-black shadow-[4px_4px_0px_#FF3131]">
-                  <div className="w-12 h-12 bg-studio-red border-3 border-black flex items-center justify-center text-white">
-                    <Ban className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase text-zinc-400">UNSUBSCRIBED / BLACKLISTED</h3>
-                    <p className="font-sans font-bold text-xl tracking-normal text-white mt-1">
-                      {subscribersList.filter((s: any) => !s.subscribed).length} BLACKLISTED
-                    </p>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* ACTION COMMAND BAR */}
-              <div className="bg-[#121212] p-4 border-4 border-black flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="flex-1 relative font-sans">
-                  <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
-                  <input
-                    type="text"
-                    placeholder="SEARCH CONTACTS BY EMAIL..."
-                    value={newsletterSearch}
-                    onChange={e => setNewsletterSearch(e.target.value)}
-                    className="pl-9 pr-4 py-2 w-full max-w-md bg-black border-2 border-black text-white font-bold placeholder-zinc-600 outline-none focus:border-studio-pink uppercase text-xs"
-                  />
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    onClick={() => setShowSubscribeModal(true)}
-                    className="px-4 py-2 bg-studio-yellow text-black border-3 border-black shadow-[3px_3px_0px_black] hover:bg-studio-yellow-hover font-black uppercase text-xs transition-all active:translate-y-0.5 active:shadow-[1px_1px_0px_black]"
-                  >
-                    ➕ ADD SUBSCRIBER
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setCampaignSubject('')
-                      setCampaignTitle('')
-                      setCampaignContent(
-                        `<h1 style="font-size: 22px; font-weight: 800; color: #ffffff; margin-top: 0; margin-bottom: 16px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; letter-spacing: -0.02em;">Fresh Sound Drops inside the Vault</h1>\n<p style="font-size: 14px; color: #94a3b8; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin-bottom: 20px;">Hey Producer,</p>\n<p style="font-size: 14px; color: #94a3b8; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin-bottom: 20px;">We've just expanded our catalog with a range of premium, studio-recorded acoustic elements. These new sample packs contain authentic instruments and loops designed to add pure, live-sounding textures to your modern beats.</p>\n\n<div style="background-color: #111115; border: 1px solid #1e293b; border-radius: 8px; padding: 20px; margin: 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">\n  <span style="display: inline-block; background-color: #FFE600; color: #000000; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.05em;">New Release</span>\n  <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #ffffff;">🎶 Sitar Legends Vol. 1</h4>\n  <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">Over 150 authentic sitar loops, drone samples, and expressive ornaments recorded live in professional studios. Tailored perfectly for Trap, Lofi, and Cinematic production.</p>\n</div>\n\n<div style="margin: 28px 0; text-align: center;">\n  <a href="https://sampleswala.com" style="display: inline-block; padding: 12px 28px; background-color: #00BFFF; color: #000000; text-decoration: none; font-weight: 700; font-size: 13px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; border-radius: 6px; letter-spacing: 0.05em; text-transform: uppercase;">Explore Sample Packs</a>\n</div>\n\n<p style="font-size: 14px; color: #94a3b8; line-height: 1.6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Happy Producing,<br/><strong>The SamplesWala Team</strong></p>`
-                      )
-                      // Pre-select all active subscribers
-                      const activeEmails = subscribersList
-                        .filter((s: any) => s.subscribed && s.email && s.email !== 'N/A')
-                        .map((s: any) => s.email)
-                      setSelectedRecipients(activeEmails)
-                      setRecipientSearch('')
-                      setShowCampaignModal(true)
-                    }}
-                    className="px-4 py-2 bg-[#FF0080] text-black border-3 border-black shadow-[3px_3px_0px_black] hover:bg-[#E00070] font-black uppercase text-xs transition-all active:translate-y-0.5 active:shadow-[1px_1px_0px_black]"
-                  >
-                    🚀 BROADCAST CAMPAIGN
-                  </button>
-                </div>
-              </div>
-
-              {/* LIST TABLE OF NEWSLETTER SUBSCRIBERS */}
-              <div className="border-4 border-black bg-black overflow-x-auto font-sans text-xs">
-                <table className="w-full text-left uppercase font-bold border-collapse">
-                  <thead>
-                    <tr className="bg-[#121212] border-b-4 border-black text-zinc-400">
-                      <th className="p-4">MEMBER ID</th>
-                      <th className="p-4">EMAIL ADDRESS</th>
-                      <th className="p-4 text-center">SUBSCRIPTION STATUS</th>
-                      <th className="p-4 text-center">CREATION DATE</th>
-                      <th className="p-4 text-center">ACTIONS</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y-3 divide-black font-sans text-xs">
-                    {(() => {
-                      const filtered = subscribersList.filter(s => {
-                        const searchLower = newsletterSearch.toLowerCase()
-                        return (s.email || '').toLowerCase().includes(searchLower)
-                      })
-
-                      if (filtered.length === 0) {
-                        return (
-                          <tr>
-                            <td colSpan={5} className="p-8 text-center text-zinc-500 uppercase font-bold">
-                              No subscribers found in newsletter lists.
-                            </td>
-                          </tr>
-                        )
-                      }
-
-                      return filtered.map((s: any) => (
-                        <tr key={s.id} className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors">
-                          <td className="p-4 font-mono font-bold text-zinc-500">
-                            #{s.id}
-                          </td>
-                          <td className="p-4 font-mono text-zinc-100 select-all normal-case text-xs">
-                            {s.email}
-                          </td>
-                          <td className="p-4 text-center">
-                            {s.subscribed ? (
-                              <span className="bg-studio-neon/20 border border-studio-neon text-studio-neon text-[8px] px-2.5 py-1 font-bold uppercase tracking-wider">
-                                ACTIVE SUBSCRIBER
-                              </span>
-                            ) : (
-                              <span className="bg-studio-red/20 border border-studio-red text-studio-red text-[8px] px-2.5 py-1 font-bold uppercase tracking-wider">
-                                UNSUBSCRIBED / BLACKLISTED
-                              </span>
-                            )}
-                          </td>
-                          <td className="p-4 text-center text-zinc-500 font-mono text-[10px]">
-                            {s.created_at ? new Date(s.created_at).toLocaleString() : 'N/A'}
-                          </td>
-                          <td className="p-4 text-center">
-                            <div className="flex items-center justify-center gap-2">
-                              {s.subscribed ? (
-                                <button
-                                  onClick={() => handleNewsletterUnsubscribe(s.email)}
-                                  className="px-2.5 py-1.5 border-2 border-black bg-studio-red hover:bg-studio-red/80 text-white font-bold uppercase text-[9px] transition-all cursor-pointer shadow-[2px_2px_0px_black]"
-                                >
-                                  ❌ UNSUBSCRIBE
-                                </button>
-                              ) : (
-                                <button
-                                  onClick={() => handleNewsletterResubscribe(s.email)}
-                                  className="px-2.5 py-1.5 border-2 border-black bg-studio-neon hover:bg-studio-neon/80 text-black font-bold uppercase text-[9px] transition-all cursor-pointer shadow-[2px_2px_0px_black]"
-                                >
-                                  ✅ RESUBSCRIBE
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    })()}
-                  </tbody>
-                </table>
-              </div>
-
-            </div>
+            <NewsletterTab
+              subscribersList={subscribersList}
+              invalidateCacheAndReload={invalidateCacheAndReload}
+              showToast={showToast}
+              addAuditLog={addAuditLog}
+              askConfirmation={askConfirmation}
+            />
           )}
 
-          {/* ======================================================== */}
-          {/* TAB 12: GLOBAL SITE SETTINGS                             */}
-          {/* ======================================================== */}
+          {/* TAB 12: GLOBAL SITE SETTINGS */}
           {activeTab === 'settings' && (
-            <div className="space-y-6 animate-fadeIn font-mono text-xs">
-              <div className="bg-[#121212] p-6 border-4 border-black">
-                <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-[#FF5C00]">
-                  ⚙️ GLOBAL SITE CONFIGURATION
-                </h3>
-                <p className="text-zinc-400 mt-1 uppercase text-[10px] font-black">
-                  Manage application flags, configurations, and settings.
-                </p>
-              </div>
-
-              {/* Banner Settings Card */}
-              <div className="border-4 border-black bg-black p-6 font-sans">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-zinc-900">
-                  <div className="max-w-xl">
-                    <h4 className="text-lg font-bold text-white flex items-center gap-2">
-                      Announcement Banner (Launch Offer)
-                    </h4>
-                    <p className="text-zinc-400 text-xs mt-2 leading-relaxed">
-                      Toggle the visibility of the promo banner displaying the <span className="text-[#FF5C00] font-semibold">₹499 Offer</span> across the top of all main website pages. Changes apply instantly.
-                    </p>
-                  </div>
-
-                  {/* Toggle Switch */}
-                  <div className="flex items-center gap-4 self-start md:self-auto">
-                    <button
-                      onClick={handleToggleLaunchOffer}
-                      disabled={bannerPending}
-                      className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none disabled:opacity-50 cursor-pointer ${
-                        bannerEnabled ? 'bg-studio-neon shadow-[0_0_12px_rgba(0,255,148,0.3)]' : 'bg-zinc-800'
-                      }`}
-                    >
-                      <span className="sr-only">Toggle banner</span>
-                      <span
-                        className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-300 shadow-[0_2px_4px_black] ${
-                          bannerEnabled ? 'translate-x-7' : 'translate-x-1'
-                        } flex items-center justify-center`}
-                      >
-                        {bannerPending && <RefreshCw size={12} className="animate-spin text-zinc-900" />}
-                      </span>
-                    </button>
-                    <span className="text-xs font-black text-zinc-300 min-w-10">
-                      {bannerEnabled ? 'ACTIVE' : 'HIDDEN'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-6 bg-[#0c0c0c] border border-zinc-900 p-4 rounded-none">
-                  <span className="block text-[8px] font-mono font-black text-zinc-500 uppercase tracking-widest mb-2">
-                    Current Database Flag:
-                  </span>
-                  <div className="flex items-center gap-2 font-mono text-xs">
-                    <span className="text-zinc-400">key:</span>
-                    <span className="text-white font-bold">show_launch_offer</span>
-                    <span className="text-zinc-500">|</span>
-                    <span className="text-zinc-400">value:</span>
-                    <span className={bannerEnabled ? 'text-studio-neon font-black' : 'text-studio-red font-black'}>
-                      {String(bannerEnabled)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <SettingsTab
+              bannerEnabled={bannerEnabled}
+              bannerPending={bannerPending}
+              handleToggleLaunchOffer={handleToggleLaunchOffer}
+            />
           )}
 
         </div>
       </main>
 
-      {/* ======================================================== */}
-      {/* MODAL DRAWER: PACK CRUD DETAILS                          */}
-      {/* ======================================================== */}
-      {showPackModal && activePack && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <form
-            onSubmit={handlePackSave}
-            className="w-full max-w-2xl border-4 border-black bg-[#121212] p-6 shadow-premium relative max-h-[90vh] overflow-y-auto font-mono text-xs"
-          >
-            <button
-              type="button"
-              onClick={() => setShowPackModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <h3 className="font-sans font-bold text-xl uppercase text-studio-yellow mb-6">
-              {activePack.id ? '📦 edit pack inventory' : '📦 create pack inventory'}
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">PACK TITLE</label>
-                <input
-                  type="text"
-                  required
-                  value={activePack.name}
-                  onChange={e => handlePackNameChange(e.target.value)}
-                  placeholder="e.g. Sitar Masters Volume 1"
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">SLUG / URL PATH</label>
-                <input
-                  type="text"
-                  required
-                  value={activePack.slug}
-                  onChange={e => setActivePack((prev: any) => ({ ...prev, slug: e.target.value }))}
-                  placeholder="sitar-masters-vol-1"
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold lowercase"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">DESCRIPTION</label>
-                <textarea
-                  value={activePack.description || ''}
-                  onChange={e => setActivePack((prev: any) => ({ ...prev, description: e.target.value }))}
-                  placeholder="Provide details about samples counts, recording styles..."
-                  rows={3}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">PRICE INR (₹)</label>
-                <input
-                  type="number"
-                  required
-                  value={activePack.price_inr}
-                  onChange={e => setActivePack((prev: any) => ({ ...prev, price_inr: Number(e.target.value) }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">MRP INR (STRIKE-THROUGH)</label>
-                <input
-                  type="number"
-                  value={activePack.mrp_inr || ''}
-                  onChange={e => setActivePack((prev: any) => ({ ...prev, mrp_inr: Number(e.target.value) }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">PRICE USD ($)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  value={activePack.price_usd}
-                  onChange={e => setActivePack((prev: any) => ({ ...prev, price_usd: Number(e.target.value) }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">BUNDLE CREDIT COST</label>
-                <input
-                  type="number"
-                  required
-                  value={activePack.bundle_credit_cost}
-                  onChange={e => setActivePack((prev: any) => ({ ...prev, bundle_credit_cost: Number(e.target.value) }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">COVER COVER_URL</label>
-                <input
-                  type="text"
-                  value={activePack.cover_url || ''}
-                  onChange={e => setActivePack((prev: any) => ({ ...prev, cover_url: e.target.value }))}
-                  placeholder="https://drive.google.com/..."
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">CATEGORY BINDING</label>
-                <select
-                  value={activePack.category_id || ''}
-                  onChange={e => setActivePack((prev: any) => ({ ...prev, category_id: e.target.value }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
-                >
-                  {categories.map((c: any) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">DISPLAY PRIORITY RANK (MANUAL)</label>
-                <input
-                  type="number"
-                  value={activePack.display_rank || 0}
-                  onChange={e => setActivePack((prev: any) => ({ ...prev, display_rank: Number(e.target.value) }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">FULL PACK DOWNLOAD URL (DRIVE/CDN)</label>
-                <input
-                  type="text"
-                  value={activePack.full_pack_download_url || ''}
-                  onChange={e => setActivePack((prev: any) => ({ ...prev, full_pack_download_url: e.target.value }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <label className="border-2 border-black bg-black p-3 flex items-center gap-2 cursor-pointer font-bold text-[10px]">
-                  <input
-                    type="checkbox"
-                    checked={activePack.is_featured}
-                    onChange={e => setActivePack((prev: any) => ({ ...prev, is_featured: e.target.checked }))}
-                    className="accent-studio-yellow"
-                  />
-                  IS FEATURED BOOST
-                </label>
-
-                <label className="border-2 border-black bg-black p-3 flex items-center gap-2 cursor-pointer font-bold text-[10px]">
-                  <input
-                    type="checkbox"
-                    checked={activePack.is_bundle_only}
-                    onChange={e => setActivePack((prev: any) => ({ ...prev, is_bundle_only: e.target.checked }))}
-                    className="accent-studio-yellow"
-                  />
-                  IS BUNDLE ONLY
-                </label>
-              </div>
-
-              <div className="grid grid-cols-4 gap-2 md:col-span-2">
-                <div>
-                  <label className="block text-[8px] text-zinc-500 mb-1">MELODIES</label>
-                  <input type="number" value={activePack.melody_count || 0} onChange={e => setActivePack((prev: any) => ({ ...prev, melody_count: Number(e.target.value) }))} className="w-full bg-black border border-black p-1 text-center font-bold" />
-                </div>
-                <div>
-                  <label className="block text-[8px] text-zinc-500 mb-1">LOOPS</label>
-                  <input type="number" value={activePack.loop_count || 0} onChange={e => setActivePack((prev: any) => ({ ...prev, loop_count: Number(e.target.value) }))} className="w-full bg-black border border-black p-1 text-center font-bold" />
-                </div>
-                <div>
-                  <label className="block text-[8px] text-zinc-500 mb-1">ONE-SHOTS</label>
-                  <input type="number" value={activePack.one_shot_count || 0} onChange={e => setActivePack((prev: any) => ({ ...prev, one_shot_count: Number(e.target.value) }))} className="w-full bg-black border border-black p-1 text-center font-bold" />
-                </div>
-                <div>
-                  <label className="block text-[8px] text-zinc-500 mb-1">PRESETS</label>
-                  <input type="number" value={activePack.preset_count || 0} onChange={e => setActivePack((prev: any) => ({ ...prev, preset_count: Number(e.target.value) }))} className="w-full bg-black border border-black p-1 text-center font-bold" />
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="studio-button w-full mt-6 bg-studio-yellow text-black font-black"
-            >
-              <Check className="w-4 h-4" /> COMMIT PACK DATA TO STORAGE
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* MODAL DRAWER: SAMPLE CRUD DETAILS                        */}
-      {/* ======================================================== */}
-      {showSampleModal && activeSample && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <form
-            onSubmit={handleSampleSave}
-            className="w-full max-w-2xl border-4 border-black bg-[#121212] p-6 shadow-premium relative max-h-[90vh] overflow-y-auto font-mono text-xs"
-          >
-            <button
-              type="button"
-              onClick={() => setShowSampleModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <h3 className="font-sans font-bold text-xl uppercase text-studio-neon mb-6">
-              {activeSample.id ? '🎵 edit sample properties' : '🎵 upload sample properties'}
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">SAMPLE TITLE</label>
-                <input
-                  type="text"
-                  required
-                  value={activeSample.name}
-                  onChange={e => setActiveSample((prev: any) => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g. Sitar Melody Cmin 120"
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-neon font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">PARENT SAMPLE PACK</label>
-                <select
-                  value={activeSample.pack_id}
-                  onChange={e => setActiveSample((prev: any) => ({ ...prev, pack_id: e.target.value }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-neon font-bold"
-                >
-                  {packs.map((p: any) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">PREVIEW AUDIO URL</label>
-                <input
-                  type="text"
-                  required
-                  value={activeSample.audio_url}
-                  onChange={e => setActiveSample((prev: any) => ({ ...prev, audio_url: e.target.value }))}
-                  placeholder="https://drive.google.com/...mp3"
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-neon font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">FULL WAV DOWNLOAD URL (DRIVE/CDN)</label>
-                <input
-                  type="text"
-                  required
-                  value={activeSample.download_url}
-                  onChange={e => setActiveSample((prev: any) => ({ ...prev, download_url: e.target.value }))}
-                  placeholder="https://drive.google.com/...wav"
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-neon font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">BPM</label>
-                <input
-                  type="number"
-                  value={activeSample.bpm || ''}
-                  onChange={e => setActiveSample((prev: any) => ({ ...prev, bpm: Number(e.target.value) }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-neon font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">SCALE KEY (e.g. C Min)</label>
-                <input
-                  type="text"
-                  value={activeSample.key || ''}
-                  onChange={e => setActiveSample((prev: any) => ({ ...prev, key: e.target.value }))}
-                  placeholder="C Min"
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-neon font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">SAMPLE BINDING TYPE</label>
-                <select
-                  value={activeSample.type}
-                  onChange={e => setActiveSample((prev: any) => ({ ...prev, type: e.target.value }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-neon font-bold"
-                >
-                  <option value="loop">Loop (Melody/Drums)</option>
-                  <option value="one-shot">One-Shot (Single Hit)</option>
-                  <option value="preset">Software Patch/Preset</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">SINGLE CREDIT COST</label>
-                <input
-                  type="number"
-                  value={activeSample.credit_cost}
-                  onChange={e => setActiveSample((prev: any) => ({ ...prev, credit_cost: Number(e.target.value) }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-neon font-bold"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">TAGS (COMMA SEPARATED)</label>
-                <input
-                  type="text"
-                  value={activeSample.tags}
-                  onChange={e => setActiveSample((prev: any) => ({ ...prev, tags: e.target.value }))}
-                  placeholder="sitar, indian, acoustic, Bollywood"
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-neon font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">AI ENGINE MOOD</label>
-                <input type="text" value={activeSample.ai_mood || ''} onChange={e => setActiveSample((prev: any) => ({ ...prev, ai_mood: e.target.value }))} className="w-full bg-black border-2 border-black p-2.5" />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">AI ENGINE GENRE</label>
-                <input type="text" value={activeSample.ai_genre || ''} onChange={e => setActiveSample((prev: any) => ({ ...prev, ai_genre: e.target.value }))} className="w-full bg-black border-2 border-black p-2.5" />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">AI VIBE VALUE SCORE (0-10)</label>
-                <input type="number" step="0.1" value={activeSample.ai_vibe_score || 0} onChange={e => setActiveSample((prev: any) => ({ ...prev, ai_vibe_score: Number(e.target.value) }))} className="w-full bg-black border-2 border-black p-2.5" />
-              </div>
-
-              <label className="border-2 border-black bg-black p-3 flex items-center gap-2 cursor-pointer font-bold text-[10px]">
-                <input
-                  type="checkbox"
-                  checked={activeSample.is_preview_only}
-                  onChange={e => setActiveSample((prev: any) => ({ ...prev, is_preview_only: e.target.checked }))}
-                  className="accent-studio-neon"
-                />
-                IS PREVIEW ONLY (NO DOWNLOAD ALLOWED)
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              className="studio-button w-full mt-6 bg-studio-neon text-black font-black"
-            >
-              <Check className="w-4 h-4" /> SAVE AUDIO FILE PROPERTIES
-            </button>
-          </form>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* MODAL DRAWER: KYC REVIEW & DOCUMENT DETAILS              */}
-      {/* ======================================================== */}
-      {showKycModal && activeArtist && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-xl border-4 border-black bg-[#121212] p-6 shadow-premium relative max-h-[90vh] overflow-y-auto font-mono text-xs">
-            <button
-              onClick={() => setShowKycModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <h3 className="font-luckiest-guy text-2xl uppercase text-studio-orange mb-6">
-              🔍 kyc document verification drawer
-            </h3>
-
-            {/* ARTIST METADATA */}
-            <div className="bg-black border border-zinc-800 p-4 space-y-3 mb-6">
-              <div className="flex justify-between">
-                <span className="text-zinc-500 font-bold uppercase">ARTIST LEGAL NAME</span>
-                <span className="text-white font-black">{activeArtist.legal_name || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500 font-bold uppercase">IFSC BRANCH CODE</span>
-                <span className="text-white font-black">{activeArtist.ifsc_code || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500 font-bold uppercase">ACCOUNT HOLDER</span>
-                <span className="text-white font-black">{activeArtist.account_holder_name || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500 font-bold uppercase">ACCOUNT NUMBER</span>
-                <span className="text-studio-neon font-black text-sm tracking-wider">{activeArtist.account_number || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500 font-bold uppercase">BANK NAME</span>
-                <span className="text-white font-black">{activeArtist.bank_name || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500 font-bold uppercase">PAN NUMBER CARD</span>
-                <span className="text-white font-black">{activeArtist.pan_number || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500 font-bold uppercase">AADHAAR ID</span>
-                <span className="text-white font-black">{activeArtist.aadhaar_number || 'N/A'}</span>
-              </div>
-            </div>
-
-            {/* SECURE KYC UPLOAD VISUAL PREVIEW */}
-            <div className="space-y-2 mb-6">
-              <span className="block text-[10px] font-black uppercase text-zinc-400">KYC VERIFICATION DOCUMENT (GOOGLE DRIVE LINK)</span>
-
-              {activeArtist.kyc_document_id ? (
-                <div className="border-4 border-black bg-black p-6 text-center space-y-4">
-                  <div className="w-16 h-16 bg-studio-orange/10 border-2 border-studio-orange text-studio-orange mx-auto flex items-center justify-center">
-                    <UserCheck className="w-8 h-8" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-white uppercase text-[11px]">Secure KYC File Uploaded</p>
-                    <p className="text-[9px] text-zinc-500 mt-1 truncate max-w-[400px]">{activeArtist.kyc_document_id}</p>
-                  </div>
-                  <a
-                    href={activeArtist.kyc_document_id}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1.5 bg-studio-orange hover:bg-studio-orange/80 text-black font-black uppercase inline-flex items-center gap-1 text-[10px] border-2 border-black"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" /> OPEN SECURE UPLOAD
-                  </a>
-                </div>
-              ) : (
-                <div className="border border-zinc-800 p-4 text-center text-zinc-500 uppercase font-black">
-                  No KYC document link uploaded yet.
-                </div>
-              )}
-            </div>
-
-            {/* ACTION TRIGGERS */}
-            {activeArtist.verification_status !== 'approved' && (
-              <div className="grid grid-cols-2 gap-4">
-                <button
-                  onClick={() => handleKycApproval(activeArtist.user_id, 'approved', activeArtist.full_name)}
-                  className="px-4 py-3 bg-studio-neon hover:bg-studio-neon/80 text-black border-3 border-black font-black uppercase text-[11px]"
-                >
-                  <Check className="w-4 h-4 inline mr-1" /> VERIFY & APPROVE
-                </button>
-                <button
-                  onClick={() => handleKycApproval(activeArtist.user_id, 'rejected', activeArtist.full_name)}
-                  className="px-4 py-3 bg-studio-red hover:bg-studio-red/80 text-white border-3 border-black font-black uppercase text-[11px]"
-                >
-                  <X className="w-4 h-4 inline mr-1" /> REJECT kyc
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* MODAL DRAWER: TRIGGER PAYOUT FORM                        */}
-      {/* ======================================================== */}
-      {showPayoutModal && payoutArtist && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <form
-            onSubmit={handlePayoutTrigger}
-            className="w-full max-w-md border-4 border-black bg-[#121212] p-6 shadow-premium relative font-mono text-xs"
-          >
-            <button
-              type="button"
-              onClick={() => setShowPayoutModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <h3 className="font-luckiest-guy text-2xl uppercase text-studio-neon mb-6">
-              💸 register artist payout
-            </h3>
-
-            <div className="space-y-4">
-              <div className="bg-black p-3.5 border border-zinc-800">
-                <p className="text-[10px] text-zinc-500 uppercase leading-none font-bold">ARTIST TARGET</p>
-                <p className="text-sm font-black text-white mt-1.5 normal-case">{payoutArtist.full_name}</p>
-                <p className="text-[10px] text-zinc-400 mt-1 lowercase truncate">{payoutArtist.user_id}</p>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">PAYOUT VALUE AMOUNT (₹)</label>
-                <input
-                  type="number"
-                  required
-                  value={payoutAmount}
-                  onChange={e => setPayoutAmount(e.target.value)}
-                  placeholder="e.g. 15000"
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-neon font-black text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">TARGET MONTH / YEAR</label>
-                <input
-                  type="text"
-                  required
-                  value={payoutMonth}
-                  onChange={e => setPayoutMonth(e.target.value)}
-                  placeholder="e.g. May 2026"
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-neon font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">BANK TRANSACTION ID (UTR / RECEIPT)</label>
-                <input
-                  type="text"
-                  required
-                  value={payoutUtr}
-                  onChange={e => setPayoutUtr(e.target.value)}
-                  placeholder="e.g. UTRN056123490"
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-neon font-bold uppercase font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">NOTES (MEMO)</label>
-                <input
-                  type="text"
-                  value={payoutNotes}
-                  onChange={e => setPayoutNotes(e.target.value)}
-                  placeholder="Standard sales payout split share..."
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="studio-button w-full mt-4 bg-studio-neon text-black font-black uppercase"
-              >
-                <Check className="w-4 h-4" /> EMIT TRANSACTION SETTLEMENT
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* MODAL DRAWER: COUPON CRUD DETAILS                        */}
-      {/* ======================================================== */}
-      {showCouponModal && activeCoupon && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <form
-            onSubmit={handleCouponSave}
-            className="w-full max-w-md border-4 border-black bg-[#121212] p-6 shadow-premium relative font-mono text-xs"
-          >
-            <button
-              type="button"
-              onClick={() => setShowCouponModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <h3 className="font-luckiest-guy text-2xl uppercase text-studio-blue mb-6">
-              {activeCoupon.id ? '🎟️ edit coupon details' : '🎟️ create discount coupon'}
-            </h3>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">COUPON CODE CODE</label>
-                <input
-                  type="text"
-                  required
-                  value={activeCoupon.code}
-                  onChange={e => setActiveCoupon((prev: any) => ({ ...prev, code: e.target.value.toUpperCase() }))}
-                  placeholder="e.g. MAURYA30"
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-blue font-black uppercase text-sm tracking-widest"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">DISCOUNT PERCENTAGE (%)</label>
-                <input
-                  type="number"
-                  min="1"
-                  max="100"
-                  required
-                  value={activeCoupon.discount_percent}
-                  onChange={e => setActiveCoupon((prev: any) => ({ ...prev, discount_percent: Number(e.target.value) }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-blue font-black text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">EXPIRATION TIMESTAMP (OPTIONAL)</label>
-                <input
-                  type="datetime-local"
-                  value={activeCoupon.expires_at ? activeCoupon.expires_at.slice(0, 16) : ''}
-                  onChange={e => setActiveCoupon((prev: any) => ({ ...prev, expires_at: e.target.value ? new Date(e.target.value).toISOString() : '' }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-blue font-bold"
-                />
-              </div>
-
-              <label className="border-2 border-black bg-black p-3 flex items-center gap-2 cursor-pointer font-bold text-[10px]">
-                <input
-                  type="checkbox"
-                  checked={activeCoupon.is_active}
-                  onChange={e => setActiveCoupon((prev: any) => ({ ...prev, is_active: e.target.checked }))}
-                  className="accent-studio-blue"
-                />
-                IS ACTIVE & ENABLED FOR CHECKOUT
-              </label>
-
-              <button
-                type="submit"
-                className="studio-button w-full mt-4 bg-studio-blue text-white font-black"
-              >
-                <Check className="w-4 h-4" /> SAVE DISCOUNT COUPON REGISTER
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* MODAL DRAWER: SUPPORT TICKET DETAILS                     */}
-      {/* ======================================================== */}
-      {showTicketModal && activeTicket && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <form
-            onSubmit={handleTicketReply}
-            className="w-full max-w-xl border-4 border-black bg-[#121212] p-6 shadow-premium relative max-h-[90vh] overflow-y-auto font-mono text-xs"
-          >
-            <button
-              type="button"
-              onClick={() => setShowTicketModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <h3 className="font-sans font-bold text-xl uppercase text-studio-purple mb-6">
-              💬 support ticket conversation
-            </h3>
-
-            {/* CUSTOMER TICKET MESSAGE */}
-            <div className="space-y-4 mb-6">
-              <div className="bg-black p-4 border border-zinc-800">
-                <div className="flex justify-between border-b border-zinc-900 pb-2 mb-2 font-sans">
-                  <span className="font-bold text-zinc-100 uppercase text-sm">{activeTicket.user_name}</span>
-                  <span className="text-[10px] text-zinc-500 font-medium">{new Date(activeTicket.created_at).toLocaleString()}</span>
-                </div>
-                <p className="text-zinc-400 font-bold uppercase text-[9px] tracking-wider">SUBJECT:</p>
-                <p className="text-zinc-100 font-bold text-sm normal-case mt-0.5">{activeTicket.subject}</p>
-
-                <p className="text-zinc-400 font-bold uppercase text-[9px] tracking-wider mt-3">CUSTOMER INQUIRY MESSAGE:</p>
-                <div className="text-zinc-200 mt-1 font-sans text-xs leading-relaxed normal-case bg-[#0d0d0d] p-3 border border-zinc-900 whitespace-pre-wrap">
-                  {activeTicket.message}
-                </div>
-              </div>
-
-              {/* ADMIN REPLY LOG */}
-              {activeTicket.status === 'resolved' && (
-                <div className="bg-studio-purple/5 p-4 border border-studio-purple/30">
-                  <div className="flex justify-between border-b border-studio-purple/20 pb-2 mb-2 font-sans">
-                    <span className="font-bold text-studio-purple uppercase text-xs">RESOLVED ADMIN REPLY</span>
-                    {activeTicket.replied_at && (
-                      <span className="text-[10px] text-zinc-500 font-medium">{new Date(activeTicket.replied_at).toLocaleString()}</span>
-                    )}
-                  </div>
-                  <div className="text-zinc-300 font-sans text-xs leading-relaxed normal-case bg-black p-3 border border-zinc-900 whitespace-pre-wrap">
-                    {activeTicket.admin_reply}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* REPLY BOX */}
-            {activeTicket.status === 'open' ? (
-              <div className="space-y-4 font-sans">
-                <div>
-                  <label className="block text-[10px] font-bold uppercase text-zinc-400 mb-2">COMPOSE TICKET RESOLUTION REPLY</label>
-                  <textarea
-                    required
-                    value={ticketReply}
-                    onChange={e => setTicketReply(e.target.value)}
-                    rows={4}
-                    placeholder="Type your official response here. Clicking save will email the customer and resolve the ticket..."
-                    className="w-full bg-black border-2 border-black p-3 text-white outline-none focus:border-studio-purple font-medium text-xs normal-case leading-relaxed"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  className="studio-button w-full bg-studio-purple text-white font-bold uppercase py-2 text-xs"
-                >
-                  <Send className="w-3.5 h-3.5 inline mr-1" /> EMIT TICKET RESOLUTION REPLY
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setShowTicketModal(false)}
-                className="studio-button w-full bg-zinc-800 text-white border-2 border-black font-bold uppercase hover:bg-zinc-700 py-2 text-xs"
-              >
-                CLOSE CONVERSATION SCREEN
-              </button>
-            )}
-          </form>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* MODAL DRAWER: DETAILED ORDER DESCRIPTION                 */}
-      {/* ======================================================== */}
-      {showOrderModal && activeOrder && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="w-full max-w-xl border-4 border-black bg-[#121212] p-6 shadow-premium relative max-h-[90vh] overflow-y-auto font-sans text-xs">
-            <button
-              onClick={() => setShowOrderModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <h3 className="font-sans font-bold text-xl uppercase text-studio-neon mb-6">
-              📦 Detailed Order Acquisition Receipt
-            </h3>
-
-            {/* ORDER TRANSACTION METADATA */}
-            <div className="bg-black border border-zinc-800 p-4 space-y-3.5 mb-6 text-zinc-300 font-sans">
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">ORDER ID (INTERNAL)</span>
-                <span className="text-white font-mono font-bold">{activeOrder.id}</span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">PRODUCT PURCHASED</span>
-                <span className="text-white font-bold text-sm normal-case text-right">{activeOrder.pack_name}</span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">BUYER LEGAL NAME</span>
-                <span className="text-zinc-100 font-bold normal-case">{activeOrder.buyer_name || 'Anonymous'}</span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">BUYER EMAIL ADDRESS</span>
-                <span className="text-zinc-100 font-mono font-medium lowercase select-all">{activeOrder.buyer_email || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">BUYER PHONE NUMBER</span>
-                <span className="text-zinc-100 font-mono font-medium select-all">{activeOrder.buyer_phone || 'N/A'}</span>
-              </div>
-              <div className="flex flex-col space-y-1.5 border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">SHIPPING & BILLING ADDRESS</span>
-                <span className="text-zinc-300 font-mono leading-normal bg-[#0c0c0c] border border-zinc-900 p-2.5 rounded-none text-[10px] normal-case select-all">
-                  {activeOrder.buyer_address || 'No physical delivery address provided for this order.'}
-                </span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">TOTAL VALUE PAID</span>
-                <span className="text-studio-neon font-bold text-sm">₹{activeOrder.amount.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">RAZORPAY ORDER ID</span>
-                <span className="text-white font-mono font-bold tracking-tight text-[10px] select-all">{activeOrder.razorpay_order_id || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">RAZORPAY PAYMENT ID</span>
-                <span className="text-white font-mono font-bold tracking-tight text-[10px] select-all">{activeOrder.razorpay_payment_id || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">ORDER TIMESTAMP</span>
-                <span className="text-zinc-400 font-mono text-[10px]">{new Date(activeOrder.created_at).toLocaleString()}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowOrderModal(false)}
-              className="studio-button w-full bg-zinc-800 text-white border-2 border-black font-bold uppercase hover:bg-zinc-700 py-2.5 text-xs font-sans"
-            >
-              CLOSE RECEIPT DRAWER
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* DETAILED USER PROFILE MODAL DRAWER                       */}
-      {/* ======================================================== */}
-      {showUserModal && activeUser && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn font-sans text-xs">
-          <div className="bg-[#121212] border-4 border-black p-6 w-full max-w-lg relative text-left shadow-premium">
-            <button
-              onClick={() => setShowUserModal(false)}
-              className="absolute top-4 right-4 p-1 bg-black border-2 border-black hover:border-studio-pink text-zinc-400 hover:text-white transition-all cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <h3 className="font-sans font-bold text-xl uppercase text-studio-pink mb-6">
-              👥 DETAILED USER ACCESS & PROFILE
-            </h3>
-
-            {/* USER PROFILE METADATA */}
-            <div className="bg-black border border-zinc-800 p-4 space-y-3.5 mb-6 text-zinc-300 font-sans">
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">USER ID (AUTH ID)</span>
-                <span className="text-white font-mono font-bold select-all">{activeUser.id}</span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">FULL NAME</span>
-                <span className="text-white font-bold text-sm normal-case">{activeUser.full_name || 'Anonymous'}</span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">EMAIL ADDRESS</span>
-                <span className="text-white font-mono font-medium lowercase select-all">{activeUser.email || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">PHONE NUMBER</span>
-                <span className="text-white font-mono font-medium select-all">{activeUser.phone_number || 'N/A'}</span>
-              </div>
-              <div className="flex flex-col space-y-1.5 border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">PHYSICAL ADDRESS</span>
-                <span className="text-zinc-300 font-mono leading-normal bg-[#0c0c0c] border border-zinc-900 p-2.5 rounded-none text-[10px] normal-case select-all">
-                  {activeUser.address || 'No physical delivery address provided.'}
-                </span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">CREDITS BALANCE</span>
-                <span className="text-studio-neon font-bold text-sm">{activeUser.credits} CR</span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">SUBSCRIPTION TIER</span>
-                <span className="text-studio-pink font-bold uppercase">{activeUser.subscription_tier || 'NONE'} ({activeUser.subscription_status || 'INACTIVE'})</span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">AUTH PROVIDER</span>
-                <span className="text-white font-bold uppercase flex items-center gap-1.5">
-                  {activeUser.provider === 'google' ? (
-                    <>
-                      <span className="w-2 h-2 rounded-full bg-studio-pink" /> GOOGLE SSO
-                    </>
-                  ) : (
-                    <>
-                      <span className="w-2 h-2 rounded-full bg-studio-yellow" /> EMAIL & PASSWORD
-                    </>
-                  )}
-                </span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">DEVICE FINGERPRINT</span>
-                <span className="text-zinc-400 font-mono font-medium text-[10px] select-all">{activeUser.device_fingerprint || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">REGISTRATION TIMESTAMP</span>
-                <span className="text-zinc-400 font-mono text-[10px]">{new Date(activeUser.created_at).toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between items-center pt-1.5">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">ACCOUNT STATUS</span>
-                <div>
-                  {activeUser.is_banned ? (
-                    <span className="bg-studio-red text-white border-2 border-black font-black uppercase text-[8px] px-2 py-0.5 inline-flex items-center gap-1 animate-pulse">
-                      <Ban className="w-2.5 h-2.5 text-white" /> BANNED LOCK
-                    </span>
-                  ) : (
-                    <span className="bg-studio-neon/10 text-studio-neon border border-studio-neon font-black uppercase text-[8px] px-2 py-0.5 inline-flex items-center gap-1">
-                      <ShieldCheck className="w-2.5 h-2.5 text-studio-neon" /> ACCESS ACTIVE
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* ACTION FOOTER */}
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                {activeUser.is_banned ? (
-                  <button
-                    onClick={() => handleUnbanUser(activeUser.id, activeUser.email)}
-                    className="flex-1 studio-button bg-studio-neon text-black border-2 border-black font-bold uppercase hover:bg-studio-neon/80 py-2 text-xs cursor-pointer font-sans"
-                  >
-                    ACTIVATE & UNBAN
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleBanUser(activeUser.id, activeUser.email)}
-                    className="flex-1 studio-button bg-studio-red text-white border-2 border-black font-bold uppercase hover:bg-studio-red/80 py-2 text-xs cursor-pointer font-sans"
-                  >
-                    BAN ACCOUNT
-                  </button>
-                )}
-
-                <button
-                  onClick={() => handleDeleteUser(activeUser.id, activeUser.email)}
-                  className="flex-1 studio-button bg-studio-red text-white border-2 border-black font-bold uppercase hover:bg-studio-red-hover py-2 text-xs cursor-pointer font-sans"
-                >
-                  ❌ DELETE FOREVER
-                </button>
-              </div>
-
-              <button
-                onClick={() => setShowUserModal(false)}
-                className="studio-button w-full bg-zinc-800 text-white border-2 border-black font-bold uppercase hover:bg-zinc-700 py-2 text-xs cursor-pointer font-sans"
-              >
-                CLOSE DETAIL DRAWER
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* MODAL DRAWER: MANUAL NEWSLETTER EMAIL SUBSCRIBE          */}
-      {/* ======================================================== */}
-      {showSubscribeModal && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
-          <form
-            onSubmit={handleNewsletterSubscribe}
-            className="w-full max-w-md border-4 border-black bg-[#121212] p-6 shadow-premium relative font-mono text-xs"
-          >
-            <button
-              type="button"
-              onClick={() => setShowSubscribeModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <h3 className="font-luckiest-guy text-2xl uppercase text-studio-yellow mb-6">
-              📬 Add manual subscriber
-            </h3>
-
-            <div className="space-y-4">
-              <p className="text-zinc-400 text-[10px] leading-relaxed uppercase">
-                Manually register a contact directly to Brevo contacts database. Previously blacklisted contacts will be reactivated automatically.
-              </p>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">EMAIL ADDRESS</label>
-                <input
-                  type="email"
-                  required
-                  value={newsletterEmailInput}
-                  onChange={e => setNewsletterEmailInput(e.target.value)}
-                  placeholder="e.g. producer@gmail.com"
-                  className="w-full bg-black border-2 border-black p-3 text-white outline-none focus:border-studio-yellow font-black text-sm tracking-wide normal-case"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowSubscribeModal(false)}
-                  className="flex-1 px-4 py-2.5 bg-zinc-800 text-white border-2 border-black font-bold uppercase text-[10px] hover:bg-zinc-700 active:translate-y-0.5"
-                >
-                  CANCEL / BACK
-                </button>
-                <button
-                  type="submit"
-                  disabled={dataLoading}
-                  className="flex-1 px-4 py-2.5 bg-studio-yellow text-black border-2 border-black font-black uppercase text-[10px] hover:bg-studio-yellow-hover disabled:opacity-50 active:translate-y-0.5"
-                >
-                  {dataLoading ? 'PROCESSING...' : 'SUBSCRIBE EMAIL'}
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* MODAL DRAWER: COMPOSE & SEND NEWSLETTER CAMPAIGN         */}
-      {/* ======================================================== */}
-      {showCampaignModal && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 animate-fadeIn">
-          <form
-            onSubmit={handleSendCampaign}
-            className="w-full max-w-[95vw] lg:max-w-7xl h-[90vh] border border-zinc-800 bg-[#090a0f] shadow-2xl relative flex flex-col font-sans text-xs rounded-xl overflow-hidden animate-scaleIn"
-          >
-            {/* Elegant Professional Editor Header - Sticky */}
-            <div className="flex items-center justify-between border-b border-zinc-850 px-6 py-4 bg-[#0d0d12] flex-shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-zinc-900/60 border border-zinc-800 rounded-lg text-studio-pink">
-                  <Mail className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-base text-zinc-100 uppercase tracking-tight font-sans">
-                    Newsletter Workspace Composer
-                  </h3>
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold block mt-0.5 font-mono">
-                    Draft, Sandbox Previews (PC & Mobile), and Direct Brevo Broadcast
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowCampaignModal(false)}
-                className="p-1.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-white rounded-lg transition-all"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Split Editor/Preview Workspace - Body */}
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden bg-[#06070a]">
-              {/* COMPOSER FORM (5/12 cols) - Scrollable */}
-              <div className="lg:col-span-5 border-r border-zinc-850 p-6 overflow-y-auto space-y-5 h-full scrollbar">
-                <div>
-                  <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-wider mb-2 font-mono">Campaign Subject Line</label>
-                  <input
-                    type="text"
-                    required
-                    value={campaignSubject}
-                    onChange={e => setCampaignSubject(e.target.value)}
-                    placeholder="e.g. 🎵 WEEKLY DROP: Claim 3 New Sample Packs inside the Vault!"
-                    className="w-full bg-zinc-950 border border-zinc-850 p-3 text-zinc-100 rounded-lg outline-none focus:border-zinc-700 font-sans text-xs placeholder-zinc-750 leading-relaxed transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-wider mb-2 font-mono">Hero Main Title (For Standard Templates)</label>
-                  <input
-                    type="text"
-                    required
-                    value={campaignTitle}
-                    onChange={e => setCampaignTitle(e.target.value)}
-                    placeholder="e.g. FRESH VAULT RELEASES"
-                    className="w-full bg-zinc-950 border border-zinc-850 p-3 text-zinc-100 rounded-lg outline-none focus:border-zinc-700 font-sans text-xs placeholder-zinc-750 leading-relaxed transition-all"
-                  />
-                </div>
-
-                <div className="flex flex-col space-y-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-wider font-mono">HTML/Text Body Content</label>
-
-                    {/* HTML BLOCK COMPOSER TOOLBAR */}
-                    <div className="flex flex-wrap gap-1 bg-zinc-950 p-1 border border-zinc-850 rounded-md">
-                      <span className="text-[8px] font-bold text-zinc-600 uppercase self-center px-1.5 font-mono">Insert:</span>
-                      <button
-                        type="button"
-                        onClick={() => injectHtmlElement('heading')}
-                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:text-white text-[9px] font-bold uppercase tracking-wider text-zinc-300 rounded transition-all"
-                      >
-                        🔤 Title
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => injectHtmlElement('paragraph')}
-                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:text-white text-[9px] font-bold uppercase tracking-wider text-zinc-300 rounded transition-all"
-                      >
-                        📝 Text
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => injectHtmlElement('button')}
-                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:text-white text-[9px] font-bold uppercase tracking-wider text-zinc-300 rounded transition-all"
-                      >
-                        🟢 Button
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => injectHtmlElement('image')}
-                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:text-white text-[9px] font-bold uppercase tracking-wider text-zinc-300 rounded transition-all"
-                      >
-                        🖼️ Image
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => injectHtmlElement('pack-card')}
-                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:text-white text-[9px] font-bold uppercase tracking-wider text-zinc-300 rounded transition-all"
-                      >
-                        📦 Card
-                      </button>
-                    </div>
-                  </div>
-
-                  <textarea
-                    required
-                    rows={16}
-                    value={campaignContent}
-                    onChange={e => setCampaignContent(e.target.value)}
-                    placeholder="Paste full HTML (<html>...</html>) or snippets here. Full HTML will be sent exactly as is, snippets will get wrapped automatically."
-                    className="w-full flex-grow min-h-[350px] bg-zinc-950 border border-zinc-850 p-3 text-zinc-200 rounded-lg outline-none focus:border-zinc-700 font-mono text-xs leading-relaxed placeholder-zinc-750 transition-all scrollbar"
-                  />
-                  
-                  <div className="bg-zinc-950 border border-zinc-850 p-3 text-zinc-500 uppercase font-semibold text-[8px] leading-relaxed font-mono rounded-lg">
-                    💡 TIP: Paste raw template HTML (with &lt;html&gt; or &lt;!DOCTYPE&gt;) to override standard responsive container wrapping. Unsubscribe footer will still be auto-appended if not found.
-                  </div>
-                </div>
-
-                {/* RECIPIENT PICKER PANEL */}
-                <div className="border border-zinc-850 bg-zinc-950/50 rounded-lg overflow-hidden">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-850 bg-zinc-950">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-3.5 h-3.5 text-zinc-400" />
-                      <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider font-mono">
-                        Recipients
-                      </label>
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full font-mono ${
-                        selectedRecipients.length > 0
-                          ? 'bg-studio-neon/15 text-studio-neon border border-studio-neon/30'
-                          : 'bg-zinc-900 text-zinc-500 border border-zinc-800'
-                      }`}>
-                        {selectedRecipients.length} SELECTED
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const activeEmails = subscribersList
-                            .filter((s: any) => s.subscribed && s.email && s.email !== 'N/A')
-                            .map((s: any) => s.email)
-                          setSelectedRecipients(activeEmails)
-                        }}
-                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-studio-neon hover:text-studio-neon text-[8px] font-bold uppercase text-zinc-400 rounded transition-all font-mono"
-                      >
-                        Select All
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedRecipients([])}
-                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-600 hover:text-zinc-200 text-[8px] font-bold uppercase text-zinc-400 rounded transition-all font-mono"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Search Subscribers */}
-                  <div className="px-3 py-2 border-b border-zinc-900">
-                    <div className="relative">
-                      <Search className="absolute left-2.5 top-2 w-3 h-3 text-zinc-600" />
-                      <input
-                        type="text"
-                        value={recipientSearch}
-                        onChange={e => setRecipientSearch(e.target.value)}
-                        placeholder="Filter by email..."
-                        className="w-full bg-zinc-950 border border-zinc-850 pl-7 pr-3 py-1.5 text-zinc-200 rounded outline-none focus:border-zinc-700 font-mono text-[10px] placeholder-zinc-700 transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Subscriber Checkbox List */}
-                  <div className="max-h-[180px] overflow-y-auto scrollbar">
-                    {(() => {
-                      const activeSubscribers = subscribersList
-                        .filter((s: any) => s.subscribed && s.email && s.email !== 'N/A')
-                        .filter((s: any) => !recipientSearch || s.email.toLowerCase().includes(recipientSearch.toLowerCase()))
-
-                      if (activeSubscribers.length === 0) {
-                        return (
-                          <div className="p-4 text-center text-zinc-600 text-[9px] font-mono uppercase">
-                            {subscribersList.length === 0 ? 'Loading subscribers...' : 'No matching active subscribers'}
-                          </div>
-                        )
-                      }
-
-                      return activeSubscribers.map((sub: any) => {
-                        const isChecked = selectedRecipients.includes(sub.email)
-                        return (
-                          <label
-                            key={sub.id || sub.email}
-                            className={`flex items-center gap-2.5 px-4 py-2 border-b border-zinc-900/50 cursor-pointer transition-colors hover:bg-zinc-900/40 ${
-                              isChecked ? 'bg-studio-neon/5' : ''
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={isChecked}
-                              onChange={e => {
-                                if (e.target.checked) {
-                                  setSelectedRecipients(prev => [...prev, sub.email])
-                                } else {
-                                  setSelectedRecipients(prev => prev.filter(em => em !== sub.email))
-                                }
-                              }}
-                              className="accent-[#00FF94] w-3.5 h-3.5 flex-shrink-0"
-                            />
-                            <span className={`font-mono text-[10px] truncate ${isChecked ? 'text-zinc-100 font-semibold' : 'text-zinc-400'}`}>
-                              {sub.email}
-                            </span>
-                          </label>
-                        )
-                      })
-                    })()}
-                  </div>
-                </div>
-              </div>
-
-              {/* LIVE CAMPAIGN PREVIEW CANVAS (7/12 cols) - Dotted Blueprint Grid */}
-              <div className="lg:col-span-7 bg-[#050508] bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] p-6 overflow-y-auto h-full flex flex-col space-y-4 scrollbar">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-850/80 pb-3 flex-shrink-0">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-studio-pink animate-pulse" />
-                    <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-wider font-mono">
-                      Sandbox Viewport Previewer
-                    </label>
-                  </div>
-
-                  {/* VIEWPORT CONTROLLER */}
-                  <div className="flex border border-zinc-800 p-0.5 bg-zinc-950 rounded-lg">
-                    <button
-                      type="button"
-                      onClick={() => setPreviewMode('split')}
-                      className={`px-3 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${
-                        previewMode === 'split'
-                          ? 'bg-zinc-800 text-white shadow-sm'
-                          : 'text-zinc-500 hover:text-zinc-300'
-                      }`}
-                    >
-                      ⚔️ Split View
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPreviewMode('desktop')}
-                      className={`px-3 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${
-                        previewMode === 'desktop'
-                          ? 'bg-zinc-800 text-white shadow-sm'
-                          : 'text-zinc-500 hover:text-zinc-300'
-                      }`}
-                    >
-                      🖥️ Desktop PC
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPreviewMode('mobile')}
-                      className={`px-3 py-1 text-[9px] font-bold uppercase rounded-md transition-all ${
-                        previewMode === 'mobile'
-                          ? 'bg-zinc-800 text-white shadow-sm'
-                          : 'text-zinc-500 hover:text-zinc-300'
-                      }`}
-                    >
-                      📱 Mobile Phone
-                    </button>
-                  </div>
-                </div>
-
-                {/* DYNAMIC CANVAS CONTAINER */}
-                <div className="flex-grow w-full flex items-center justify-center min-h-[500px] mt-4">
-                  <div className={`w-full flex items-start justify-center gap-6 ${
-                    previewMode === 'split' ? 'flex-col xl:flex-row' : 'flex-col items-center'
-                  }`}>
-                    
-                    {/* 1. Simulated PC Web Browser Frame */}
-                    <div className={`${
-                      previewMode === 'desktop'
-                        ? 'w-full max-w-[760px] h-[580px] flex flex-col'
-                        : previewMode === 'split'
-                          ? 'flex-1 w-full max-w-[500px] h-[520px] flex flex-col'
-                          : 'hidden'
-                    } border border-zinc-800 bg-[#0c0c0e] rounded-xl overflow-hidden shadow-2xl transition-all`}>
-                      
-                      {/* Browser Header Bar */}
-                      <div className="bg-[#121216] border-b border-zinc-850 px-4 py-2.5 flex items-center justify-between flex-shrink-0 select-none">
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                          <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
-                          <span className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
-                        </div>
-                        <div className="bg-black/60 border border-zinc-850/80 px-3 py-0.5 rounded text-[9px] text-zinc-500 font-mono w-48 text-center truncate">
-                          https://sampleswala.com/newsletter/preview
-                        </div>
-                        <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest font-mono">
-                          {previewMode === 'split' ? 'PC' : 'Desktop Mode'}
-                        </span>
-                      </div>
-                      
-                      {/* Simulated Email Headers */}
-                      <div className="bg-[#0e0e12] border-b border-zinc-850 px-4 py-3 flex flex-col gap-1.5 text-zinc-400 font-sans text-[11px] leading-none flex-shrink-0 select-none">
-                        <div className="truncate">
-                          <span className="font-semibold text-zinc-500 mr-2 uppercase text-[8px] tracking-wider font-mono">Subject:</span> 
-                          <span className="text-zinc-200 font-medium text-xs">{campaignSubject || '(No Subject)'}</span>
-                        </div>
-                        <div>
-                          <span className="font-semibold text-zinc-500 mr-2 uppercase text-[8px] tracking-wider font-mono">Sender:</span> 
-                          <span className="text-zinc-300 font-medium font-mono text-[10px]">news@sampleswala.com</span>
-                        </div>
-                      </div>
-
-                      {/* Scrolling iframe wrapper */}
-                      <div className="flex-grow bg-[#050508] p-4 flex items-start justify-center overflow-hidden">
-                        <iframe
-                          title="Newsletter Desktop Sandbox Preview"
-                          srcDoc={previewHtml}
-                          sandbox="allow-same-origin"
-                          className="bg-[#030303] border border-zinc-800 shadow-xl rounded w-full h-full min-h-[300px]"
-                        />
-                      </div>
-                    </div>
-
-                    {/* 2. Simulated Smartphone Frame Mockup Bezel */}
-                    <div className={`${
-                      previewMode === 'mobile'
-                        ? 'w-[360px] h-[580px] flex flex-col'
-                        : previewMode === 'split'
-                          ? 'w-[290px] h-[520px] flex flex-col'
-                          : 'hidden'
-                    } border-[12px] border-zinc-900 bg-zinc-950 rounded-[40px] shadow-2xl overflow-hidden relative flex-shrink-0 transition-all`}>
-                      
-                      {/* Phone Notch */}
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-4 bg-zinc-900 rounded-b-xl z-20 flex items-center justify-center">
-                        <span className="w-1.5 h-1.5 rounded-full bg-zinc-950" />
-                      </div>
-                      
-                      {/* Status bar icons */}
-                      <div className="bg-[#030303] px-5 pt-2 pb-0.5 flex justify-between items-center text-[7px] font-bold text-zinc-400 z-10 font-sans select-none flex-shrink-0">
-                        <span>9:41</span>
-                        <div className="flex items-center gap-1 font-sans">
-                          <span>5G</span>
-                          <span className="inline-block w-2.5 h-1.5 bg-zinc-400 rounded-sm" />
-                        </div>
-                      </div>
-                      
-                      {/* Simulated Mobile Mail Header */}
-                      <div className="bg-[#0c0c0e] border-b border-zinc-850 px-3 py-2 flex flex-col gap-1 text-zinc-500 font-sans text-[8px] leading-none z-10 flex-shrink-0 select-none">
-                        <div className="text-[9px] font-bold text-zinc-200 truncate mb-0.5">{campaignSubject || '(No Subject)'}</div>
-                        <div>From: news@sampleswala.com</div>
-                      </div>
-                      
-                      {/* Scrollable screen */}
-                      <div className="flex-grow overflow-hidden bg-[#030303] relative">
-                        <iframe
-                          title="Newsletter Mobile Sandbox Preview"
-                          srcDoc={previewHtml}
-                          sandbox="allow-same-origin"
-                          className="w-full h-full border-0 bg-[#030303]"
-                        />
-                      </div>
-                      
-                      {/* Home indicator bar */}
-                      <div className="h-2.5 bg-[#030303] flex items-center justify-center z-20 flex-shrink-0 select-none">
-                        <span className="w-16 h-0.5 bg-zinc-700 rounded-full" />
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Sticky Actions Footer */}
-            <div className="flex items-center justify-between border-t border-zinc-850 px-6 py-4 bg-[#0d0d12] flex-shrink-0">
-              <div className="text-zinc-500 font-mono text-[9px] uppercase tracking-wider hidden sm:block">
-                Direct Brevo Broadcast System • Auto-Unsubscribe Footer Enabled
-              </div>
-              <div className="flex gap-3 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={() => setShowCampaignModal(false)}
-                  className="px-4 py-2.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:text-white text-zinc-300 font-semibold uppercase text-[10px] rounded-lg transition-all active:scale-95 font-mono"
-                >
-                  CANCEL / CLOSE
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={campaignSending}
-                  className="px-5 py-2.5 bg-white hover:bg-zinc-200 text-black border border-zinc-200 font-bold uppercase text-[10px] disabled:opacity-50 flex items-center gap-2 rounded-lg transition-all shadow-md active:scale-95 font-mono"
-                >
-                  {campaignSending ? (
-                    <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" /> DISPATCHING BROADCAST...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-3.5 h-3.5" /> DISPATCH LIVE CAMPAIGN
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </form>
-        </div>
-      )}
-      {/* ======================================================== */}
-
-      {/* ======================================================== */}
-      {/* COMMAND PALETTE & ENTITY SEARCH OVERLAY (Ctrl+K)         */}
-      {/* ======================================================== */}
+      {/* UNIVERSAL COMMAND PALETTE & ENTITY SEARCH OVERLAY */}
       {showPalette && (
         <div
           className="fixed inset-0 bg-black/90 backdrop-blur-md z-[120] flex items-start justify-center p-4 pt-[10vh] animate-fadeIn"
@@ -4886,7 +1390,6 @@ export default function AdminDashboard() {
 
                 // 2. LIVE DATABASE COLLECTION SEARCH
                 if (query !== '') {
-                  // Search matching entities
                   const matchedUsers = usersList.filter(u =>
                     (u.full_name || '').toLowerCase().includes(query) ||
                     (u.email || '').toLowerCase().includes(query)
@@ -4935,8 +1438,8 @@ export default function AdminDashboard() {
                             <div
                               key={u.id}
                               onClick={() => {
-                                setActiveUser(u);
-                                setShowUserModal(true);
+                                setActiveTab('users');
+                                setPaletteSelection({ type: 'user', data: u });
                                 setShowPalette(false);
                               }}
                               className="bg-[#151515] hover:bg-studio-pink/10 border-2 border-black hover:border-studio-pink p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
@@ -4958,14 +1461,14 @@ export default function AdminDashboard() {
                             <div
                               key={p.id}
                               onClick={() => {
-                                setActivePack(p);
-                                setShowPackModal(true);
+                                setActiveTab('packs');
+                                setPaletteSelection({ type: 'pack', data: p });
                                 setShowPalette(false);
                               }}
                               className="bg-[#151515] hover:bg-studio-yellow/10 border-2 border-black hover:border-studio-yellow p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
                             >
                               <div className="font-sans font-bold text-zinc-100 normal-case">{p.name}</div>
-                              <div className="font-mono text-studio-yellow text-[10px]">₹{p.price}</div>
+                              <div className="font-mono text-studio-yellow text-[10px]">₹{p.price_inr}</div>
                             </div>
                           ))}
                         </div>
@@ -4981,8 +1484,8 @@ export default function AdminDashboard() {
                             <div
                               key={o.id}
                               onClick={() => {
-                                setActiveOrder(o);
-                                setShowOrderModal(true);
+                                setActiveTab('sales');
+                                setPaletteSelection({ type: 'order', data: o });
                                 setShowPalette(false);
                               }}
                               className="bg-[#151515] hover:bg-studio-neon/10 border-2 border-black hover:border-studio-neon p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
@@ -5004,8 +1507,8 @@ export default function AdminDashboard() {
                             <div
                               key={t.id}
                               onClick={() => {
-                                setActiveTicket(t);
-                                setShowTicketModal(true);
+                                setActiveTab('tickets');
+                                setPaletteSelection({ type: 'ticket', data: t });
                                 setShowPalette(false);
                               }}
                               className="bg-[#151515] hover:bg-studio-purple/10 border-2 border-black hover:border-studio-purple p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
@@ -5027,8 +1530,8 @@ export default function AdminDashboard() {
                             <div
                               key={c.id}
                               onClick={() => {
-                                setActiveCoupon(c);
-                                setShowCouponModal(true);
+                                setActiveTab('coupons');
+                                setPaletteSelection({ type: 'coupon', data: c });
                                 setShowPalette(false);
                               }}
                               className="bg-[#151515] hover:bg-studio-blue/10 border-2 border-black hover:border-studio-blue p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
@@ -5056,21 +1559,21 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      {/* ======================================================== */}
-      {/* CUSTOM COMIC-BRUTALIST SYSTEM CONFIRMATION DIALOG MODAL  */}
-      {/* ======================================================== */}
+      {/* CONFIRMATION DIALOG MODAL */}
       {confirmDialog.show && (
         <div className="fixed inset-0 bg-black/92 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-[#121212] border-4 border-black p-6 w-full max-w-md relative text-left shadow-premium">
             {/* Header Banner */}
             <div className="flex items-center gap-3 border-b-2 border-black pb-4 mb-4">
-              <div className={`w-10 h-10 rounded-none border-2 border-black flex items-center justify-center flex-shrink-0 ${confirmDialog.isDanger ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
-                }`}>
+              <div className={`w-10 h-10 rounded-none border-2 border-black flex items-center justify-center flex-shrink-0 ${
+                confirmDialog.isDanger ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
+              }`}>
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h4 className={`font-sans font-bold text-sm uppercase tracking-wide leading-none ${confirmDialog.isDanger ? 'text-studio-red' : 'text-studio-yellow'
-                  }`}>
+                <h4 className={`font-sans font-bold text-sm uppercase tracking-wide leading-none ${
+                  confirmDialog.isDanger ? 'text-studio-red' : 'text-studio-yellow'
+                }`}>
                   {confirmDialog.title}
                 </h4>
                 <span className="text-[9px] uppercase font-mono tracking-widest text-zinc-500 font-bold block mt-1.5">
@@ -5096,10 +1599,9 @@ export default function AdminDashboard() {
               <button
                 type="button"
                 onClick={confirmDialog.onConfirm}
-                className={`flex-1 studio-button font-bold uppercase py-2.5 text-xs cursor-pointer font-sans ${confirmDialog.isDanger
-                    ? 'bg-studio-red text-white hover:bg-studio-red/80'
-                    : 'bg-studio-neon text-black hover:bg-studio-neon-hover'
-                  }`}
+                className={`flex-1 studio-button font-bold uppercase py-2.5 text-xs cursor-pointer font-sans ${
+                  confirmDialog.isDanger ? 'bg-studio-red text-white hover:bg-studio-red/80' : 'bg-studio-neon text-black hover:bg-studio-neon-hover'
+                }`}
               >
                 {confirmDialog.confirmText}
               </button>
