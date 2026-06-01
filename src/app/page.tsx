@@ -70,11 +70,9 @@ import {
 // Modular Components
 import { SettingsTab } from '@/components/admin/SettingsTab'
 import { LogsTab } from '@/components/admin/LogsTab'
-import { RankingsTab } from '@/components/admin/RankingsTab'
 import { AnalyticsTab } from '@/components/admin/AnalyticsTab'
 import { DateFilterPanel } from '@/components/admin/DateFilterPanel'
 import { PacksTab } from '@/components/admin/PacksTab'
-import { SamplesTab } from '@/components/admin/SamplesTab'
 import { KycTab } from '@/components/admin/KycTab'
 import { CouponsTab } from '@/components/admin/CouponsTab'
 import { TicketsTab } from '@/components/admin/TicketsTab'
@@ -102,7 +100,7 @@ export default function AdminDashboard() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   // Navigation Tab
-  const [activeTab, setActiveTab] = useState<'analytics' | 'packs' | 'samples' | 'kyc' | 'coupons' | 'tickets' | 'rankings' | 'users' | 'sales' | 'logs' | 'newsletter' | 'settings'>('analytics')
+  const [activeTab, setActiveTab] = useState<'analytics' | 'packs' | 'kyc' | 'coupons' | 'tickets' | 'users' | 'sales' | 'logs' | 'newsletter' | 'settings'>('analytics')
 
   // Global settings toggles states
   const [bannerEnabled, setBannerEnabled] = useState(true)
@@ -525,8 +523,7 @@ export default function AdminDashboard() {
     const cachedEntry = clientCache.get(tab)
     const now = Date.now()
 
-    const isSearchingOrFilteringSamples = tab === 'samples' && (packFilter !== 'all' || debouncedSampleSearch !== '')
-    const shouldBypassCache = forceBypassCache || isSearchingOrFilteringSamples
+    const shouldBypassCache = forceBypassCache
 
     // SWR Pattern: Instantly render cached data while validating in the background
     if (cachedEntry && !shouldBypassCache) {
@@ -560,14 +557,7 @@ export default function AdminDashboard() {
         freshData = result
         setPacks(result.packs)
         setCategories(result.categories)
-      } else if (tab === 'samples') {
-        if (packs.length === 0) {
-          const result = await getSamplePacks()
-          setPacks(result.packs)
-          setCategories(result.categories)
-        }
-        freshData = await getSamples(packFilter, debouncedSampleSearch)
-        setSamples(freshData)
+
       } else if (tab === 'kyc') {
         const artistsData = await getArtistsKYC()
         const payoutsData = await getArtistPayouts()
@@ -580,9 +570,6 @@ export default function AdminDashboard() {
       } else if (tab === 'tickets') {
         freshData = await getSupportTickets()
         setTickets(freshData)
-      } else if (tab === 'rankings') {
-        freshData = await getRankedPacks()
-        setRankedPacks(freshData)
       } else if (tab === 'users') {
         freshData = await getAllUsers()
         setUsersList(freshData)
@@ -892,17 +879,6 @@ export default function AdminDashboard() {
             <span>📦 Manage Audio Packs</span>
           </button>
 
-          <button
-            onClick={() => setActiveTab('samples')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
-              activeTab === 'samples'
-                ? 'bg-studio-neon text-black border-studio-neon/30 shadow-sm'
-                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
-            }`}
-          >
-            <Music className="w-4 h-4" />
-            <span>🎵 Individual Samples</span>
-          </button>
 
           <button
             onClick={() => setActiveTab('kyc')}
@@ -976,17 +952,7 @@ export default function AdminDashboard() {
             <span>📧 Newsletter Hub</span>
           </button>
 
-          <button
-            onClick={() => setActiveTab('rankings')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
-              activeTab === 'rankings'
-                ? 'bg-studio-yellow text-black border-studio-yellow/30 shadow-sm'
-                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            <span>🌟 Display Rankings</span>
-          </button>
+
 
           <button
             onClick={() => setActiveTab('logs')}
@@ -1073,14 +1039,12 @@ export default function AdminDashboard() {
             <span className="text-[11px] font-black tracking-wider uppercase text-zinc-200">
               {activeTab === 'analytics' && '📈 OVERVIEW'}
               {activeTab === 'packs' && '📦 AUDIO PACKS'}
-              {activeTab === 'samples' && '🎵 SAMPLES'}
               {activeTab === 'kyc' && '🎨 KYC & PAYOUTS'}
               {activeTab === 'coupons' && '🎟️ COUPONS'}
               {activeTab === 'tickets' && '🎫 TICKETS'}
               {activeTab === 'users' && '👥 USERS'}
               {activeTab === 'sales' && '💰 SALES'}
               {activeTab === 'logs' && '🛠️ LOGS'}
-              {activeTab === 'rankings' && '🌟 RANKINGS'}
               {activeTab === 'newsletter' && '📧 NEWSLETTER'}
               {activeTab === 'settings' && '⚙️ SETTINGS'}
             </span>
@@ -1110,14 +1074,12 @@ export default function AdminDashboard() {
             <span className="text-xl uppercase font-black tracking-tighter">
               {activeTab === 'analytics' && '📈 Overview & Earnings Statistics'}
               {activeTab === 'packs' && '📦 Manage Audio Sample Packs'}
-              {activeTab === 'samples' && '🎵 Individual Audio Track Samples'}
               {activeTab === 'kyc' && '🎨 Artist Verification & KYC Payouts'}
               {activeTab === 'coupons' && '🎟️ Discount Codes & Promo Coupons'}
               {activeTab === 'tickets' && '🎫 Customer Support Help Tickets'}
               {activeTab === 'users' && '👥 Registered User Accounts'}
               {activeTab === 'sales' && '💰 Sales Receipts & Orders Log'}
               {activeTab === 'logs' && '🛠️ Admin Activity Logs'}
-              {activeTab === 'rankings' && '🌟 Global Ranking List Engine'}
               {activeTab === 'newsletter' && '📧 Newsletter Hub & Campaign Manager'}
               {activeTab === 'settings' && '⚙️ Global Site Settings & Configuration'}
             </span>
@@ -1193,23 +1155,7 @@ export default function AdminDashboard() {
             />
           )}
 
-          {/* TAB 3: SAMPLES LIBRARY CRUD */}
-          {activeTab === 'samples' && (
-            <SamplesTab
-              packs={packs}
-              samples={samples}
-              playingSampleId={playingSampleId}
-              playSamplePreview={playSamplePreview}
-              packFilter={packFilter}
-              setPackFilter={setPackFilter}
-              sampleSearch={sampleSearch}
-              setSampleSearch={setSampleSearch}
-              invalidateCacheAndReload={invalidateCacheAndReload}
-              showToast={showToast}
-              addAuditLog={addAuditLog}
-              askConfirmation={askConfirmation}
-            />
-          )}
+
 
           {/* TAB 4: ARTIST PORTAL KYCS & PAYOUTS MANAGEMENT */}
           {activeTab === 'kyc' && (
@@ -1248,28 +1194,7 @@ export default function AdminDashboard() {
             />
           )}
 
-          {/* TAB 7: RANKING & POPULARITY ENGINE */}
-          {activeTab === 'rankings' && (
-            <RankingsTab
-              rankedPacks={rankedPacks}
-              updatePackRankInline={async (pack, rankVal) => {
-                const parsedRank = parseInt(rankVal)
-                if (isNaN(parsedRank)) {
-                  showToast('Please specify a valid rank number', 'error')
-                  return
-                }
-                const { saveSamplePack } = await import('./actions')
-                try {
-                  await saveSamplePack({ ...pack, display_rank: parsedRank })
-                  showToast(`Rank for "${pack.name}" updated to ${parsedRank}!`, 'success')
-                  addAuditLog('UPDATE_RANK', `Updated priority rank for pack "${pack.name}" to #${parsedRank}`, 'info')
-                  invalidateCacheAndReload('rankings')
-                } catch (err: any) {
-                  showToast(err.message || 'Failed to update priority rank', 'error')
-                }
-              }}
-            />
-          )}
+
 
           {/* TAB 8: USERS HUB & BAN SYSTEM */}
           {activeTab === 'users' && (
@@ -1381,11 +1306,9 @@ export default function AdminDashboard() {
                   const allCommands = [
                     { path: '/analytics', label: 'Go to Performance Analytics', action: () => { setActiveTab('analytics'); setShowPalette(false); } },
                     { path: '/packs', label: 'Go to Sample Packs Inventory', action: () => { setActiveTab('packs'); setShowPalette(false); } },
-                    { path: '/samples', label: 'Go to Audio Sample Library', action: () => { setActiveTab('samples'); setShowPalette(false); } },
                     { path: '/kyc', label: 'Go to Artist KYCs & Payouts', action: () => { setActiveTab('kyc'); setShowPalette(false); } },
                     { path: '/coupons', label: 'Go to Discount Coupons Register', action: () => { setActiveTab('coupons'); setShowPalette(false); } },
                     { path: '/tickets', label: 'Go to Support Ticket Hub', action: () => { setActiveTab('tickets'); setShowPalette(false); } },
-                    { path: '/rankings', label: 'Go to Global Rankings Engine', action: () => { setActiveTab('rankings'); setShowPalette(false); } },
                     { path: '/users', label: 'Go to Users Management Hub', action: () => { setActiveTab('users'); setShowPalette(false); } },
                     { path: '/sales', label: 'Go to Vault Orders Logs', action: () => { setActiveTab('sales'); setShowPalette(false); } },
                     { path: '/logs', label: 'Go to System Audit Trails', action: () => { setActiveTab('logs'); setShowPalette(false); } },
