@@ -80,7 +80,8 @@ import {
   Layers,
   Coins,
   Activity,
-  Terminal
+  Terminal,
+  Menu
 } from 'lucide-react'
 
 // Custom Toast Component for UI notifications
@@ -107,6 +108,11 @@ export default function AdminDashboard() {
   // Global settings toggles states
   const [bannerEnabled, setBannerEnabled] = useState(true)
   const [bannerPending, setBannerPending] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [activeTab])
 
   // Client-side Memory Cache Manager for extremely fast & scalable page rendering
   const cacheRef = useRef<Record<string, { data: any; timestamp: number }>>({})
@@ -1379,9 +1385,19 @@ export default function AdminDashboard() {
         </div>
       )}
 
+      {/* MOBILE DRAWER BACKDROP */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden animate-fadeIn"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* SIDEBAR NAVIGATION BAR */}
-      <aside className="w-full md:w-64 border-b-4 md:border-b-0 md:border-r-4 border-black bg-[#121212] flex flex-col flex-shrink-0 z-10">
-        <div className="p-6 border-b-4 border-black bg-black flex flex-row items-center justify-between md:flex-col md:items-center">
+      <aside className={`fixed inset-y-0 left-0 w-72 md:w-64 bg-[#121212] border-r border-zinc-800 z-50 flex flex-col transition-transform duration-300 transform md:relative md:translate-x-0 ${
+        mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+      } md:flex flex-shrink-0`}>
+        <div className="p-6 border-b border-zinc-800 bg-[#0d0d0d] flex flex-row items-center justify-between md:flex-col md:items-center">
           <img 
             src="/icon.png?v=5" 
             alt="SamplesWala Logo" 
@@ -1389,113 +1405,143 @@ export default function AdminDashboard() {
           />
 
           <button
-            onClick={handleReload}
-            className="md:hidden p-2 bg-[#222] border-2 border-black hover:bg-studio-pink hover:text-black transition-colors"
-            title="Force refresh current tab data"
+            onClick={() => setMobileMenuOpen(false)}
+            className="md:hidden p-2 bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-white rounded transition-colors"
+            title="Close Drawer"
           >
-            <RefreshCw className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* MENU TABS GRID */}
-        <nav className="flex-1 p-4 space-y-2.5 font-sans text-xs font-bold uppercase overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-1.5 font-sans text-xs font-bold uppercase overflow-y-auto">
           <button
             onClick={() => setActiveTab('analytics')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'analytics' ? 'bg-studio-pink text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-              }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
+              activeTab === 'analytics'
+                ? 'bg-studio-pink text-white border-studio-pink/30 shadow-sm'
+                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+            }`}
           >
-            <LayoutDashboard className="w-4.5 h-4.5" />
+            <LayoutDashboard className="w-4 h-4" />
             <span>📈 Overview & Earnings</span>
           </button>
 
           <button
             onClick={() => setActiveTab('packs')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'packs' ? 'bg-studio-yellow text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-              }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
+              activeTab === 'packs'
+                ? 'bg-studio-yellow text-black border-studio-yellow/30 shadow-sm'
+                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+            }`}
           >
-            <Library className="w-4.5 h-4.5" />
+            <Library className="w-4 h-4" />
             <span>📦 Manage Audio Packs</span>
           </button>
 
           <button
             onClick={() => setActiveTab('kyc')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'kyc' ? 'bg-studio-orange text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-              }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
+              activeTab === 'kyc'
+                ? 'bg-studio-orange text-white border-studio-orange/30 shadow-sm'
+                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+            }`}
           >
-            <UserCheck className="w-4.5 h-4.5" />
+            <UserCheck className="w-4 h-4" />
             <span>🎨 Artist Verification & KYC</span>
           </button>
 
           <button
             onClick={() => setActiveTab('coupons')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'coupons' ? 'bg-studio-blue text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-              }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
+              activeTab === 'coupons'
+                ? 'bg-studio-blue text-white border-studio-blue/30 shadow-sm'
+                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+            }`}
           >
-            <Ticket className="w-4.5 h-4.5" />
+            <Ticket className="w-4 h-4" />
             <span>🎟️ Promo Codes & Coupons</span>
           </button>
 
           <button
             onClick={() => setActiveTab('tickets')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'tickets' ? 'bg-studio-purple text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-              }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
+              activeTab === 'tickets'
+                ? 'bg-studio-purple text-white border-studio-purple/30 shadow-sm'
+                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+            }`}
           >
-            <MessageSquare className="w-4.5 h-4.5" />
+            <MessageSquare className="w-4 h-4" />
             <span>🎫 Customer Support Help</span>
           </button>
 
           <button
             onClick={() => setActiveTab('users')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'users' ? 'bg-studio-pink text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-              }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
+              activeTab === 'users'
+                ? 'bg-studio-pink text-white border-studio-pink/30 shadow-sm'
+                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+            }`}
           >
-            <Users className="w-4.5 h-4.5" />
+            <Users className="w-4 h-4" />
             <span>👥 Registered Users</span>
           </button>
 
           <button
             onClick={() => setActiveTab('sales')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'sales' ? 'bg-studio-neon text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-              }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
+              activeTab === 'sales'
+                ? 'bg-studio-neon text-black border-studio-neon/30 shadow-sm'
+                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+            }`}
           >
-            <Coins className="w-4.5 h-4.5" />
+            <Coins className="w-4 h-4" />
             <span>💰 Orders & Sales Receipts</span>
           </button>
 
           <button
             onClick={() => setActiveTab('newsletter')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'newsletter' ? 'bg-[#FF0080] text-black shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-              }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
+              activeTab === 'newsletter'
+                ? 'bg-[#FF0080] text-white border-[#FF0080]/30 shadow-sm'
+                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+            }`}
           >
-            <Mail className="w-4.5 h-4.5" />
+            <Mail className="w-4 h-4" />
             <span>📧 Newsletter Hub</span>
           </button>
 
           <button
             onClick={() => setActiveTab('logs')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'logs' ? 'bg-studio-purple text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-              }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
+              activeTab === 'logs'
+                ? 'bg-studio-purple text-white border-studio-purple/30 shadow-sm'
+                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+            }`}
           >
-            <Activity className="w-4.5 h-4.5" />
+            <Activity className="w-4 h-4" />
             <span>🛠️ Admin Activity Logs</span>
           </button>
 
           <button
             onClick={() => setActiveTab('settings')}
-            className={`w-full flex items-center gap-3 px-4 py-3 border-3 border-black text-left transition-all ${activeTab === 'settings' ? 'bg-[#FF5C00] text-white shadow-[3px_3px_0px_black] -translate-y-0.5' : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50'
-              }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
+              activeTab === 'settings'
+                ? 'bg-[#FF5C00] text-white border-[#FF5C00]/30 shadow-sm'
+                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+            }`}
           >
-            <Lock className="w-4.5 h-4.5" />
+            <Lock className="w-4 h-4" />
             <span>⚙️ Global Site Settings</span>
           </button>
         </nav>
 
         {/* ACCENT SWITCHER WIDGET */}
-        <div className="px-4 py-3.5 border-t-4 border-black bg-black font-mono">
+        <div className="px-4 py-3 border-t border-zinc-800 bg-[#0d0d0d] font-mono">
           <span className="text-[8px] uppercase tracking-widest text-zinc-500 font-bold block mb-2 leading-none">
             🎨 INTERFACE ACCENT
           </span>
-          <div className="grid grid-cols-6 gap-1.5">
+          <div className="grid grid-cols-6 gap-1">
             {Object.entries(accentDetails).map(([key, item]) => (
               <button
                 key={key}
@@ -1504,8 +1550,9 @@ export default function AdminDashboard() {
                   showToast(`Accent set to ${item.label}!`, 'success')
                 }}
                 style={{ backgroundColor: item.hex }}
-                className={`h-5 w-full border-2 border-black hover:scale-110 active:scale-95 transition-all cursor-pointer ${accent === key ? 'ring-2 ring-white scale-105 opacity-100' : 'opacity-60 hover:opacity-100'
-                  }`}
+                className={`h-4 w-full border border-black hover:scale-110 active:scale-95 transition-all cursor-pointer rounded ${
+                  accent === key ? 'ring-1 ring-white scale-105 opacity-100' : 'opacity-60 hover:opacity-100'
+                }`}
                 title={`Accent: ${item.label}`}
               />
             ))}
@@ -1513,31 +1560,75 @@ export default function AdminDashboard() {
         </div>
 
         {/* SIDEBAR FOOTER (USER & LOGOUT) */}
-        <div className="p-4 border-t-4 border-black bg-black space-y-3 font-mono">
-          <div className="flex items-center gap-3 bg-[#111] p-2.5 border border-zinc-800">
-            <div className="w-8 h-8 rounded-none bg-studio-pink text-black flex items-center justify-center font-black uppercase text-sm border-2 border-black">
+        <div className="p-4 border-t border-zinc-800 bg-[#0d0d0d] space-y-2.5 font-mono">
+          <div className="flex items-center gap-3 bg-[#111] p-2 border border-zinc-800 rounded">
+            <div className="w-7 h-7 rounded bg-studio-pink text-white flex items-center justify-center font-black uppercase text-xs border border-zinc-700">
               {user?.email?.charAt(0) || 'A'}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-black uppercase text-zinc-400 leading-none">AUTHORIZED ADMIN</p>
-              <p className="text-[11px] font-bold text-white truncate mt-1">{user?.email}</p>
+              <p className="text-[8px] font-black uppercase text-zinc-500 leading-none">AUTHORIZED ADMIN</p>
+              <p className="text-[10px] font-bold text-white truncate mt-1">{user?.email}</p>
             </div>
           </div>
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-studio-red/10 border-2 border-studio-red text-studio-red hover:bg-studio-red hover:text-white transition-all text-xs font-black uppercase"
+            className="w-full flex items-center justify-center gap-2 px-3 py-1.5 bg-studio-red/10 border border-studio-red/30 text-studio-red hover:bg-studio-red hover:text-white transition-all text-xs font-black uppercase rounded"
           >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>LOGOUT SESSION</span>
+            <LogOut className="w-3 h-3" />
+            <span>LOGOUT</span>
           </button>
         </div>
       </aside>
 
       {/* MAIN VIEWPORT BODY */}
       <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        {/* SUB HEADER ROW */}
-        <header className="border-b-4 border-black bg-[#121212] px-6 py-4 flex items-center justify-between flex-shrink-0 z-0">
+        {/* MOBILE HEADER BAR */}
+        <header className="flex md:hidden items-center justify-between bg-[#121212] border-b border-zinc-800 px-4 py-3 flex-shrink-0 z-20">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors"
+              title="Open Menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <span className="text-[11px] font-black tracking-wider uppercase text-zinc-200">
+              {activeTab === 'analytics' && '📈 OVERVIEW'}
+              {activeTab === 'packs' && '📦 AUDIO PACKS'}
+              {activeTab === 'samples' && '🎵 SAMPLES'}
+              {activeTab === 'kyc' && '🎨 KYC & PAYOUTS'}
+              {activeTab === 'coupons' && '🎟️ COUPONS'}
+              {activeTab === 'tickets' && '🎫 TICKETS'}
+              {activeTab === 'users' && '👥 USERS'}
+              {activeTab === 'sales' && '💰 SALES'}
+              {activeTab === 'logs' && '🛠️ LOGS'}
+              {activeTab === 'rankings' && '🌟 RANKINGS'}
+              {activeTab === 'newsletter' && '📧 NEWSLETTER'}
+              {activeTab === 'settings' && '⚙️ SETTINGS'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setShowPalette(true)}
+              className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors"
+              title="Search / Commands"
+            >
+              <Search className="w-4.5 h-4.5" />
+            </button>
+            <button
+              onClick={handleReload}
+              className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded transition-colors"
+              title="Reload Data"
+            >
+              <RefreshCw className={`w-4 h-4 ${dataLoading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        </header>
+
+        {/* SUB HEADER ROW (DESKTOP) */}
+        <header className="hidden md:flex border-b border-zinc-800 bg-[#121212] px-6 py-4 items-center justify-between flex-shrink-0 z-0">
           <div className="flex items-center gap-3">
             <span className="text-xl uppercase font-black tracking-tighter">
               {activeTab === 'analytics' && '📈 Overview & Earnings Statistics'}
@@ -1559,12 +1650,12 @@ export default function AdminDashboard() {
             {/* Command Palette Trigger Button */}
             <button
               onClick={() => setShowPalette(true)}
-              className="flex items-center gap-2 px-3 py-1.5 border-3 border-black bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all font-mono text-[10px] cursor-pointer"
+              className="flex items-center gap-2 px-3 py-1.5 border border-zinc-800 rounded bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all font-mono text-[10px] cursor-pointer"
               title="Open Command Palette & Entity Search"
             >
               <Search className="w-3.5 h-3.5 text-zinc-500" />
               <span className="hidden sm:inline">SEARCH / COMMANDS</span>
-              <kbd className="bg-black px-1.5 py-0.5 border border-zinc-800 text-[8px] font-black tracking-widest text-zinc-500">Ctrl+K</kbd>
+              <kbd className="bg-black px-1.5 py-0.5 border border-zinc-800 rounded text-[8px] font-black tracking-widest text-zinc-500">Ctrl+K</kbd>
             </button>
 
             {dataLoading && (

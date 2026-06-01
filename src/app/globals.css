@@ -3,8 +3,8 @@
 @theme {
   --color-studio-yellow: #FFE600;
   --color-studio-yellow-hover: #FFF066;
-  --color-studio-pink: #00BFFF; /* Swapped to Electric Blue (Main Primary Color) */
-  --color-studio-blue: #FF0080; /* Swapped to Neon Pink (Secondary Color) */
+  --color-studio-pink: #0074e4; /* Swapped to Epic Games Accent Blue */
+  --color-studio-blue: #0074e4; /* Swapped to Epic Games Accent Blue */
   --color-studio-orange: #FF5C00;
   --color-studio-purple: #BF00FF;
   --color-studio-neon: #00FF94; /* Neon Green */
@@ -15,20 +15,20 @@
   /* Glass UI */
   --color-glass-white: rgba(255, 255, 255, 0.03);
   --color-glass-border: rgba(255, 255, 255, 0.1);
-  --color-glass-glow: rgba(0, 255, 148, 0.15);
+  --color-glass-glow: rgba(0, 116, 228, 0.15);
 
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-luckiest-guy: var(--font-luckiest-guy);
   --font-kalam: var(--font-kalam);
   --font-permanent-marker: var(--font-permanent-marker);
 
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
 
-  --shadow-premium: 10px 10px 0px rgba(0, 0, 0, 1);
-  --shadow-neon-pink: 0 0 15px rgba(0, 224, 255, 0.4);
-  --shadow-neon-blue: 0 0 15px rgba(255, 0, 122, 0.4);
+  --shadow-premium: 0px 8px 30px rgba(0, 0, 0, 0.55);
+  --shadow-neon-pink: 0 0 15px rgba(0, 116, 228, 0.35);
+  --shadow-neon-blue: 0 0 15px rgba(0, 116, 228, 0.35);
 }
 
 @utility graffiti-text {
@@ -36,7 +36,7 @@
 }
 
 :root {
-  --background: 0 0% 0%;
+  --background: 0 0% 7%;
   --foreground: 0 0% 100%;
 }
 
@@ -46,24 +46,12 @@ body {
 }
 
 body {
-  background-color: #0c0c0c;
+  background-color: #121212 !important;
   color: white;
   user-select: text;
   font-family: var(--font-mono);
   animation: fadeIn 0.4s ease-in-out;
   min-height: 100vh;
-}
-
-@media (min-width: 768px) {
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    opacity: 0.04;
-    pointer-events: none;
-    z-index: 100;
-  }
 }
 
 @keyframes fadeIn {
@@ -77,8 +65,8 @@ body {
 
 /* Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -87,101 +75,84 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: #333;
-  border: 1px solid #111;
+  border-radius: 2.5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-studio-pink);
 }
 
-/* Brutalist CSS Components */
+/* Modern EGS UI Style CSS Components */
 .studio-panel {
-  border: 3px solid black;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   background-color: #121212;
-  box-shadow: 8px 8px 0px rgba(0, 0, 0, 1);
+  backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-premium);
+  border-radius: 8px;
 }
 
 .studio-button {
   padding: 0.75rem 1.5rem;
-  background-color: white;
-  color: black;
+  background-color: #0074e4;
+  color: white;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  font-size: 11px;
-  border-radius: 0px;
-  transition: all 0.1s ease-out;
+  font-size: 10px;
+  border-radius: 4px;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border: 3px solid black;
-  box-shadow: 4px 4px 0px black;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: none;
   cursor: pointer;
 }
 
 .studio-button:hover {
-  background-color: var(--color-studio-neon);
-  transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0px black;
+  background-color: #0082f8;
+  transform: translateY(-1px);
+  box-shadow: 0px 4px 15px rgba(0, 116, 228, 0.35);
 }
 
 .studio-button:active {
-  transform: translate(2px, 2px);
-  box-shadow: 0px 0px 0px black;
+  transform: translateY(1px);
+  box-shadow: 0px 1px 4px rgba(0, 116, 228, 0.2);
 }
 
 .comic-text {
-  -webkit-text-stroke: 2px black;
-  paint-order: stroke fill;
-  text-shadow: 4px 4px 0px rgba(0, 0, 0, 1);
+  text-shadow: none;
 }
 
-.neon-border {
-  border: 4px solid black;
-  box-shadow: 6px 6px 0px var(--color-studio-neon);
-}
-
-.pink-border {
-  border: 4px solid black;
-  box-shadow: 6px 6px 0px var(--color-studio-pink);
-}
-
-.blue-border {
-  border: 4px solid black;
-  box-shadow: 6px 6px 0px var(--color-studio-blue);
-}
-
-.yellow-border {
-  border: 4px solid black;
-  box-shadow: 6px 6px 0px var(--color-studio-yellow);
-}
-
-.orange-border {
-  border: 4px solid black;
-  box-shadow: 6px 6px 0px var(--color-studio-orange);
+.neon-border, .pink-border, .blue-border, .yellow-border, .orange-border {
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5) !important;
+  border-radius: 6px !important;
 }
 
 .comic-panel {
-  border: 4px solid black;
-  background: var(--color-studio-charcoal);
-  box-shadow: 8px 8px 0px black;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: #121212 !important;
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 8px !important;
   position: relative;
   overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+.comic-panel:hover {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 116, 228, 0.15) !important;
+  transform: translateY(-4px) !important;
 }
 
 .comic-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 8px 8px;
-  opacity: 0.5;
-  pointer-events: none;
+  display: none !important;
 }
 
-/* Comic Action Button */
+/* Redefined to EGS Button */
 .comic-button {
   position: relative;
   padding: 0.75rem 1.5rem;
@@ -190,9 +161,10 @@ body {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-size: 12px;
-  border: 4px solid black;
-  box-shadow: 4px 4px 0px black;
+  font-size: 11px;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
   transition: all 0.1s ease-out;
   cursor: pointer;
   display: inline-flex;
@@ -201,14 +173,14 @@ body {
 }
 
 .comic-button:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px var(--color-studio-yellow);
-  background-color: var(--color-studio-yellow);
+  transform: translateY(-0.5px);
+  box-shadow: 0px 4px 12px rgba(255, 255, 255, 0.15) !important;
+  background-color: #f7f7f7 !important;
 }
 
 .comic-button:active {
-  transform: translate(2px, 2px);
-  box-shadow: 0px 0px 0px black;
+  transform: translateY(0.5px);
+  box-shadow: none !important;
 }
 
 .animate-rainbow {
@@ -223,4 +195,24 @@ body {
   67% { color: #0000ff; text-shadow: 2px 2px 0px #000; }
   83% { color: #8800ff; text-shadow: 2px 2px 0px #000; }
   100% { color: #ff0000; text-shadow: 2px 2px 0px #000; }
+}
+
+/* Responsive Table Wrappers */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Form controls reset */
+input, select, textarea {
+  border-radius: 4px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background-color: #1a1a1e !important;
+  color: white !important;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none !important;
+  border-color: #0074e4 !important;
+  box-shadow: 0 0 8px rgba(0, 116, 228, 0.3) !important;
 }
