@@ -4,6 +4,68 @@ import { createClient } from '@supabase/supabase-js'
 
 let cachedDb: any = null
 
+// Server-side In-memory cache stores for Vercel/Supabase optimizations
+let cachedAuthUsers: any[] | null = null
+let cachedAuthUsersTimestamp = 0
+const AUTH_USERS_CACHE_TTL = 3 * 60 * 1000 // 3 minutes
+
+let cachedDashboardStats: any = null
+let cachedDashboardStatsTimestamp = 0
+const DASHBOARD_STATS_CACHE_TTL = 30 * 1000 // 30 seconds
+
+// Cache invalidation helpers
+export async function clearServerCache(scope: 'all' | 'users' | 'stats' = 'all') {
+  if (scope === 'all' || scope === 'users') {
+    cachedAuthUsers = null
+    cachedAuthUsersTimestamp = 0
+  }
+  if (scope === 'all' || scope === 'stats') {
+    cachedDashboardStats = null
+    cachedDashboardStatsTimestamp = 0
+  }
+}
+
+async function getAuthUsers(db: any, forceRefresh = false) {
+  const now = Date.now()
+  if (!forceRefresh && cachedAuthUsers && (now - cachedAuthUsersTimestamp < AUTH_USERS_CACHE_TTL)) {
+    return cachedAuthUsers
+  }
+
+  let allUsers: any[] = []
+  let page = 1
+  const perPage = 1000
+  let hasMore = true
+
+  while (hasMore) {
+    const { data, error } = await db.auth.admin.listUsers({
+      page,
+      perPage
+    })
+
+    if (error) {
+      console.error('Error listing auth users in cached utility:', error)
+      if (allUsers.length > 0) {
+        break // Fallback to what we successfully loaded so far
+      }
+      throw error
+    }
+
+    const users = data?.users || []
+    allUsers = [...allUsers, ...users]
+
+    if (users.length < perPage) {
+      hasMore = false
+    } else {
+      page++
+    }
+  }
+
+  cachedAuthUsers = allUsers
+  cachedAuthUsersTimestamp = now
+  return allUsers
+}
+
+
 function getDB() {
   if (cachedDb) return cachedDb
 
@@ -67,6 +129,11 @@ export async function checkIsAdmin(userId: string): Promise<boolean> {
  * 2. Get Dashboard Stats
  */
 export async function getDashboardStats() {
+  const now = Date.now()
+  if (cachedDashboardStats && (now - cachedDashboardStatsTimestamp < DASHBOARD_STATS_CACHE_TTL)) {
+    return cachedDashboardStats
+  }
+
   try {
     const db = getDB()
 
@@ -118,7 +185,7 @@ export async function getDashboardStats() {
       }
     })
 
-    return {
+    const stats = {
       totalUsers: usersCountRes.count || 0,
       totalDownloads: downloadsCountRes.count || 0,
       openTickets: openTicketsRes.count || 0,
@@ -129,6 +196,10 @@ export async function getDashboardStats() {
       samplePacksCount: samplePacksRes.data?.length || 0,
       wishlistCount: wishlistRes.count || 0
     }
+
+    cachedDashboardStats = stats
+    cachedDashboardStatsTimestamp = now
+    return stats
   } catch (error) {
     console.error('Error fetching dashboard stats:', error)
     throw error
@@ -183,6 +254,7 @@ export async function saveSamplePack(pack: any) {
     }
 
     if (result.error) throw result.error
+    await clearServerCache('stats')
     return result.data[0]
   } catch (error) {
     console.error('Error saving sample pack:', error)
@@ -199,6 +271,7 @@ export async function deleteSamplePack(id: string) {
       .eq('id', id)
 
     if (error) throw error
+    await clearServerCache('stats')
     return true
   } catch (error) {
     console.error('Error deleting sample pack:', error)
@@ -262,6 +335,7 @@ export async function saveSample(sample: any) {
     }
 
     if (result.error) throw result.error
+    await clearServerCache('stats')
     return result.data[0]
   } catch (error) {
     console.error('Error saving sample:', error)
@@ -278,6 +352,7 @@ export async function deleteSample(id: string) {
       .eq('id', id)
 
     if (error) throw error
+    await clearServerCache('stats')
     return true
   } catch (error) {
     console.error('Error deleting sample:', error)
@@ -335,6 +410,7 @@ export async function updateKYCStatus(userId: string, status: string) {
       .eq('user_id', userId)
 
     if (error) throw error
+    await clearServerCache('stats')
     return true
   } catch (error) {
     console.error('Error updating KYC status:', error)
@@ -445,6 +521,7 @@ export async function saveCoupon(coupon: any) {
     }
 
     if (result.error) throw result.error
+    await clearServerCache('stats')
     return result.data[0]
   } catch (error) {
     console.error('Error saving coupon:', error)
@@ -461,6 +538,7 @@ export async function deleteCoupon(id: string) {
       .eq('id', id)
 
     if (error) throw error
+    await clearServerCache('stats')
     return true
   } catch (error) {
     console.error('Error deleting coupon:', error)
@@ -521,6 +599,7 @@ export async function replyToTicket(ticketId: string, reply: string) {
       .eq('id', ticketId)
 
     if (error) throw error
+    await clearServerCache('stats')
     return true
   } catch (error) {
     console.error('Error replying to support ticket:', error)
@@ -592,8 +671,7 @@ export async function getAllUsers() {
     const db = getDB()
 
     // 1. Fetch auth users using admin API
-    const { data: { users }, error: authErr } = await db.auth.admin.listUsers()
-    if (authErr) throw authErr
+    const users = await getAuthUsers(db)
 
     // 2. Fetch public user accounts details
     const { data: userAccounts, error: dbErr } = await db.from('user_accounts').select('*')
@@ -648,6 +726,7 @@ export async function banUser(userId: string) {
       ban_duration: '876600h'
     })
     if (error) throw error
+    await clearServerCache('users')
     return true
   } catch (error) {
     console.error('Error banning user:', error)
@@ -662,6 +741,7 @@ export async function unbanUser(userId: string) {
       ban_duration: 'none'
     })
     if (error) throw error
+    await clearServerCache('users')
     return true
   } catch (error) {
     console.error('Error unbanning user:', error)
@@ -679,6 +759,7 @@ export async function deleteUser(userId: string) {
     // Delete from auth.users
     const { error } = await db.auth.admin.deleteUser(userId)
     if (error) throw error
+    await clearServerCache('all')
     return true
   } catch (error) {
     console.error('Error deleting user account:', error)
@@ -713,7 +794,7 @@ export async function getAllVaultSales() {
     }
 
     // 4. Fetch auth users for email addresses
-    const { data: { users } } = await db.auth.admin.listUsers()
+    const users = await getAuthUsers(db)
 
     const enrichedSales = (sales || []).map((sale: any) => {
       const pack = (packs || []).find((p: any) => p.id === sale.item_id)
@@ -769,12 +850,7 @@ export async function getBrevoSubscribers() {
     const db = getDB()
 
     // 1. Fetch all registered users from database
-    const { data, error: authErr } = await db.auth.admin.listUsers()
-    console.log('--- getBrevoSubscribers Debug ---')
-    console.log('listUsers error:', authErr)
-    console.log('listUsers count:', data?.users?.length)
-    if (authErr) throw authErr
-    const users = data?.users || []
+    const users = await getAuthUsers(db)
 
     const { data: userAccounts, error: dbErr } = await db.from('user_accounts').select('user_id, newsletter')
     console.log('userAccounts error:', dbErr)

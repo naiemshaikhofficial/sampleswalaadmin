@@ -81,6 +81,8 @@ import { TicketsTab } from '@/components/admin/TicketsTab'
 import { UsersTab } from '@/components/admin/UsersTab'
 import { SalesTab } from '@/components/admin/SalesTab'
 import { NewsletterTab } from '@/components/admin/NewsletterTab'
+import { clientCache } from '@/lib/clientCache'
+
 
 interface ToastState {
   show: boolean
@@ -114,10 +116,10 @@ export default function AdminDashboard() {
     setMobileMenuOpen(false)
   }, [activeTab])
 
-  // Client-side Memory Cache Manager for extremely fast & scalable page rendering
-  const cacheRef = useRef<Record<string, { data: any; timestamp: number }>>({})
+  // Client-side Caching Manager using localStorage for instant page loads and SWR revalidation
   const verifiedAdminIdRef = useRef<string | null>(null)
-  const CACHE_DURATION_MS = 60 * 1000 // 60 seconds cache expiry
+  const CACHE_DURATION_MS = 60 * 1000 // 60 seconds threshold for background revalidation
+
 
   // Accent Switcher
   const [accent, setAccent] = useState<'pink' | 'blue' | 'neon' | 'orange' | 'yellow' | 'purple'>('pink')
@@ -471,7 +473,12 @@ export default function AdminDashboard() {
   // Helper to apply cached data to specific tab state
   const applyCachedData = (tab: string, data: any) => {
     if (tab === 'analytics') {
-      setStats(data)
+      if (data && typeof data === 'object' && 'stats' in data) {
+        setStats(data.stats)
+        setVaultSalesList(data.salesList || [])
+      } else {
+        setStats(data)
+      }
     } else if (tab === 'packs') {
       setPacks(data.packs)
       setCategories(data.categories)
@@ -492,12 +499,14 @@ export default function AdminDashboard() {
       setVaultSalesList(data)
     } else if (tab === 'newsletter') {
       setSubscribersList(data)
+    } else if (tab === 'settings') {
+      setBannerEnabled(data)
     }
   }
 
   // --- FETCH CONTEXT DATA WITH ADVANCED SWR CACHING ---
   const loadTabContext = async (tab: typeof activeTab, forceBypassCache = false) => {
-    const cachedEntry = cacheRef.current[tab]
+    const cachedEntry = clientCache.get(tab)
     const now = Date.now()
 
     const isSearchingOrFilteringSamples = tab === 'samples' && (packFilter !== 'all' || debouncedSampleSearch !== '')
@@ -520,14 +529,16 @@ export default function AdminDashboard() {
     try {
       let freshData: any = null
       if (tab === 'analytics') {
-        freshData = await getDashboardStats()
-        setStats(freshData)
+        const statsData = await getDashboardStats()
+        setStats(statsData)
+        let salesData: any[] = []
         try {
-          const salesData = await getAllVaultSales()
+          salesData = await getAllVaultSales()
           setVaultSalesList(salesData)
         } catch (e) {
           console.error("Failed to load detailed sales list for period analytics", e)
         }
+        freshData = { stats: statsData, salesList: salesData }
       } else if (tab === 'packs') {
         const result = await getSamplePacks()
         freshData = result
@@ -570,11 +581,11 @@ export default function AdminDashboard() {
         setBannerEnabled(freshData)
       }
 
-      if (freshData) {
-        cacheRef.current[tab] = {
+      if (freshData !== null && freshData !== undefined) {
+        clientCache.set(tab, {
           data: freshData,
           timestamp: Date.now()
-        }
+        })
       }
     } catch (error: any) {
       showToast(error.message || 'Failed to fetch data', 'error')
@@ -584,7 +595,7 @@ export default function AdminDashboard() {
   }
 
   const invalidateCacheAndReload = (tab: typeof activeTab) => {
-    delete cacheRef.current[tab]
+    clientCache.remove(tab)
     loadTabContext(tab, true)
   }
 
