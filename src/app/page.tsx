@@ -405,14 +405,26 @@ export default function AdminDashboard() {
     if (verifiedAdminIdRef.current === uid) {
       return
     }
+
+    // Client-side cache check to prevent redundant checkIsAdmin Supabase DB hits on every mount
+    const cachedAdminVerification = clientCache.get('admin_verified_' + uid)
+    if (cachedAdminVerification === true) {
+      setIsAdmin(true)
+      setCheckingAdmin(false)
+      verifiedAdminIdRef.current = uid
+      loadTabContext(activeTab)
+      return
+    }
+
     setCheckingAdmin(true)
     const verified = await checkIsAdmin(uid)
     setIsAdmin(verified)
     setCheckingAdmin(false)
     if (verified) {
       verifiedAdminIdRef.current = uid // Mark as verified
+      clientCache.set('admin_verified_' + uid, true, 1000 * 60 * 30) // Cache verification for 30 minutes
       showToast('Admin access verified successfully!', 'success')
-      loadTabContext('analytics')
+      loadTabContext(activeTab)
     } else {
       showToast('Unauthorized account credentials.', 'error')
     }
@@ -466,6 +478,10 @@ export default function AdminDashboard() {
   }
 
   const handleLogout = async () => {
+    if (user?.id) {
+      clientCache.remove('admin_verified_' + user.id)
+    }
+    clientCache.clearAll() // Clear all cached dashboard tabs data on logout
     await supabase.auth.signOut()
     showToast('Logged out successfully', 'success')
   }
