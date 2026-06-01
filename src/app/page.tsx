@@ -707,11 +707,13 @@ export default function AdminDashboard() {
               </div>
 
               <div className="text-center mb-8 mt-4 flex flex-col items-center justify-center">
-                <img 
-                  src="/icon.png?v=5" 
-                  alt="SamplesWala Logo" 
-                  className="w-16 h-16 object-contain border-4 border-black bg-black/50 p-2 mb-3 shadow-[0_0_12px_rgba(0,255,148,0.2)] rounded-lg animate-pulse"
-                />
+                <a href="https://sampleswala.vercel.app" target="_blank" rel="noopener noreferrer" className="block cursor-pointer hover:opacity-85 transition-opacity">
+                  <img
+                    src="/Logo.png"
+                    alt="SamplesWala Logo"
+                    className="w-16 h-16 object-contain border-4 border-black bg-black/50 p-2 mb-3 shadow-[0_0_12px_rgba(0,255,148,0.2)] rounded-lg animate-pulse"
+                  />
+                </a>
                 <h1 className="font-luckiest-guy text-5xl uppercase tracking-tighter text-white">
                   SAMPLES<span className="text-studio-pink">WALA</span>
                 </h1>
@@ -817,9 +819,8 @@ export default function AdminDashboard() {
 
       {/* STATE NOTIFICATION TOAST */}
       {toast.show && (
-        <div className={`fixed bottom-6 right-6 z-50 border-4 border-black p-4 shadow-premium transition-transform duration-300 font-mono text-xs uppercase font-black flex items-center gap-3 ${
-          toast.type === 'success' ? 'bg-studio-neon text-black' : toast.type === 'error' ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
-        }`}>
+        <div className={`fixed bottom-6 right-6 z-50 border-4 border-black p-4 shadow-premium transition-transform duration-300 font-mono text-xs uppercase font-black flex items-center gap-3 ${toast.type === 'success' ? 'bg-studio-neon text-black' : toast.type === 'error' ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
+          }`}>
           {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : toast.type === 'error' ? <XCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
           <span>{toast.message}</span>
         </div>
@@ -827,22 +828,23 @@ export default function AdminDashboard() {
 
       {/* MOBILE DRAWER BACKDROP */}
       {mobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 md:hidden animate-fadeIn"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
 
       {/* SIDEBAR NAVIGATION BAR */}
-      <aside className={`fixed inset-y-0 left-0 w-72 md:w-64 bg-[#121212] border-r border-zinc-800 z-50 flex flex-col transition-transform duration-300 transform md:relative md:translate-x-0 ${
-        mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-      } md:flex flex-shrink-0`}>
+      <aside className={`fixed inset-y-0 left-0 w-72 md:w-64 bg-[#121212] border-r border-zinc-800 z-50 flex flex-col transition-transform duration-300 transform md:relative md:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        } md:flex flex-shrink-0`}>
         <div className="p-6 border-b border-zinc-800 bg-[#0d0d0d] flex flex-row items-center justify-between md:flex-col md:items-center">
-          <img 
-            src="/icon.png?v=5" 
-            alt="SamplesWala Logo" 
-            className="w-16 h-16 md:w-28 md:h-28 object-contain"
-          />
+          <a href="https://www.sampleswala.vercel.app" target="_blank" rel="noopener noreferrer" className="block cursor-pointer hover:opacity-85 transition-opacity">
+            <img
+              src="/Logo.png"
+              alt="SamplesWala Logo"
+              className="w-16 h-16 md:w-28 md:h-28 object-contain"
+            />
+          </a>
 
           <button
             onClick={() => setMobileMenuOpen(false)}
@@ -857,11 +859,10 @@ export default function AdminDashboard() {
         <nav className="flex-1 p-4 space-y-1.5 font-sans text-xs font-bold uppercase overflow-y-auto">
           <button
             onClick={() => setActiveTab('analytics')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
-              activeTab === 'analytics'
-                ? 'bg-studio-pink text-white border-studio-pink/30 shadow-sm'
-                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${activeTab === 'analytics'
+              ? 'bg-studio-pink text-white border-studio-pink/30 shadow-sm'
+              : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+              }`}
           >
             <LayoutDashboard className="w-4 h-4" />
             <span>📈 Overview & Earnings</span>
@@ -869,11 +870,10 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('packs')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
-              activeTab === 'packs'
-                ? 'bg-studio-yellow text-black border-studio-yellow/30 shadow-sm'
-                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${activeTab === 'packs'
+              ? 'bg-studio-yellow text-black border-studio-yellow/30 shadow-sm'
+              : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+              }`}
           >
             <Library className="w-4 h-4" />
             <span>📦 Manage Audio Packs</span>
@@ -882,11 +882,10 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('kyc')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
-              activeTab === 'kyc'
-                ? 'bg-studio-orange text-white border-studio-orange/30 shadow-sm'
-                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${activeTab === 'kyc'
+              ? 'bg-studio-orange text-white border-studio-orange/30 shadow-sm'
+              : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+              }`}
           >
             <UserCheck className="w-4 h-4" />
             <span>🎨 Artist Verification & KYC</span>
@@ -894,11 +893,10 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('coupons')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
-              activeTab === 'coupons'
-                ? 'bg-studio-blue text-white border-studio-blue/30 shadow-sm'
-                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${activeTab === 'coupons'
+              ? 'bg-studio-blue text-white border-studio-blue/30 shadow-sm'
+              : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+              }`}
           >
             <Ticket className="w-4 h-4" />
             <span>🎟️ Promo Codes & Coupons</span>
@@ -906,11 +904,10 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('tickets')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
-              activeTab === 'tickets'
-                ? 'bg-studio-purple text-white border-studio-purple/30 shadow-sm'
-                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${activeTab === 'tickets'
+              ? 'bg-studio-purple text-white border-studio-purple/30 shadow-sm'
+              : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+              }`}
           >
             <MessageSquare className="w-4 h-4" />
             <span>🎫 Customer Support Help</span>
@@ -918,11 +915,10 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('users')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
-              activeTab === 'users'
-                ? 'bg-studio-pink text-white border-studio-pink/30 shadow-sm'
-                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${activeTab === 'users'
+              ? 'bg-studio-pink text-white border-studio-pink/30 shadow-sm'
+              : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+              }`}
           >
             <Users className="w-4 h-4" />
             <span>👥 Registered Users</span>
@@ -930,11 +926,10 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('sales')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
-              activeTab === 'sales'
-                ? 'bg-studio-neon text-black border-studio-neon/30 shadow-sm'
-                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${activeTab === 'sales'
+              ? 'bg-studio-neon text-black border-studio-neon/30 shadow-sm'
+              : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+              }`}
           >
             <Coins className="w-4 h-4" />
             <span>💰 Orders & Sales Receipts</span>
@@ -942,11 +937,10 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('newsletter')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
-              activeTab === 'newsletter'
-                ? 'bg-[#FF0080] text-white border-[#FF0080]/30 shadow-sm'
-                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${activeTab === 'newsletter'
+              ? 'bg-[#FF0080] text-white border-[#FF0080]/30 shadow-sm'
+              : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+              }`}
           >
             <Mail className="w-4 h-4" />
             <span>📧 Newsletter Hub</span>
@@ -956,11 +950,10 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('logs')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
-              activeTab === 'logs'
-                ? 'bg-studio-purple text-white border-studio-purple/30 shadow-sm'
-                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${activeTab === 'logs'
+              ? 'bg-studio-purple text-white border-studio-purple/30 shadow-sm'
+              : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+              }`}
           >
             <Activity className="w-4 h-4" />
             <span>🛠️ Admin Activity Logs</span>
@@ -968,11 +961,10 @@ export default function AdminDashboard() {
 
           <button
             onClick={() => setActiveTab('settings')}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${
-              activeTab === 'settings'
-                ? 'bg-[#FF5C00] text-white border-[#FF5C00]/30 shadow-sm'
-                : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 border rounded transition-all text-left ${activeTab === 'settings'
+              ? 'bg-[#FF5C00] text-white border-[#FF5C00]/30 shadow-sm'
+              : 'bg-transparent text-zinc-400 hover:text-white hover:bg-zinc-900/50 border-transparent'
+              }`}
           >
             <Lock className="w-4 h-4" />
             <span>⚙️ Global Site Settings</span>
@@ -993,9 +985,8 @@ export default function AdminDashboard() {
                   showToast(`Accent set to ${item.label}!`, 'success')
                 }}
                 style={{ backgroundColor: item.hex }}
-                className={`h-4 w-full border border-black hover:scale-110 active:scale-95 transition-all cursor-pointer rounded ${
-                  accent === key ? 'ring-1 ring-white scale-105 opacity-100' : 'opacity-60 hover:opacity-100'
-                }`}
+                className={`h-4 w-full border border-black hover:scale-110 active:scale-95 transition-all cursor-pointer rounded ${accent === key ? 'ring-1 ring-white scale-105 opacity-100' : 'opacity-60 hover:opacity-100'
+                  }`}
                 title={`Accent: ${item.label}`}
               />
             ))}
@@ -1515,15 +1506,13 @@ export default function AdminDashboard() {
           <div className="bg-[#121212] border-4 border-black p-6 w-full max-w-md relative text-left shadow-premium">
             {/* Header Banner */}
             <div className="flex items-center gap-3 border-b-2 border-black pb-4 mb-4">
-              <div className={`w-10 h-10 rounded-none border-2 border-black flex items-center justify-center flex-shrink-0 ${
-                confirmDialog.isDanger ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
-              }`}>
+              <div className={`w-10 h-10 rounded-none border-2 border-black flex items-center justify-center flex-shrink-0 ${confirmDialog.isDanger ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
+                }`}>
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
-                <h4 className={`font-sans font-bold text-sm uppercase tracking-wide leading-none ${
-                  confirmDialog.isDanger ? 'text-studio-red' : 'text-studio-yellow'
-                }`}>
+                <h4 className={`font-sans font-bold text-sm uppercase tracking-wide leading-none ${confirmDialog.isDanger ? 'text-studio-red' : 'text-studio-yellow'
+                  }`}>
                   {confirmDialog.title}
                 </h4>
                 <span className="text-[9px] uppercase font-mono tracking-widest text-zinc-500 font-bold block mt-1.5">
@@ -1549,9 +1538,8 @@ export default function AdminDashboard() {
               <button
                 type="button"
                 onClick={confirmDialog.onConfirm}
-                className={`flex-1 studio-button font-bold uppercase py-2.5 text-xs cursor-pointer font-sans ${
-                  confirmDialog.isDanger ? 'bg-studio-red text-white hover:bg-studio-red/80' : 'bg-studio-neon text-black hover:bg-studio-neon-hover'
-                }`}
+                className={`flex-1 studio-button font-bold uppercase py-2.5 text-xs cursor-pointer font-sans ${confirmDialog.isDanger ? 'bg-studio-red text-white hover:bg-studio-red/80' : 'bg-studio-neon text-black hover:bg-studio-neon-hover'
+                  }`}
               >
                 {confirmDialog.confirmText}
               </button>
