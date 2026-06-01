@@ -1129,6 +1129,7 @@ export default function AdminDashboard() {
               filterStartDate={filterStartDate}
               filterEndDate={filterEndDate}
               filteredMetrics={getFilteredMetrics()}
+              vaultSalesList={vaultSalesList}
             />
           )}
 
