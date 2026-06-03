@@ -5,6 +5,9 @@ interface SettingsTabProps {
   bannerEnabled: boolean
   bannerPending: boolean
   handleToggleLaunchOffer: () => void
+  flashSaleEnabled: boolean
+  flashSalePending: boolean
+  handleToggleFlashSale: () => void
   user: any
 }
 
@@ -12,6 +15,9 @@ export function SettingsTab({
   bannerEnabled,
   bannerPending,
   handleToggleLaunchOffer,
+  flashSaleEnabled,
+  flashSalePending,
+  handleToggleFlashSale,
   user
 }: SettingsTabProps) {
   const [role, setRole] = React.useState('Super Admin')
@@ -125,6 +131,58 @@ export function SettingsTab({
             <span className="text-zinc-400">value:</span>
             <span className={bannerEnabled ? 'text-studio-neon font-black' : 'text-studio-red font-black'}>
               {String(bannerEnabled)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Flash Sale Settings Card */}
+      <div className="border-4 border-black bg-black p-6 rounded-none font-sans">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-zinc-900">
+          <div className="max-w-xl">
+            <h4 className="text-lg font-bold text-white flex items-center gap-2">
+              Flash Sale Side Promotion Box
+            </h4>
+            <p className="text-zinc-400 text-xs mt-2 leading-relaxed">
+              Toggle the visibility of the <span className="text-[#00BFFF] font-semibold">Flash Sale Box</span> displaying the <span className="text-[#FF5C00] font-semibold">₹499 Pack Offer</span> in the browse page sidebar. Changes apply instantly.
+            </p>
+          </div>
+
+          {/* Toggle Switch */}
+          <div className="flex items-center gap-4 self-start md:self-auto">
+            <button
+              onClick={handleToggleFlashSale}
+              disabled={flashSalePending}
+              className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none disabled:opacity-50 cursor-pointer ${
+                flashSaleEnabled ? 'bg-studio-neon shadow-[0_0_12px_rgba(0,255,148,0.3)] border-2 border-black' : 'bg-zinc-800 border-2 border-black'
+              }`}
+            >
+              <span className="sr-only">Toggle flash sale</span>
+              <span
+                className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-300 shadow-[0_2px_4px_black] ${
+                  flashSaleEnabled ? 'translate-x-7' : 'translate-x-1'
+                } flex items-center justify-center`}
+              >
+                {flashSalePending && <RefreshCw size={12} className="animate-spin text-zinc-900" />}
+              </span>
+            </button>
+            <span className="text-xs font-black text-zinc-300 min-w-10">
+              {flashSaleEnabled ? 'ACTIVE' : 'HIDDEN'}
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-6 bg-[#0c0c0c] border border-zinc-900 p-4 rounded-none">
+          <span className="block text-[8px] font-mono font-black text-zinc-500 uppercase tracking-widest mb-2">
+            Current Database Flag:
+          </span>
+          <div className="flex items-center gap-2 font-mono text-xs">
+            <span className="text-zinc-400">key:</span>
+            <span className="text-white font-bold">show_flash_sale</span>
+            <span className="text-zinc-500">|</span>
+            <span className="text-zinc-400">value:</span>
+            <span className={flashSaleEnabled ? 'text-studio-neon font-black' : 'text-studio-red font-black'}>
+              {String(flashSaleEnabled)}
             </span>
           </div>
         </div>

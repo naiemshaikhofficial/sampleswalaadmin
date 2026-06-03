@@ -17,7 +17,9 @@ import {
   getAllVaultSales,
   getBrevoSubscribers,
   getLaunchOfferStatus,
-  toggleLaunchOffer
+  toggleLaunchOffer,
+  getFlashSaleStatus,
+  toggleFlashSale
 } from './actions'
 
 import {
@@ -84,6 +86,8 @@ export default function AdminDashboard() {
   // Global settings toggles states
   const [bannerEnabled, setBannerEnabled] = useState(true)
   const [bannerPending, setBannerPending] = useState(false)
+  const [flashSaleEnabled, setFlashSaleEnabled] = useState(true)
+  const [flashSalePending, setFlashSalePending] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Universal Command Palette Redirect Target Selection State
@@ -580,7 +584,13 @@ export default function AdminDashboard() {
     } else if (tab === 'newsletter') {
       setSubscribersList(data)
     } else if (tab === 'settings') {
-      setBannerEnabled(data)
+      if (data && typeof data === 'object') {
+        setBannerEnabled(data.launchOffer !== false)
+        setFlashSaleEnabled(data.flashSale !== false)
+      } else {
+        setBannerEnabled(data !== false)
+        setFlashSaleEnabled(true)
+      }
     }
   }
 
@@ -663,8 +673,11 @@ export default function AdminDashboard() {
         freshData = await getBrevoSubscribers()
         setSubscribersList(freshData)
       } else if (tab === 'settings') {
-        freshData = await getLaunchOfferStatus()
-        setBannerEnabled(freshData)
+        const launchOffer = await getLaunchOfferStatus()
+        const flashSale = await getFlashSaleStatus()
+        freshData = { launchOffer, flashSale }
+        setBannerEnabled(launchOffer)
+        setFlashSaleEnabled(flashSale)
       }
 
       if (freshData !== null && freshData !== undefined) {
@@ -744,6 +757,23 @@ export default function AdminDashboard() {
       showToast(err.message || 'Failed to toggle banner', 'error')
     } finally {
       setBannerPending(false)
+    }
+  }
+
+  const handleToggleFlashSale = async () => {
+    setFlashSalePending(true)
+    const newValue = !flashSaleEnabled
+    try {
+      const result = await toggleFlashSale(newValue)
+      if (result.success) {
+        setFlashSaleEnabled(newValue)
+        showToast(`Flash sale promo box successfully ${newValue ? 'activated' : 'deactivated'}!`, 'success')
+        addAuditLog(newValue ? 'FLASH_SALE_ACTIVE' : 'FLASH_SALE_HIDE', `${newValue ? 'Activated' : 'Deactivated'} the flash sale promotion box`, 'info')
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Failed to toggle flash sale', 'error')
+    } finally {
+      setFlashSalePending(false)
     }
   }
 
@@ -969,6 +999,9 @@ export default function AdminDashboard() {
               bannerEnabled={bannerEnabled}
               bannerPending={bannerPending}
               handleToggleLaunchOffer={handleToggleLaunchOffer}
+              flashSaleEnabled={flashSaleEnabled}
+              flashSalePending={flashSalePending}
+              handleToggleFlashSale={handleToggleFlashSale}
               user={user}
             />
           )}

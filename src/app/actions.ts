@@ -1230,3 +1230,45 @@ export async function toggleLaunchOffer(value: boolean) {
     throw error
   }
 }
+
+/**
+ * 12. Flash Sale Promo Toggle Settings
+ */
+export async function getFlashSaleStatus() {
+  try {
+    const db = getDB()
+    const { data, error } = await db
+      .from('app_metadata')
+      .select('value')
+      .eq('key', 'show_flash_sale')
+      .maybeSingle()
+
+    if (error || !data) {
+      return true // default to true
+    }
+    return data.value !== 'false'
+  } catch (error) {
+    console.error('Error getting flash sale status:', error)
+    return true
+  }
+}
+
+export async function toggleFlashSale(value: boolean) {
+  try {
+    const db = getDB()
+    const { error } = await db
+      .from('app_metadata')
+      .upsert({
+        key: 'show_flash_sale',
+        value: String(value),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' })
+
+    if (error) throw error
+    return { success: true }
+  } catch (error) {
+    console.error('Error toggling flash sale status:', error)
+    throw error
+  }
+}
+
