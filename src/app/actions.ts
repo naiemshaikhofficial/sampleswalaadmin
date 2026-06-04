@@ -488,13 +488,28 @@ export async function triggerArtistPayout(payout: {
 export async function getCoupons() {
   try {
     const db = getDB()
-    const { data, error } = await db
+    const { data: coupons, error } = await db
       .from('coupons')
       .select('*')
       .order('created_at', { ascending: false })
 
     if (error) throw error
-    return data || []
+
+    const { data: usages, error: usagesErr } = await db
+      .from('coupon_usages')
+      .select('coupon_id')
+
+    if (usagesErr) throw usagesErr
+
+    const enriched = (coupons || []).map((coupon: any) => {
+      const uses = (usages || []).filter((u: any) => u.coupon_id === coupon.id).length
+      return {
+        ...coupon,
+        uses_count: uses
+      }
+    })
+
+    return enriched
   } catch (error) {
     console.error('Error getting coupons:', error)
     throw error

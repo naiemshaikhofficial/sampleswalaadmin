@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, X, Check } from 'lucide-react'
 import { saveCoupon, deleteCoupon } from '@/app/actions'
+import { supabase } from '@/lib/supabase'
 
 interface CouponsTabProps {
   coupons: any[]
@@ -26,6 +27,24 @@ export function CouponsTab({
   const [showCouponModal, setShowCouponModal] = useState(false)
   const [activeCoupon, setActiveCoupon] = useState<any>(null)
   const [saveLoading, setSaveLoading] = useState(false)
+  const [packs, setPacks] = useState<any[]>([])
+  const [presets, setPresets] = useState<any[]>([])
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const [packsRes, presetsRes] = await Promise.all([
+          supabase.from('sample_packs').select('id, name').order('name'),
+          supabase.from('presets').select('id, name').order('name')
+        ])
+        if (packsRes.data) setPacks(packsRes.data)
+        if (presetsRes.data) setPresets(presetsRes.data)
+      } catch (err) {
+        console.error('Error fetching packs/presets for coupon selection:', err)
+      }
+    }
+    fetchItems()
+  }, [])
 
   useEffect(() => {
     if (paletteSelection && paletteSelection.type === 'coupon') {
@@ -86,7 +105,10 @@ export function CouponsTab({
               code: '',
               discount_percent: 15,
               is_active: true,
-              expires_at: ''
+              expires_at: '',
+              applicable_items: null,
+              max_uses: null,
+              limit_per_user: null
             })
             setShowCouponModal(true)
           }}
@@ -103,6 +125,7 @@ export function CouponsTab({
             <tr className="bg-[#121212] border-b-4 border-black">
               <th className="p-4">COUPON CODE</th>
               <th className="p-4 text-center">DISCOUNT PERCENTAGE</th>
+              <th className="p-4 text-center">USES / LIMITS</th>
               <th className="p-4 text-center">STATUS</th>
               <th className="p-4 text-center">EXPIRATION DATE</th>
               <th className="p-4 text-center">ACTIONS</th>
@@ -111,7 +134,7 @@ export function CouponsTab({
           <tbody className="divide-y-3 divide-black">
             {coupons.length === 0 ? (
               <tr>
-                <td colSpan={5} className="p-8 text-center text-zinc-500 uppercase font-black">
+                <td colSpan={6} className="p-8 text-center text-zinc-500 uppercase font-black">
                   No coupons created yet.
                 </td>
               </tr>
@@ -119,10 +142,23 @@ export function CouponsTab({
               coupons.map((coupon: any) => (
                 <tr key={coupon.id} className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors">
                   <td className="p-4 text-white font-black text-sm tracking-wider">
-                    {coupon.code}
+                    <div>{coupon.code}</div>
+                    <div className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest mt-1 font-sans">
+                      {coupon.applicable_items && coupon.applicable_items.length > 0 
+                        ? `🎯 ${coupon.applicable_items.length} SPECIFIC ITEMS` 
+                        : '🌎 ALL PRODUCTS'}
+                    </div>
                   </td>
                   <td className="p-4 text-center font-mono font-black text-studio-blue text-lg">
                     {coupon.discount_percent}% OFF
+                  </td>
+                  <td className="p-4 text-center font-mono font-bold text-zinc-400">
+                    <div>
+                      USES: {coupon.uses_count} / {coupon.max_uses !== null ? coupon.max_uses : '♾️'}
+                    </div>
+                    <div className="text-[9px] text-zinc-500 mt-1 font-sans">
+                      USER LIMIT: {coupon.limit_per_user !== null ? `${coupon.limit_per_user} MAX` : '♾️'}
+                    </div>
                   </td>
                   <td className="p-4 text-center">
                     {coupon.is_active ? (
@@ -179,7 +215,7 @@ export function CouponsTab({
               {activeCoupon.id ? '🎟️ edit coupon details' : '🎟️ create discount coupon'}
             </h3>
 
-            <div className="space-y-4">
+             <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
               <div>
                 <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">COUPON CODE</label>
                 <input
@@ -203,6 +239,109 @@ export function CouponsTab({
                   onChange={e => setActiveCoupon((prev: any) => ({ ...prev, discount_percent: Number(e.target.value) }))}
                   className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-blue font-black text-sm"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">MAX OVERALL USES (OPTIONAL)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="INFINITE"
+                    value={activeCoupon.max_uses || ''}
+                    onChange={e => setActiveCoupon((prev: any) => ({ ...prev, max_uses: e.target.value ? Number(e.target.value) : null }))}
+                    className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-blue font-bold text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">LIMIT PER USER (OPTIONAL)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="INFINITE"
+                    value={activeCoupon.limit_per_user || ''}
+                    onChange={e => setActiveCoupon((prev: any) => ({ ...prev, limit_per_user: e.target.value ? Number(e.target.value) : null }))}
+                    className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-blue font-bold text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">APPLICABILITY</label>
+                <div className="flex gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => setActiveCoupon((prev: any) => ({ ...prev, applicable_items: null }))}
+                    className={`flex-grow p-2.5 text-[9px] font-black uppercase border-2 border-black transition-colors ${!activeCoupon.applicable_items ? 'bg-studio-blue text-white' : 'bg-black text-white/40 hover:text-white'}`}
+                  >
+                    All Products
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveCoupon((prev: any) => ({ ...prev, applicable_items: prev.applicable_items || [] }))}
+                    className={`flex-grow p-2.5 text-[9px] font-black uppercase border-2 border-black transition-colors ${activeCoupon.applicable_items ? 'bg-studio-blue text-white' : 'bg-black text-white/40 hover:text-white'}`}
+                  >
+                    Specific Products
+                  </button>
+                </div>
+
+                {activeCoupon.applicable_items && (
+                  <div className="border-2 border-black bg-black p-3 max-h-40 overflow-y-auto space-y-3 font-mono text-[9px]">
+                    {/* Sample Packs Group */}
+                    {packs.length > 0 && (
+                      <div className="space-y-1.5">
+                        <p className="text-[8px] text-studio-blue font-black uppercase tracking-wider">📦 Sample Packs</p>
+                        {packs.map(pack => {
+                          const isChecked = activeCoupon.applicable_items?.includes(pack.id)
+                          return (
+                            <label key={pack.id} className="flex items-center gap-2 text-zinc-300 font-bold hover:text-white cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={e => {
+                                  const current = activeCoupon.applicable_items || []
+                                  const next = e.target.checked
+                                    ? [...current, pack.id]
+                                    : current.filter((id: string) => id !== pack.id)
+                                  setActiveCoupon((prev: any) => ({ ...prev, applicable_items: next }))
+                                }}
+                                className="accent-studio-blue"
+                              />
+                              {pack.name}
+                            </label>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {/* Presets Group */}
+                    {presets.length > 0 && (
+                      <div className="space-y-1.5 pt-2 border-t border-white/5">
+                        <p className="text-[8px] text-studio-pink font-black uppercase tracking-wider">🎹 Presets</p>
+                        {presets.map(preset => {
+                          const isChecked = activeCoupon.applicable_items?.includes(preset.id)
+                          return (
+                            <label key={preset.id} className="flex items-center gap-2 text-zinc-300 font-bold hover:text-white cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={e => {
+                                  const current = activeCoupon.applicable_items || []
+                                  const next = e.target.checked
+                                    ? [...current, preset.id]
+                                    : current.filter((id: string) => id !== preset.id)
+                                  setActiveCoupon((prev: any) => ({ ...prev, applicable_items: next }))
+                                }}
+                                className="accent-studio-pink"
+                              />
+                              {preset.name}
+                            </label>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>
