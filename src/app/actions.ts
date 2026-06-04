@@ -827,10 +827,22 @@ export async function getAllVaultSales() {
     // 4. Fetch auth users for email addresses
     const users = await getAuthUsers(db)
 
+    // 5. Fetch coupon usages
+    const { data: couponUsages, error: couponErr } = await db
+      .from('coupon_usages')
+      .select('order_id, coupons(code, discount_percent)')
+    if (couponErr) throw couponErr
+
     const enrichedSales = (sales || []).map((sale: any) => {
       const pack = (packs || []).find((p: any) => p.id === sale.item_id)
       const account = (userAccounts || []).find((a: any) => a.user_id === sale.user_id)
       const authUser = (users || []).find((u: any) => u.id === sale.user_id)
+
+      const usage = (couponUsages || []).find((u: any) => u.order_id === sale.razorpay_order_id)
+      const couponInfo = usage?.coupons ? {
+        code: usage.coupons.code,
+        discount_percent: usage.coupons.discount_percent
+      } : null
 
       return {
         id: sale.id,
@@ -848,7 +860,8 @@ export async function getAllVaultSales() {
           account?.state,
           account?.postal_code,
           account?.country
-        ].filter(Boolean).join(', ') || 'No address provided'
+        ].filter(Boolean).join(', ') || 'No address provided',
+        coupon: couponInfo
       }
     })
 

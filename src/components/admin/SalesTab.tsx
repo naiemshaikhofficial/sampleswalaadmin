@@ -181,6 +181,11 @@ export function SalesTab({
                         <div className="inline-block bg-black border border-zinc-800 p-2.5 font-mono text-left font-medium">
                           <p className="text-[10px] text-zinc-500 font-sans">PAYMENT TOTAL:</p>
                           <p className="text-base font-bold text-zinc-100 mt-0.5">₹{s.amount?.toLocaleString()}</p>
+                          {s.coupon && (
+                            <div className="mt-1 text-[8px] font-black uppercase text-studio-yellow">
+                              🏷️ {s.coupon.code} ({s.coupon.discount_percent}% OFF)
+                            </div>
+                          )}
                           <div className="mt-2 border-t border-zinc-900 pt-1.5 space-y-0.5 font-medium font-mono text-[8px] tracking-tight uppercase text-zinc-400">
                             <p>ORD: <span className="text-studio-neon">{s.razorpay_order_id}</span></p>
                             <p>PAY: <span className="text-studio-pink">{s.razorpay_payment_id}</span></p>
@@ -295,6 +300,14 @@ export function SalesTab({
                   {activeOrder.buyer_address || 'No physical delivery address provided for this order.'}
                 </span>
               </div>
+               {activeOrder.coupon && (
+                <div className="flex justify-between border-b border-zinc-900 pb-2">
+                  <span className="text-zinc-500 font-bold uppercase text-[10px]">COUPON APPLIED</span>
+                  <span className="text-studio-yellow font-bold uppercase text-[10px]">
+                    {activeOrder.coupon.code} ({activeOrder.coupon.discount_percent}% OFF)
+                  </span>
+                </div>
+              )}
               <div className="flex justify-between border-b border-zinc-900 pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">TOTAL VALUE PAID</span>
                 <span className="text-studio-neon font-bold text-sm">₹{activeOrder.amount?.toLocaleString()}</span>
