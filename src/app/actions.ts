@@ -1272,12 +1272,12 @@ export async function getFlashSaleStatus() {
       .maybeSingle()
 
     if (error || !data) {
-      return true // default to true
+      return false // default to false
     }
     return data.value !== 'false'
   } catch (error) {
     console.error('Error getting flash sale status:', error)
-    return true
+    return false
   }
 }
 

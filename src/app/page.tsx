@@ -86,7 +86,7 @@ export default function AdminDashboard() {
   // Global settings toggles states
   const [bannerEnabled, setBannerEnabled] = useState(true)
   const [bannerPending, setBannerPending] = useState(false)
-  const [flashSaleEnabled, setFlashSaleEnabled] = useState(true)
+  const [flashSaleEnabled, setFlashSaleEnabled] = useState(false)
   const [flashSalePending, setFlashSalePending] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -586,10 +586,10 @@ export default function AdminDashboard() {
     } else if (tab === 'settings') {
       if (data && typeof data === 'object') {
         setBannerEnabled(data.launchOffer !== false)
-        setFlashSaleEnabled(data.flashSale !== false)
+        setFlashSaleEnabled(data.flashSale === true)
       } else {
         setBannerEnabled(data !== false)
-        setFlashSaleEnabled(true)
+        setFlashSaleEnabled(false)
       }
     }
   }
