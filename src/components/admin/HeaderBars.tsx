@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { Menu, Search, RefreshCw } from 'lucide-react'
+import { getLiveExchangeRate } from '@/app/actions'
 
 type TabType = 'analytics' | 'packs' | 'kyc' | 'coupons' | 'tickets' | 'users' | 'sales' | 'logs' | 'newsletter' | 'settings'
 
@@ -63,6 +64,16 @@ export function MobileHeader({ activeTab, dataLoading, onMenuOpen, onPaletteOpen
 }
 
 export function DesktopHeader({ activeTab, dataLoading, onMenuOpen, onPaletteOpen, onReload }: HeaderBarsProps) {
+  const [liveRate, setLiveRate] = React.useState<number>(90.0)
+
+  React.useEffect(() => {
+    getLiveExchangeRate()
+      .then(info => {
+        if (info?.rate) setLiveRate(info.rate)
+      })
+      .catch(err => console.warn('Exchange rate in HeaderBars:', err))
+  }, [])
+
   return (
     <header className="hidden md:flex border-b border-zinc-800 bg-[#121212] px-6 py-4 items-center justify-between flex-shrink-0 z-0">
       <div className="flex items-center gap-3">
@@ -72,6 +83,13 @@ export function DesktopHeader({ activeTab, dataLoading, onMenuOpen, onPaletteOpe
       </div>
 
       <div className="flex items-center gap-3">
+        {/* LIVE USD TO INR BADGE */}
+        <div className="hidden lg:flex items-center gap-2 bg-[#18181c] border border-zinc-800 px-3 py-1.5 rounded font-mono text-[10px]">
+          <span className="w-2 h-2 rounded-full bg-studio-neon animate-pulse" />
+          <span className="text-zinc-400 font-bold uppercase">USD/INR:</span>
+          <span className="text-studio-yellow font-black font-mono">₹{liveRate.toFixed(2)}</span>
+        </div>
+
         <button
           onClick={onPaletteOpen}
           className="flex items-center gap-2 px-3 py-1.5 border border-zinc-800 rounded bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all font-mono text-[10px] cursor-pointer"
