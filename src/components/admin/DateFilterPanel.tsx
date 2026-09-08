@@ -49,16 +49,16 @@ export function DateFilterPanel({
   }
 
   return (
-    <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-2.5 sm:p-3 font-mono text-xs shadow-sm">
+    <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-2.5 sm:p-3 font-mono text-xs shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2.5">
         {/* Presets Row */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <div className="flex items-center gap-1.5 mr-1 text-zinc-500 text-[11px]">
+        <div className="flex items-center gap-1.5 min-w-0 max-w-full overflow-x-auto no-scrollbar py-0.5">
+          <div className="flex items-center gap-1.5 mr-1 text-zinc-500 text-[11px] flex-shrink-0">
             <Calendar className="w-3.5 h-3.5 text-zinc-400" />
             <span className="hidden sm:inline font-sans text-[11px] font-semibold text-zinc-400">Period:</span>
           </div>
 
-          <div className="inline-flex flex-wrap items-center bg-zinc-950/80 p-0.5 rounded border border-zinc-800/80 gap-0.5">
+          <div className="inline-flex items-center bg-black/40 p-0.5 rounded-lg border border-white/[0.08] gap-0.5 flex-shrink-0">
             {presets.map(p => {
               const isSelected = !filterStartDate && !filterEndDate && p.key === 'all'
               return (
@@ -66,10 +66,10 @@ export function DateFilterPanel({
                   key={p.key}
                   type="button"
                   onClick={() => setQuickRange(p.key)}
-                  className={`px-2.5 py-1 text-[10px] font-medium rounded transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 text-[10px] font-medium rounded-md transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60'
-                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60 border border-transparent'
+                      ? 'bg-white/[0.12] text-white shadow-sm border border-white/[0.15]'
+                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] border border-transparent'
                   }`}
                 >
                   {p.label}
@@ -101,10 +101,10 @@ export function DateFilterPanel({
           <button
             type="button"
             onClick={() => setShowDateFilter(!showDateFilter)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-medium rounded border transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-medium rounded-lg border transition-all cursor-pointer ${
               showDateFilter
-                ? 'bg-zinc-800 text-white border-zinc-700'
-                : 'bg-zinc-900/80 text-zinc-400 hover:text-white border-zinc-800 hover:border-zinc-700'
+                ? 'bg-white/[0.12] text-white border-white/[0.2]'
+                : 'bg-white/[0.04] text-zinc-400 hover:text-white border-white/[0.08] hover:border-white/[0.15]'
             }`}
           >
             <SlidersHorizontal className="w-3 h-3 text-zinc-400" />
@@ -116,7 +116,7 @@ export function DateFilterPanel({
 
       {/* Collapsible Drawer for Custom Date/Time */}
       {showDateFilter && (
-        <div className="mt-2.5 pt-2.5 border-t border-zinc-800/80 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5 items-end">
+        <div className="mt-2.5 pt-2.5 border-t border-white/[0.08] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5 items-end">
           <div>
             <label className="block text-[9px] uppercase tracking-wider text-zinc-400 font-semibold mb-1 font-sans">
               Start Date
@@ -125,7 +125,7 @@ export function DateFilterPanel({
               type="date"
               value={filterStartDate}
               onChange={e => setFilterStartDate(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs px-2.5 py-1.5 rounded focus:border-zinc-600 focus:outline-none transition-colors"
+              className="w-full bg-black/50 border border-white/[0.08] text-zinc-200 text-xs px-2.5 py-1.5 rounded-lg focus:border-white/[0.2] focus:outline-none transition-colors"
             />
           </div>
 
@@ -137,7 +137,7 @@ export function DateFilterPanel({
               type="time"
               value={filterStartTime}
               onChange={e => setFilterStartTime(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs px-2.5 py-1.5 rounded focus:border-zinc-600 focus:outline-none transition-colors"
+              className="w-full bg-black/50 border border-white/[0.08] text-zinc-200 text-xs px-2.5 py-1.5 rounded-lg focus:border-white/[0.2] focus:outline-none transition-colors"
             />
           </div>
 
@@ -149,7 +149,7 @@ export function DateFilterPanel({
               type="date"
               value={filterEndDate}
               onChange={e => setFilterEndDate(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs px-2.5 py-1.5 rounded focus:border-zinc-600 focus:outline-none transition-colors"
+              className="w-full bg-black/50 border border-white/[0.08] text-zinc-200 text-xs px-2.5 py-1.5 rounded-lg focus:border-white/[0.2] focus:outline-none transition-colors"
             />
           </div>
 
@@ -161,14 +161,14 @@ export function DateFilterPanel({
               type="time"
               value={filterEndTime}
               onChange={e => setFilterEndTime(e.target.value)}
-              className="w-full bg-zinc-950 border border-zinc-800 text-zinc-200 text-xs px-2.5 py-1.5 rounded focus:border-zinc-600 focus:outline-none transition-colors"
+              className="w-full bg-black/50 border border-white/[0.08] text-zinc-200 text-xs px-2.5 py-1.5 rounded-lg focus:border-white/[0.2] focus:outline-none transition-colors"
             />
           </div>
 
           <button
             type="button"
             onClick={handleReset}
-            className="flex items-center justify-center gap-1.5 w-full h-[32px] bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-zinc-300 hover:text-white text-[10px] font-semibold rounded transition-colors cursor-pointer"
+            className="flex items-center justify-center gap-1.5 w-full h-[32px] bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.15] text-zinc-300 hover:text-white text-[10px] font-semibold rounded-lg transition-colors cursor-pointer shadow-sm"
           >
             <RotateCcw className="w-3 h-3" />
             <span>Reset</span>

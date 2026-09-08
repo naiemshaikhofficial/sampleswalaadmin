@@ -862,7 +862,7 @@ export default function AdminDashboard() {
         />
 
         {/* CONTAINER CONTENT */}
-        <div className="flex-1 p-6 space-y-6">
+        <div className="flex-1 p-3 sm:p-5 md:p-6 pb-24 md:pb-6 space-y-4 sm:space-y-6">
 
           {['analytics', 'sales', 'logs'].includes(activeTab) && (
             <DateFilterPanel
@@ -950,7 +950,7 @@ export default function AdminDashboard() {
 
 
 
-          {/* TAB 8: USERS HUB & BAN SYSTEM */}
+          {/* TAB 7: USERS HUB & BAN SYSTEM */}
           {activeTab === 'users' && (
             <UsersTab
               usersList={usersList}
@@ -963,7 +963,7 @@ export default function AdminDashboard() {
             />
           )}
 
-          {/* TAB 9: DETAILED VAULT PURCHASES LOG */}
+          {/* TAB 8: VAULT SALES AUDIT & REVENUE */}
           {activeTab === 'sales' && (
             <SalesTab
               vaultSalesList={vaultSalesList}
@@ -973,7 +973,7 @@ export default function AdminDashboard() {
             />
           )}
 
-          {/* TAB 10: SYSTEM AUDIT TRAILS LOG */}
+          {/* TAB 9: SYSTEM AUDIT TRAILS LOG */}
           {activeTab === 'logs' && (
             <LogsTab
               isDateWithinRange={isDateWithinRange}
@@ -984,7 +984,7 @@ export default function AdminDashboard() {
             />
           )}
 
-          {/* TAB 11: NEWSLETTER INTEGRATION PANEL */}
+          {/* TAB 10: NEWSLETTER INTEGRATION PANEL */}
           {activeTab === 'newsletter' && (
             <NewsletterTab
               subscribersList={subscribersList}
@@ -995,7 +995,7 @@ export default function AdminDashboard() {
             />
           )}
 
-          {/* TAB 12: GLOBAL SITE SETTINGS */}
+          {/* TAB 3: PLATFORM & SYSTEM SETTINGS */}
           {activeTab === 'settings' && (
             <SettingsTab
               bannerEnabled={bannerEnabled}
@@ -1010,6 +1010,90 @@ export default function AdminDashboard() {
 
         </div>
       </main>
+
+      {/* MOBILE BOTTOM QUICK NAVIGATION BAR */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 bg-[#0a0a0d]/95 backdrop-blur-xl border-t border-white/[0.08] z-30 flex items-center justify-around px-2 py-2 safe-bottom">
+        <button
+          type="button"
+          onClick={() => setActiveTab('analytics')}
+          className={`flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-all cursor-pointer ${
+            activeTab === 'analytics'
+              ? 'text-white font-bold'
+              : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          <div className="relative">
+            <LayoutDashboard className={`w-4.5 h-4.5 ${activeTab === 'analytics' ? 'text-pink-400' : ''}`} />
+            {activeTab === 'analytics' && (
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-pink-400" />
+            )}
+          </div>
+          <span className="text-[10px] tracking-tight">Overview</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('packs')}
+          className={`flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-all cursor-pointer ${
+            activeTab === 'packs'
+              ? 'text-white font-bold'
+              : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          <div className="relative">
+            <Library className={`w-4.5 h-4.5 ${activeTab === 'packs' ? 'text-yellow-400' : ''}`} />
+            {activeTab === 'packs' && (
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-yellow-400" />
+            )}
+          </div>
+          <span className="text-[10px] tracking-tight">Packs</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('sales')}
+          className={`flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-all cursor-pointer ${
+            activeTab === 'sales'
+              ? 'text-white font-bold'
+              : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          <div className="relative">
+            <Coins className={`w-4.5 h-4.5 ${activeTab === 'sales' ? 'text-emerald-400' : ''}`} />
+            {activeTab === 'sales' && (
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400" />
+            )}
+          </div>
+          <span className="text-[10px] tracking-tight">Orders</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('tickets')}
+          className={`flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-all cursor-pointer ${
+            activeTab === 'tickets'
+              ? 'text-white font-bold'
+              : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          <div className="relative">
+            <MessageSquare className={`w-4.5 h-4.5 ${activeTab === 'tickets' ? 'text-purple-400' : ''}`} />
+            {activeTab === 'tickets' && (
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-purple-400" />
+            )}
+          </div>
+          <span className="text-[10px] tracking-tight">Support</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(true)}
+          className="flex flex-col items-center gap-1 px-3 py-1 rounded-lg transition-all text-zinc-400 hover:text-zinc-200 cursor-pointer"
+        >
+          <Menu className="w-4.5 h-4.5" />
+          <span className="text-[10px] tracking-tight">Menu</span>
+        </button>
+      </div>
 
       {/* UNIVERSAL COMMAND PALETTE & ENTITY SEARCH OVERLAY */}
       <CommandPalette

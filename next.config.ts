@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Disable dev indicators overlay in development
+  devIndicators: false,
+
   // PERFORMANCE: Enable gzip compression to save Vercel bandwidth
   compress: true,
 

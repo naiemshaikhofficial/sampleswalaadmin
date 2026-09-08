@@ -279,14 +279,16 @@ export function AnalyticsTab({
     <div className="space-y-5 animate-fadeIn font-mono text-xs">
       
       {/* 🚀 QUICK STORE PERFORMANCE HIGHLIGHTS */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-3 sm:p-3.5 flex flex-col justify-between hover:border-zinc-700/80 transition-all">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between hover:border-white/[0.15] transition-all shadow-sm group">
           <div className="flex items-center justify-between text-zinc-500">
             <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">Today's Sales</span>
-            <Clock className="w-3.5 h-3.5 text-blue-400" />
+            <div className="p-1 rounded bg-blue-500/10 text-blue-400">
+              <Clock className="w-3.5 h-3.5" />
+            </div>
           </div>
           <div className="mt-2">
-            <span className="font-sans font-bold text-lg text-white">
+            <span className="font-sans font-bold text-base sm:text-xl text-white">
               ₹{quickHighlights.todayRevenue.toLocaleString()}
             </span>
             <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
@@ -295,13 +297,15 @@ export function AnalyticsTab({
           </div>
         </div>
 
-        <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-3 sm:p-3.5 flex flex-col justify-between hover:border-zinc-700/80 transition-all">
+        <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between hover:border-white/[0.15] transition-all shadow-sm group">
           <div className="flex items-center justify-between text-zinc-500">
             <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">This Month</span>
-            <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+            <div className="p-1 rounded bg-emerald-500/10 text-emerald-400">
+              <Calendar className="w-3.5 h-3.5" />
+            </div>
           </div>
           <div className="mt-2">
-            <span className="font-sans font-bold text-lg text-white">
+            <span className="font-sans font-bold text-base sm:text-xl text-white">
               ₹{quickHighlights.monthRevenue.toLocaleString()}
             </span>
             <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
@@ -310,28 +314,32 @@ export function AnalyticsTab({
           </div>
         </div>
 
-        <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-3 sm:p-3.5 flex flex-col justify-between hover:border-zinc-700/80 transition-all">
+        <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between hover:border-white/[0.15] transition-all shadow-sm group">
           <div className="flex items-center justify-between text-zinc-500">
             <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">Paid Ratio</span>
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <div className="p-1 rounded bg-amber-500/10 text-amber-400">
+              <Sparkles className="w-3.5 h-3.5" />
+            </div>
           </div>
           <div className="mt-2">
-            <span className="font-sans font-bold text-lg text-white">
+            <span className="font-sans font-bold text-base sm:text-xl text-white">
               {quickHighlights.paidPercentage}% <span className="text-xs font-normal text-zinc-400">Paid</span>
             </span>
-            <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
+            <p className="text-[10px] text-zinc-400 font-mono mt-0.5 truncate">
               {quickHighlights.totalPaidOrders} paid · {quickHighlights.totalFreeDownloads} free
             </p>
           </div>
         </div>
 
-        <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-3 sm:p-3.5 flex flex-col justify-between hover:border-zinc-700/80 transition-all">
+        <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between hover:border-white/[0.15] transition-all shadow-sm group">
           <div className="flex items-center justify-between text-zinc-500">
             <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">Wishlist</span>
-            <Heart className="w-3.5 h-3.5 text-pink-400" />
+            <div className="p-1 rounded bg-pink-500/10 text-pink-400">
+              <Heart className="w-3.5 h-3.5" />
+            </div>
           </div>
           <div className="mt-2">
-            <span className="font-sans font-bold text-lg text-white">
+            <span className="font-sans font-bold text-base sm:text-xl text-white">
               {stats.wishlistCount || 0} <span className="text-xs font-normal text-zinc-400">Saved</span>
             </span>
             <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
@@ -343,7 +351,7 @@ export function AnalyticsTab({
 
       {/* ⚠️ STORE ALERTS & PENDING TASKS (If any open tickets or pending KYCs) */}
       {(stats.openTickets > 0 || stats.pendingKYCs > 0) && (
-        <div className="bg-amber-950/25 border border-amber-500/30 rounded-lg p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="bg-amber-950/20 border border-amber-500/30 rounded-xl p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5">
             <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 animate-pulse" />
             <div>
@@ -357,12 +365,12 @@ export function AnalyticsTab({
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-end sm:self-auto">
             {stats.openTickets > 0 && setActiveTab && (
               <button
                 type="button"
                 onClick={() => setActiveTab('tickets')}
-                className="px-2.5 py-1 text-[11px] font-medium bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 rounded transition-all cursor-pointer flex items-center gap-1"
+                className="px-2.5 py-1 text-[11px] font-medium bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 rounded-lg transition-all cursor-pointer flex items-center gap-1"
               >
                 View Tickets <ArrowRight className="w-3 h-3" />
               </button>
@@ -371,7 +379,7 @@ export function AnalyticsTab({
               <button
                 type="button"
                 onClick={() => setActiveTab('kyc')}
-                className="px-2.5 py-1 text-[11px] font-medium bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 text-blue-200 rounded transition-all cursor-pointer flex items-center gap-1"
+                className="px-2.5 py-1 text-[11px] font-medium bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 text-blue-200 rounded-lg transition-all cursor-pointer flex items-center gap-1"
               >
                 Review KYCs <ArrowRight className="w-3 h-3" />
               </button>
@@ -382,44 +390,44 @@ export function AnalyticsTab({
 
       {/* 🎯 FILTERED PERIOD SUMMARY BANNER (Minimalist & Detailed) */}
       {(filterStartDate || filterEndDate) && (
-        <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-4 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-zinc-900">
+        <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3.5 sm:p-4 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-white/[0.08]">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               <h4 className="font-sans font-bold text-xs uppercase tracking-wide text-zinc-200">
                 Filtered Period Performance
               </h4>
             </div>
-            <span className="text-[10px] text-zinc-500 font-mono">
+            <span className="text-[10px] text-zinc-400 font-mono">
               {filterStartDate || 'Earliest'} → {filterEndDate || 'Latest'}
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="bg-zinc-950/70 border border-zinc-800/70 rounded p-3">
-              <span className="text-[10px] text-zinc-500 block uppercase">Period Revenue</span>
-              <p className="font-sans font-bold text-lg text-white mt-1">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+            <div className="bg-white/[0.02] border border-white/[0.06] rounded-lg p-3">
+              <span className="text-[10px] text-zinc-400 block uppercase font-sans">Period Revenue</span>
+              <p className="font-sans font-bold text-base sm:text-lg text-white mt-1">
                 ₹{filteredMetrics.revenue.toLocaleString()}
               </p>
             </div>
 
-            <div className="bg-zinc-950/70 border border-zinc-800/70 rounded p-3">
-              <span className="text-[10px] text-zinc-500 block uppercase">Total Sales</span>
-              <p className="font-sans font-bold text-lg text-white mt-1">
+            <div className="bg-white/[0.02] border border-white/[0.06] rounded-lg p-3">
+              <span className="text-[10px] text-zinc-400 block uppercase font-sans">Total Sales</span>
+              <p className="font-sans font-bold text-base sm:text-lg text-white mt-1">
                 {filteredMetrics.count} <span className="text-xs font-normal text-zinc-400">orders</span>
               </p>
             </div>
 
-            <div className="bg-zinc-950/70 border border-zinc-800/70 rounded p-3">
-              <span className="text-[10px] text-zinc-500 block uppercase">Average Order (AOV)</span>
-              <p className="font-sans font-bold text-lg text-white mt-1">
+            <div className="bg-white/[0.02] border border-white/[0.06] rounded-lg p-3">
+              <span className="text-[10px] text-zinc-400 block uppercase font-sans">Average Order (AOV)</span>
+              <p className="font-sans font-bold text-base sm:text-lg text-white mt-1">
                 ₹{filteredMetrics.aov.toLocaleString()}
               </p>
             </div>
 
-            <div className="bg-zinc-950/70 border border-zinc-800/70 rounded p-3">
-              <span className="text-[10px] text-zinc-500 block uppercase">Unique Buyers</span>
-              <p className="font-sans font-bold text-lg text-white mt-1">
+            <div className="bg-white/[0.02] border border-white/[0.06] rounded-lg p-3">
+              <span className="text-[10px] text-zinc-400 block uppercase font-sans">Unique Buyers</span>
+              <p className="font-sans font-bold text-base sm:text-lg text-white mt-1">
                 {filteredMetrics.uniqueBuyersCount} <span className="text-xs font-normal text-zinc-400">users</span>
               </p>
             </div>
@@ -428,16 +436,16 @@ export function AnalyticsTab({
       )}
 
       {/* TWO COLUMN GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-5">
         
         {/* LEFT COLUMN: INTERACTIVE CHART & DISTRIBUTION (2 cols) */}
-        <div className="lg:col-span-2 space-y-5">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-5">
           
           {/* 1. PERFORMANCE & VOLATILITY CHART */}
-          <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-4 sm:p-5 shadow-sm">
+          <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3.5 sm:p-5 shadow-sm">
             
             {/* Chart Header & Controls */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-zinc-900">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-white/[0.08]">
               <div>
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-zinc-400" />
@@ -445,13 +453,13 @@ export function AnalyticsTab({
                     Sales & Growth Trends
                   </h3>
                 </div>
-                <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">
+                <p className="text-[10px] text-zinc-400 mt-0.5 font-mono">
                   Performance and activity over time
                 </p>
               </div>
 
               {/* Segmented Metric Control */}
-              <div className="inline-flex items-center bg-zinc-950 p-1 rounded-md border border-zinc-800/80">
+              <div className="inline-flex items-center bg-black/40 p-1 rounded-lg border border-white/[0.08] self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => {
@@ -669,15 +677,15 @@ export function AnalyticsTab({
           </div>
 
           {/* 2. TOP SELLING PRODUCTS */}
-          <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-4 sm:p-5 shadow-sm">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-900">
+          <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3.5 sm:p-5 shadow-sm">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
                 <Package className="w-4 h-4 text-zinc-400" />
                 <h3 className="font-sans font-bold text-sm text-zinc-100">
                   Top Selling Products
                 </h3>
               </div>
-              <span className="text-[10px] text-zinc-500 font-mono">
+              <span className="text-[10px] text-zinc-400 font-mono">
                 Top {topPacks.length} by revenue
               </span>
             </div>
@@ -697,7 +705,7 @@ export function AnalyticsTab({
                           <span className="text-zinc-600 font-mono text-[10px] font-semibold">
                             #{String(idx + 1).padStart(2, '0')}
                           </span>
-                          <span className="text-zinc-200 font-medium truncate" title={pack.name}>
+                          <span className="text-zinc-200 font-medium truncate max-w-[140px] sm:max-w-[280px]" title={pack.name}>
                             {pack.name}
                           </span>
                         </div>
@@ -705,13 +713,13 @@ export function AnalyticsTab({
                           <span className="font-sans font-semibold text-white">
                             ₹{pack.revenue.toLocaleString()}
                           </span>
-                          <span className="text-zinc-500 font-mono text-[10px]">
+                          <span className="text-zinc-400 font-mono text-[10px]">
                             ({pack.sales} {pack.sales === 1 ? 'sale' : 'sales'} · {percent}% share)
                           </span>
                         </div>
                       </div>
 
-                      <div className="w-full bg-zinc-900/90 h-2 rounded-full overflow-hidden">
+                      <div className="w-full bg-white/[0.05] h-2 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-blue-500 rounded-full transition-all duration-500 group-hover:bg-blue-400"
                           style={{ width: `${Math.max(percent, 4)}%` }}
@@ -727,25 +735,25 @@ export function AnalyticsTab({
         </div>
 
         {/* RIGHT COLUMN: GLOBAL DETAILED KPI CARDS & RECENT ORDERS (1 col) */}
-        <div className="space-y-5">
+        <div className="space-y-4 sm:space-y-5">
           
           {/* GLOBAL KPI CARDS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-3.5">
             
             {/* Card 1: Total Revenue */}
-            <div className="bg-[#0e0e11] border border-zinc-800/80 hover:border-zinc-700/80 rounded-lg p-4 transition-all shadow-sm group">
+            <div className="bg-[#0a0a0d] border border-white/[0.08] hover:border-white/[0.15] rounded-xl p-4 transition-all shadow-sm group">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
                   Total Revenue
                 </span>
-                <div className="p-1.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
                   <DollarSign className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <p className="font-sans font-bold text-2xl text-white mt-2 tracking-tight">
+              <p className="font-sans font-bold text-xl sm:text-2xl text-white mt-2 tracking-tight">
                 ₹{stats.totalRevenueINR.toLocaleString()}
               </p>
-              <div className="mt-2.5 pt-2 border-t border-zinc-900/80 flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
+              <div className="mt-2.5 pt-2 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
                 <span>Avg Order: ₹{kpiDetails.aov.toLocaleString()}</span>
                 <span>{kpiDetails.paidCount} paid orders</span>
               </div>
@@ -757,59 +765,59 @@ export function AnalyticsTab({
             </div>
 
             {/* Card 2: Total Customers */}
-            <div className="bg-[#0e0e11] border border-zinc-800/80 hover:border-zinc-700/80 rounded-lg p-4 transition-all shadow-sm group">
+            <div className="bg-[#0a0a0d] border border-white/[0.08] hover:border-white/[0.15] rounded-xl p-4 transition-all shadow-sm group">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
                   Total Customers
                 </span>
-                <div className="p-1.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                <div className="p-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
                   <Users className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <p className="font-sans font-bold text-2xl text-white mt-2 tracking-tight">
+              <p className="font-sans font-bold text-xl sm:text-2xl text-white mt-2 tracking-tight">
                 {stats.totalUsers} <span className="text-sm font-normal text-zinc-400">Customers</span>
               </p>
-              <div className="mt-2.5 pt-2 border-t border-zinc-900/80 flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
+              <div className="mt-2.5 pt-2 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
                 <span>{kpiDetails.uniqueBuyers} paying buyers</span>
                 <span className="text-emerald-400">{kpiDetails.buyerConversion}% conversion</span>
               </div>
             </div>
 
             {/* Card 3: Total Orders (Replaced Secure Vault Deliveries) */}
-            <div className="bg-[#0e0e11] border border-zinc-800/80 hover:border-zinc-700/80 rounded-lg p-4 transition-all shadow-sm group">
+            <div className="bg-[#0a0a0d] border border-white/[0.08] hover:border-white/[0.15] rounded-xl p-4 transition-all shadow-sm group">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
                   Total Orders
                 </span>
-                <div className="p-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                   <ShoppingCart className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <p className="font-sans font-bold text-2xl text-white mt-2 tracking-tight">
+              <p className="font-sans font-bold text-xl sm:text-2xl text-white mt-2 tracking-tight">
                 {kpiDetails.paidCount} <span className="text-sm font-normal text-zinc-400">Paid Orders</span>
               </p>
-              <div className="mt-2.5 pt-2 border-t border-zinc-900/80 flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
+              <div className="mt-2.5 pt-2 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
                 <span>₹{stats.totalRevenueINR.toLocaleString()} paid volume</span>
-                <span className="text-zinc-500">
+                <span className="text-zinc-400">
                   {kpiDetails.freeCount || (stats.totalDownloads > kpiDetails.paidCount ? stats.totalDownloads - kpiDetails.paidCount : 0)} free claims
                 </span>
               </div>
             </div>
 
             {/* Card 4: Total Products (Replaced Catalog Inventory) */}
-            <div className="bg-[#0e0e11] border border-zinc-800/80 hover:border-zinc-700/80 rounded-lg p-4 transition-all shadow-sm group">
+            <div className="bg-[#0a0a0d] border border-white/[0.08] hover:border-white/[0.15] rounded-xl p-4 transition-all shadow-sm group">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
                   Total Products
                 </span>
-                <div className="p-1.5 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-400">
+                <div className="p-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400">
                   <Package className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <p className="font-sans font-bold text-2xl text-white mt-2 tracking-tight">
+              <p className="font-sans font-bold text-xl sm:text-2xl text-white mt-2 tracking-tight">
                 {stats.samplePacksCount || 0} <span className="text-sm font-normal text-zinc-400">Products</span>
               </p>
-              <div className="mt-2.5 pt-2 border-t border-zinc-900/80 flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
+              <div className="mt-2.5 pt-2 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
                 <span>Published in store</span>
                 <span>{stats.wishlistCount || 0} saved in wishlist</span>
               </div>
@@ -817,9 +825,9 @@ export function AnalyticsTab({
 
           </div>
 
-          {/* RECENT ORDERS FEED (Replaced Latest Vault Sales) */}
-          <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-4 shadow-sm">
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-zinc-900">
+          {/* RECENT ORDERS FEED */}
+          <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3.5 sm:p-4 shadow-sm">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="w-4 h-4 text-zinc-400" />
                 <h3 className="font-sans font-bold text-xs uppercase tracking-wide text-zinc-200">
@@ -856,16 +864,16 @@ export function AnalyticsTab({
                   return (
                     <div
                       key={idx}
-                      className="bg-zinc-950/60 border border-zinc-900 hover:border-zinc-800 rounded p-2.5 transition-colors flex items-center justify-between gap-2.5"
+                      className="bg-white/[0.02] border border-white/[0.06] hover:border-white/[0.12] rounded-lg p-2.5 transition-colors flex items-center justify-between gap-2.5"
                     >
                       <div className="min-w-0">
                         <p
-                          className="font-sans font-medium text-zinc-200 text-xs truncate max-w-[150px]"
+                          className="font-sans font-medium text-zinc-200 text-xs truncate max-w-[120px] sm:max-w-[170px]"
                           title={sale.pack_name}
                         >
                           {sale.pack_name}
                         </p>
-                        <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">
+                        <p className="text-[10px] text-zinc-400 mt-0.5 font-mono">
                           #{sale.user_id ? sale.user_id.slice(0, 8) : 'guest'} · {dateStr}
                         </p>
                       </div>
