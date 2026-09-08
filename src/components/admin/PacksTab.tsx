@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, Search, X, Check, RefreshCw, ArrowRightLeft } from 'lucide-react'
+import { Plus, Edit2, Trash2, Search, X, Check } from 'lucide-react'
 import { saveSamplePack, deleteSamplePack, getLiveExchangeRate } from '@/app/actions'
 
 interface PacksTabProps {
@@ -249,16 +249,9 @@ export function PacksTab({
                         {cat?.name || 'No category'}
                       </span>
                     </td>
-                    <td className="p-4 text-right font-mono font-medium">
+                    <td className="p-4 text-right font-mono">
                       <p className="text-white text-xs font-bold">₹{pack.price_inr} <span className="text-[9px] text-zinc-500 line-through">₹{pack.mrp_inr}</span></p>
-                      <div className="flex items-center justify-end gap-1.5 mt-1">
-                        <span className="text-studio-neon text-[10px] font-black">${pack.price_usd}</span>
-                        {pack.price_usd > 0 && exchangeRate > 0 && (
-                          <span className="text-[8px] text-zinc-400 bg-zinc-800/80 px-1 py-0.5 rounded border border-zinc-700">
-                            ≈ ₹{Math.round(pack.price_usd * exchangeRate)}
-                          </span>
-                        )}
-                      </div>
+                      <p className="text-zinc-400 text-[10px] font-medium mt-0.5">${pack.price_usd}</p>
                     </td>
                     <td className="p-4 text-center font-mono text-xs text-white font-medium">
                       {pack.bundle_credit_cost} CR
@@ -354,42 +347,11 @@ export function PacksTab({
                 />
               </div>
 
-              {/* LIVE EXCHANGE RATE INFO TICKER */}
-              <div className="md:col-span-2 bg-[#16161a] border border-studio-yellow/40 p-3 rounded flex flex-wrap items-center justify-between gap-2 shadow-sm">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-studio-neon animate-pulse" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-300">
-                    Live Exchange Rate: <span className="text-studio-yellow font-black font-mono">1 USD = ₹{exchangeRate.toFixed(2)} INR</span>
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setRateLoading(true)
-                    try {
-                      const info = await getLiveExchangeRate()
-                      if (info?.rate) {
-                        setExchangeRate(info.rate)
-                        showToast(`Refreshed Live Rate: 1 USD = ₹${info.rate.toFixed(2)}`, 'success')
-                      }
-                    } catch (e) {
-                      showToast('Failed to refresh exchange rate', 'error')
-                    } finally {
-                      setRateLoading(false)
-                    }
-                  }}
-                  className="px-2.5 py-1 bg-black hover:bg-zinc-800 border border-zinc-700 text-[9px] font-bold text-zinc-300 hover:text-white rounded flex items-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <RefreshCw className={`w-3 h-3 ${rateLoading ? 'animate-spin' : ''}`} />
-                  <span>Refresh Rate</span>
-                </button>
-              </div>
-
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-[10px] font-black uppercase text-zinc-400">PRICE INR (₹)</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">PRICE INR (₹)</label>
                   {activePack.price_inr > 0 && exchangeRate > 0 && (
-                    <span className="text-[9px] text-studio-yellow font-bold font-mono">
+                    <span className="text-[9px] font-mono text-zinc-500 font-bold">
                       ≈ ${(activePack.price_inr / exchangeRate).toFixed(2)} USD
                     </span>
                   )}
@@ -401,24 +363,10 @@ export function PacksTab({
                   onChange={e => setActivePack((prev: any) => ({ ...prev, price_inr: Number(e.target.value) }))}
                   className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
                 />
-                {activePack.price_inr > 0 && exchangeRate > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const usd = Math.round((activePack.price_inr / exchangeRate) * 100) / 100
-                      setActivePack((prev: any) => ({ ...prev, price_usd: usd }))
-                      showToast(`Calculated USD Price: ${usd} from ₹${activePack.price_inr}`, 'success')
-                    }}
-                    className="mt-1.5 text-[8.5px] text-studio-neon hover:underline font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer"
-                  >
-                    <ArrowRightLeft className="w-2.5 h-2.5" />
-                    <span>Auto-Set USD Price (${(activePack.price_inr / exchangeRate).toFixed(2)})</span>
-                  </button>
-                )}
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">MRP INR (STRIKE-THROUGH)</label>
+                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-1.5 tracking-wider">MRP INR (STRIKE-THROUGH)</label>
                 <input
                   type="number"
                   value={activePack.mrp_inr || ''}
@@ -428,10 +376,10 @@ export function PacksTab({
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-[10px] font-black uppercase text-zinc-400">PRICE USD ($)</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[10px] font-black uppercase text-zinc-400 tracking-wider">PRICE USD ($)</label>
                   {activePack.price_usd > 0 && exchangeRate > 0 && (
-                    <span className="text-[9px] text-studio-neon font-bold font-mono">
+                    <span className="text-[9px] font-mono text-zinc-500 font-bold">
                       ≈ ₹{Math.round(activePack.price_usd * exchangeRate)} INR
                     </span>
                   )}
@@ -443,65 +391,6 @@ export function PacksTab({
                   value={activePack.price_usd}
                   onChange={e => setActivePack((prev: any) => ({ ...prev, price_usd: Number(e.target.value) }))}
                   className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
-                />
-                {activePack.price_usd > 0 && exchangeRate > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const inr = Math.round(activePack.price_usd * exchangeRate)
-                      setActivePack((prev: any) => ({ ...prev, price_inr: inr }))
-                      showToast(`Calculated INR Price: ₹${inr} from ${activePack.price_usd}`, 'success')
-                    }}
-                    className="mt-1.5 text-[8.5px] text-studio-yellow hover:underline font-bold uppercase tracking-wider flex items-center gap-1 cursor-pointer"
-                  >
-                    <ArrowRightLeft className="w-2.5 h-2.5" />
-                    <span>Auto-Set INR Price (₹{Math.round(activePack.price_usd * exchangeRate)})</span>
-                  </button>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">BUNDLE CREDIT COST</label>
-                <input
-                  type="number"
-                  required
-                  value={activePack.bundle_credit_cost}
-                  onChange={e => setActivePack((prev: any) => ({ ...prev, bundle_credit_cost: Number(e.target.value) }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">COVER COVER_URL</label>
-                <input
-                  type="text"
-                  value={activePack.cover_url || ''}
-                  onChange={e => setActivePack((prev: any) => ({ ...prev, cover_url: e.target.value }))}
-                  placeholder="https://drive.google.com/..."
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">CATEGORY BINDING</label>
-                <select
-                  value={activePack.category_id || ''}
-                  onChange={e => setActivePack((prev: any) => ({ ...prev, category_id: e.target.value }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold"
-                >
-                  {categories.map((c: any) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">DISPLAY PRIORITY RANK (MANUAL)</label>
-                <input
-                  type="number"
-                  value={activePack.display_rank || 0}
-                  onChange={e => setActivePack((prev: any) => ({ ...prev, display_rank: Number(e.target.value) }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-yellow font-bold font-mono"
                 />
               </div>
 

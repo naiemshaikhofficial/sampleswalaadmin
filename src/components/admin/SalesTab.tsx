@@ -195,37 +195,27 @@ export function SalesTab({
                         </div>
                       </td>
                       <td className="p-4 text-center">
-                        <div className="inline-block bg-black border border-zinc-800 p-2.5 font-mono text-left font-medium">
-                          <p className="text-[10px] text-zinc-500 font-sans">PAYMENT TOTAL:</p>
+                        <div className="inline-block bg-black border border-zinc-800 p-2.5 font-mono text-left font-medium min-w-[120px]">
+                          <p className="text-[9px] text-zinc-500 font-sans uppercase font-bold tracking-wider">Total Paid:</p>
                           {s.is_usd ? (
-                            <div>
-                              <p className="text-base font-black text-studio-neon mt-0.5">
+                            <div className="mt-0.5">
+                              <p className="text-sm font-black text-studio-neon leading-tight">
                                 ${Number(s.original_amount !== undefined ? s.original_amount : s.amount).toFixed(2)}{' '}
-                                <span className="text-[9px] font-bold text-zinc-400">USD</span>
+                                <span className="text-[8.5px] text-zinc-500 font-sans font-bold">USD</span>
                               </p>
-                              <div className="mt-1 inline-flex items-center gap-1 bg-[#00FF94]/10 border border-[#00FF94]/30 px-1.5 py-0.5 rounded text-[9px] font-bold text-[#00FF94]">
-                                <span>≈ ₹{s.converted_amount_inr?.toLocaleString() || Math.round(Number(s.amount) * 90)} INR</span>
-                                <span className="text-zinc-500 font-normal text-[8px]">(@ ₹{s.exchange_rate?.toFixed(1) || '90'}/$)</span>
-                              </div>
+                              <p className="text-[10px] text-zinc-400 mt-1 leading-none">
+                                ≈ ₹{(s.converted_amount_inr ?? Math.round(Number(s.amount) * 90)).toLocaleString()}
+                              </p>
                             </div>
                           ) : (
-                            <p className="text-base font-bold text-zinc-100 mt-0.5">
+                            <p className="text-sm font-bold text-zinc-100 mt-0.5 leading-tight">
                               {Number(s.amount) === 0 ? (
-                                <span className="text-[#00FF94] font-black">FREE CLAIM (₹0)</span>
+                                <span className="text-studio-neon font-bold text-xs uppercase tracking-wider">Free Claim</span>
                               ) : (
-                                `₹${s.amount?.toLocaleString()}`
+                                `₹${Number(s.amount).toLocaleString()}`
                               )}
                             </p>
                           )}
-                          {s.coupon && (
-                            <div className="mt-1 text-[8px] font-black uppercase text-studio-yellow">
-                              🏷️ {s.coupon.code} ({s.coupon.discount_percent}% OFF)
-                            </div>
-                          )}
-                          <div className="mt-2 border-t border-zinc-900 pt-1.5 space-y-0.5 font-medium font-mono text-[8px] tracking-tight uppercase text-zinc-400">
-                            <p>ORD: <span className="text-studio-neon">{s.razorpay_order_id}</span></p>
-                            <p>PAY: <span className="text-studio-pink">{s.razorpay_payment_id}</span></p>
-                          </div>
                         </div>
                       </td>
                       <td className="p-4 text-center font-mono text-[10px] font-medium text-zinc-500">

@@ -1,13 +1,28 @@
 'use client'
 
 import React from 'react'
-import { DollarSign, Users, Activity, TrendingUp, Sparkles, Layers, Coins, Calendar } from 'lucide-react'
+import {
+  DollarSign,
+  Users,
+  Activity,
+  Layers,
+  Coins,
+  Calendar,
+  ArrowUpRight,
+  TrendingUp,
+  Clock,
+  Sparkles,
+  Ticket
+} from 'lucide-react'
 
 interface VaultSale {
   pack_name: string
   user_id: string
   created_at: string
   amount: number
+  is_usd?: boolean
+  original_amount?: number
+  converted_amount_inr?: number
 }
 
 interface AnalyticsStats {
@@ -48,12 +63,12 @@ export function AnalyticsTab({
   tickets = []
 }: AnalyticsTabProps) {
   const [activeMetric, setActiveMetric] = React.useState<'revenue' | 'signups' | 'tickets'>('revenue')
-  const [hoveredPoint, setHoveredPoint] = React.useState<{ date: string; value: number } | null>(null)
+  const [hoveredPointIndex, setHoveredPointIndex] = React.useState<number | null>(null)
 
-  // Group metric data by date for the line chart
+  // 1. Group metric data chronologically
   const chartData = React.useMemo(() => {
     const groups: Record<string, number> = {}
-    
+
     if (activeMetric === 'revenue') {
       vaultSalesList.forEach(s => {
         if (!s.created_at) return
@@ -78,55 +93,63 @@ export function AnalyticsTab({
       })
     }
 
-    // Sort by chronological order
+    const currentYear = new Date().getFullYear()
     return Object.entries(groups)
-      .map(([date, value]) => {
-        const currentYear = new Date().getFullYear()
-        const timestamp = new Date(`${date}, ${currentYear}`).getTime()
-        return { date, value, timestamp }
-      })
+      .map(([date, value]) => ({
+        date,
+        value,
+        timestamp: new Date(`${date}, ${currentYear}`).getTime()
+      }))
       .sort((a, b) => a.timestamp - b.timestamp)
-      .slice(-7) // Show last 7 active days
+      .slice(-7) // Last 7 active data points
   }, [activeMetric, vaultSalesList, usersList, tickets])
 
-  // Get SVG coordinate points
+  // Chart summary stats
+  const chartSummary = React.useMemo(() => {
+    if (chartData.length === 0) return { total: 0, peak: { date: '-', value: 0 }, avg: 0 }
+    const total = chartData.reduce((acc, d) => acc + d.value, 0)
+    const peak = chartData.reduce((max, d) => (d.value > max.value ? d : max), chartData[0])
+    const avg = Math.round(total / chartData.length)
+    return { total, peak, avg }
+  }, [chartData])
+
+  // SVG layout calculations
   const lineChartPoints = React.useMemo(() => {
     let data = chartData
     if (data.length === 0) {
       data = [
         { date: 'Day 1', value: 0, timestamp: 0 },
-        { date: 'Day 2', value: 0, timestamp: 0 }
-      ]
-    } else if (data.length === 1) {
-      data = [
-        { date: 'Day 0', value: 0, timestamp: 0 },
-        ...data
+        { date: 'Day 2', value: 0, timestamp: 1 },
+        { date: 'Day 3', value: 0, timestamp: 2 },
+        { date: 'Day 4', value: 0, timestamp: 3 }
       ]
     }
 
-    const maxVal = Math.max(...data.map(d => d.value), activeMetric === 'revenue' ? 500 : 5)
-    const width = 500
-    const height = 150
-    const paddingLeft = 45
-    const paddingRight = 15
-    const paddingTop = 15
-    const paddingBottom = 25
+    const width = 760
+    const height = 220
+    const paddingLeft = 55
+    const paddingRight = 25
+    const paddingTop = 20
+    const paddingBottom = 30
 
     const graphWidth = width - paddingLeft - paddingRight
     const graphHeight = height - paddingTop - paddingBottom
 
+    const rawMax = Math.max(...data.map(d => d.value), 0)
+    // Add headroom
+    const maxVal = rawMax === 0 ? (activeMetric === 'revenue' ? 2000 : 10) : Math.ceil(rawMax * 1.15)
+
     const points = data.map((d, i) => {
-      const x = paddingLeft + (i / (data.length - 1)) * graphWidth
-      const y = paddingTop + graphHeight - (d.value / maxVal) * graphHeight
+      const x = paddingLeft + (data.length > 1 ? (i / (data.length - 1)) * graphWidth : graphWidth / 2)
+      const y = height - paddingBottom - (d.value / maxVal) * graphHeight
       return { x, y, date: d.date, value: d.value }
     })
 
-    // Create line path "M x1 y1 L x2 y2 ..."
     const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ')
-    // Create fill path for gradient
-    const areaPath = points.length > 0 
-      ? `${linePath} L ${points[points.length - 1].x.toFixed(1)} ${(height - paddingBottom).toFixed(1)} L ${points[0].x.toFixed(1)} ${(height - paddingBottom).toFixed(1)} Z`
-      : ''
+    const areaPath =
+      points.length > 0
+        ? `${linePath} L ${points[points.length - 1].x.toFixed(1)} ${(height - paddingBottom).toFixed(1)} L ${points[0].x.toFixed(1)} ${(height - paddingBottom).toFixed(1)} Z`
+        : ''
 
     return {
       points,
@@ -137,10 +160,32 @@ export function AnalyticsTab({
       height,
       paddingLeft,
       paddingBottom,
-      graphWidth,
       graphHeight
     }
   }, [chartData, activeMetric])
+
+  // Detailed calculations for Global KPI Cards
+  const kpiDetails = React.useMemo(() => {
+    const paidSales = vaultSalesList.filter(s => Number(s.amount) > 0)
+    const freeSales = vaultSalesList.filter(s => Number(s.amount) === 0)
+    const uniqueBuyers = new Set(vaultSalesList.map(s => s.user_id).filter(Boolean)).size
+    const aov = paidSales.length > 0 ? Math.round(stats.totalRevenueINR / paidSales.length) : 0
+    const buyerConversion =
+      stats.totalUsers > 0 ? ((uniqueBuyers / stats.totalUsers) * 100).toFixed(1) : '0.0'
+    const usdOrders = vaultSalesList.filter(s => s.is_usd)
+    const downloadsPerUser =
+      stats.totalUsers > 0 ? (stats.totalDownloads / stats.totalUsers).toFixed(1) : '0'
+
+    return {
+      paidCount: paidSales.length,
+      freeCount: freeSales.length,
+      uniqueBuyers,
+      aov,
+      buyerConversion,
+      usdCount: usdOrders.length,
+      downloadsPerUser
+    }
+  }, [vaultSalesList, stats])
 
   // Top Selling Sample Packs
   const topPacks = React.useMemo(() => {
@@ -158,421 +203,529 @@ export function AnalyticsTab({
     return Object.entries(counts)
       .map(([name, data]) => ({ name, ...data }))
       .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 4) // Show top 4 bestsellers
+      .slice(0, 4)
   }, [vaultSalesList])
 
-  const maxPackRevenue = React.useMemo(() => {
-    return Math.max(...topPacks.map(p => p.revenue), 100)
+  const totalTopRevenue = React.useMemo(() => {
+    return topPacks.reduce((acc, p) => acc + p.revenue, 0) || 1
   }, [topPacks])
 
+  const activePoint = hoveredPointIndex !== null ? lineChartPoints.points[hoveredPointIndex] : null
+
+  const metricColor =
+    activeMetric === 'revenue'
+      ? { stroke: '#0074e4', fillGradient: '#0074e4', text: 'text-blue-400', badge: 'bg-blue-500/10 text-blue-400 border-blue-500/20' }
+      : activeMetric === 'signups'
+      ? { stroke: '#00FF94', fillGradient: '#00FF94', text: 'text-emerald-400', badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' }
+      : { stroke: '#BF00FF', fillGradient: '#BF00FF', text: 'text-purple-400', badge: 'bg-purple-500/10 text-purple-400 border-purple-500/20' }
 
   return (
-    <div className="space-y-6 animate-fadeIn font-mono text-xs uppercase">
+    <div className="space-y-5 animate-fadeIn font-mono text-xs">
       
-      {/* 🎯 DYNAMIC PERIOD METRICS SUMMARY */}
+      {/* 🎯 FILTERED PERIOD SUMMARY BANNER (Minimalist & Detailed) */}
       {(filterStartDate || filterEndDate) && (
-        <div className="border-4 border-black p-5 bg-[#121212] shadow-premium animate-fadeIn relative">
-          <div className="absolute top-0 right-0 bg-studio-neon text-black font-black uppercase text-[8px] border-l-4 border-b-4 border-black px-2 py-0.5">
-            FILTERED PERIOD ACTIVE
-          </div>
-
-          <div className="flex items-center gap-2.5 border-b-2 border-black pb-3 mb-4">
-            <Calendar className="w-5 h-5 text-studio-neon" />
-            <div>
-              <h3 className="font-sans font-black text-sm text-zinc-100 leading-none">
-                🎯 DYNAMIC METRICS SUMMARY
-              </h3>
-              <span className="text-[8px] font-black text-zinc-500 block mt-1 leading-none">
-                RANGE: {filterStartDate || 'EARLIEST'} TO {filterEndDate || 'LATEST'}
-              </span>
+        <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-4 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-zinc-900">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <h4 className="font-sans font-bold text-xs uppercase tracking-wide text-zinc-200">
+                Filtered Period Performance
+              </h4>
             </div>
+            <span className="text-[10px] text-zinc-500 font-mono">
+              {filterStartDate || 'Earliest'} → {filterEndDate || 'Latest'}
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-black border-2 border-black p-4 relative overflow-hidden group shadow-premium-sm">
-              <p className="text-[8px] font-black text-zinc-500 leading-none">PERIOD REVENUE</p>
-              <p className="font-sans font-bold text-xl text-studio-pink mt-2 leading-none">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-zinc-950/70 border border-zinc-800/70 rounded p-3">
+              <span className="text-[10px] text-zinc-500 block uppercase">Period Revenue</span>
+              <p className="font-sans font-bold text-lg text-white mt-1">
                 ₹{filteredMetrics.revenue.toLocaleString()}
               </p>
             </div>
 
-            <div className="bg-black border-2 border-black p-4 relative overflow-hidden group shadow-premium-sm">
-              <p className="text-[8px] font-black text-zinc-500 leading-none">TOTAL ACQUISITIONS</p>
-              <p className="font-sans font-bold text-xl text-studio-neon mt-2 leading-none">
-                {filteredMetrics.count} SALES
+            <div className="bg-zinc-950/70 border border-zinc-800/70 rounded p-3">
+              <span className="text-[10px] text-zinc-500 block uppercase">Total Sales</span>
+              <p className="font-sans font-bold text-lg text-white mt-1">
+                {filteredMetrics.count} <span className="text-xs font-normal text-zinc-400">orders</span>
               </p>
             </div>
 
-            <div className="bg-black border-2 border-black p-4 relative overflow-hidden group shadow-premium-sm">
-              <p className="text-[8px] font-black text-zinc-500 leading-none">AVERAGE VALUE (AOV)</p>
-              <p className="font-sans font-bold text-xl text-studio-yellow mt-2 leading-none">
+            <div className="bg-zinc-950/70 border border-zinc-800/70 rounded p-3">
+              <span className="text-[10px] text-zinc-500 block uppercase">Average Order (AOV)</span>
+              <p className="font-sans font-bold text-lg text-white mt-1">
                 ₹{filteredMetrics.aov.toLocaleString()}
               </p>
             </div>
 
-            <div className="bg-black border-2 border-black p-4 relative overflow-hidden group shadow-premium-sm">
-              <p className="text-[8px] font-black text-zinc-500 leading-none">UNIQUE BUYERS</p>
-              <p className="font-sans font-bold text-xl text-studio-blue mt-2 leading-none">
-                {filteredMetrics.uniqueBuyersCount} USERS
+            <div className="bg-zinc-950/70 border border-zinc-800/70 rounded p-3">
+              <span className="text-[10px] text-zinc-500 block uppercase">Unique Buyers</span>
+              <p className="font-sans font-bold text-lg text-white mt-1">
+                {filteredMetrics.uniqueBuyersCount} <span className="text-xs font-normal text-zinc-400">users</span>
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* TWO COLUMN INTERACTIVE BODY */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">        {/* LEFT PANEL: CHARTS & TREND DETAILS */}
-        <div className="lg:col-span-2 space-y-6">
+      {/* TWO COLUMN GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        
+        {/* LEFT COLUMN: INTERACTIVE CHART & DISTRIBUTION (2 cols) */}
+        <div className="lg:col-span-2 space-y-5">
           
-          {/* 1. INTERACTIVE MULTI-METRIC GRAPH */}
-          <div className="border-4 border-black bg-[#121212] p-5 shadow-premium relative">
+          {/* 1. PERFORMANCE & VOLATILITY CHART */}
+          <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-4 sm:p-5 shadow-sm">
             
-            {/* NEON TOOLTIP OVERLAY */}
-            {hoveredPoint ? (
-              <div className="absolute top-4 right-4 bg-black border-2 border-black p-2 shadow-premium-sm z-10 animate-scaleIn">
-                <span className="text-[8px] text-zinc-500 block leading-none mb-1">SELECTED COORDINATE</span>
-                <span className="text-white font-bold font-mono text-[10px]">
-                  📅 {hoveredPoint.date}:{' '}
-                  <span className={
-                    activeMetric === 'revenue' ? 'text-studio-pink' :
-                    activeMetric === 'signups' ? 'text-studio-neon' : 'text-studio-purple'
-                  }>
-                    {activeMetric === 'revenue' ? `₹${hoveredPoint.value.toLocaleString()}` : `${hoveredPoint.value} COUNT`}
+            {/* Chart Header & Controls */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-zinc-900">
+              <div>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-zinc-400" />
+                  <h3 className="font-sans font-bold text-sm text-zinc-100">
+                    Activity & Volume Trends
+                  </h3>
+                </div>
+                <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">
+                  Trailing 7 active chronological periods
+                </p>
+              </div>
+
+              {/* Segmented Metric Control */}
+              <div className="inline-flex items-center bg-zinc-950 p-1 rounded-md border border-zinc-800/80">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveMetric('revenue')
+                    setHoveredPointIndex(null)
+                  }}
+                  className={`px-3 py-1 text-[11px] font-medium rounded transition-all cursor-pointer ${
+                    activeMetric === 'revenue'
+                      ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  Revenue
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveMetric('signups')
+                    setHoveredPointIndex(null)
+                  }}
+                  className={`px-3 py-1 text-[11px] font-medium rounded transition-all cursor-pointer ${
+                    activeMetric === 'signups'
+                      ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  Signups
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveMetric('tickets')
+                    setHoveredPointIndex(null)
+                  }}
+                  className={`px-3 py-1 text-[11px] font-medium rounded transition-all cursor-pointer ${
+                    activeMetric === 'tickets'
+                      ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60'
+                      : 'text-zinc-400 hover:text-zinc-200'
+                  }`}
+                >
+                  Tickets
+                </button>
+              </div>
+            </div>
+
+            {/* Micro Context Bar (Detailed Summaries) */}
+            <div className="flex flex-wrap items-center justify-between gap-3 py-3 border-b border-zinc-900/60 text-[11px]">
+              <div className="flex items-center gap-4">
+                <div>
+                  <span className="text-zinc-500 text-[10px] block uppercase">Period Total</span>
+                  <span className="font-sans font-bold text-sm text-zinc-100">
+                    {activeMetric === 'revenue' ? `₹${chartSummary.total.toLocaleString()}` : `${chartSummary.total}`}
                   </span>
-                </span>
+                </div>
+                <div className="h-6 w-[1px] bg-zinc-800" />
+                <div>
+                  <span className="text-zinc-500 text-[10px] block uppercase">Daily Average</span>
+                  <span className="font-sans font-bold text-sm text-zinc-200">
+                    {activeMetric === 'revenue' ? `₹${chartSummary.avg.toLocaleString()}` : `${chartSummary.avg}`}
+                  </span>
+                </div>
+                <div className="h-6 w-[1px] bg-zinc-800 hidden sm:block" />
+                <div className="hidden sm:block">
+                  <span className="text-zinc-500 text-[10px] block uppercase">Peak Day</span>
+                  <span className="font-sans font-semibold text-xs text-zinc-300">
+                    {chartSummary.peak.date} ({activeMetric === 'revenue' ? `₹${chartSummary.peak.value.toLocaleString()}` : chartSummary.peak.value})
+                  </span>
+                </div>
               </div>
-            ) : (
-              <div className="absolute top-4 right-4 bg-black/40 border border-zinc-800 p-1.5 z-10 text-[7px] text-zinc-500 font-bold uppercase">
-                HOVER POINTS FOR VALUES
-              </div>
-            )}
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-black pb-3 mb-4 gap-3">
-              <div className="flex items-center gap-2">
-                <Activity className="w-5 h-5 text-studio-pink" />
-                <h3 className="font-sans font-black text-sm text-zinc-100 leading-none">
-                  📊 METRICS & VOLUME VOLATILITY PATH
-                </h3>
+              {/* Active Hover / Instruction Pill */}
+              <div>
+                {activePoint ? (
+                  <div className="flex items-center gap-2 bg-zinc-900/90 border border-zinc-700/80 px-2.5 py-1 rounded">
+                    <span className="text-zinc-400 text-[10px]">{activePoint.date}:</span>
+                    <span className="font-sans font-bold text-xs text-white">
+                      {activeMetric === 'revenue' ? `₹${activePoint.value.toLocaleString()}` : `${activePoint.value}`}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-[10px] text-zinc-500 font-mono">
+                    Hover points for details
+                  </span>
+                )}
               </div>
-              <span className="text-[8px] font-black text-zinc-500 uppercase font-mono">
-                LAST 7 ACTIVE DAYS
-              </span>
             </div>
 
-            {/* METRICS SELECTOR TAB BAR (NEO-BRUTALIST TABS) */}
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveMetric('revenue')
-                  setHoveredPoint(null)
-                }}
-                className={`py-2 px-3 border-2 border-black font-black uppercase text-[9px] transition-all ${
-                  activeMetric === 'revenue'
-                    ? 'bg-studio-pink text-black shadow-premium-sm -translate-y-0.5'
-                    : 'bg-[#18181b] text-zinc-400 hover:text-zinc-200'
-                }`}
-              >
-                💸 REVENUE PATH
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveMetric('signups')
-                  setHoveredPoint(null)
-                }}
-                className={`py-2 px-3 border-2 border-black font-black uppercase text-[9px] transition-all ${
-                  activeMetric === 'signups'
-                    ? 'bg-studio-neon text-black shadow-premium-sm -translate-y-0.5'
-                    : 'bg-[#18181b] text-zinc-400 hover:text-zinc-200'
-                }`}
-              >
-                👥 SIGNUPS GROWTH
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveMetric('tickets')
-                  setHoveredPoint(null)
-                }}
-                className={`py-2 px-3 border-2 border-black font-black uppercase text-[9px] transition-all ${
-                  activeMetric === 'tickets'
-                    ? 'bg-studio-purple text-white shadow-premium-sm -translate-y-0.5'
-                    : 'bg-[#18181b] text-zinc-400 hover:text-zinc-200'
-                }`}
-              >
-                🎫 SUPPORT VOLUMES
-              </button>
-            </div>
-
-            {/* Dynamic Interactive SVG Chart */}
-            <div className="bg-black border-2 border-black p-4 relative overflow-hidden flex items-center justify-center">
+            {/* SVG Line & Area Chart (Clean & Collision-Free) */}
+            <div className="pt-4 relative">
               {chartData.length === 0 ? (
-                <div className="h-40 flex items-center justify-center text-zinc-500 font-bold text-[10px] uppercase font-mono">
-                  AWAITING LOGGED DATA TO COMPUTE METRIC VOLATILITY
+                <div className="h-44 flex items-center justify-center text-zinc-500 font-medium text-xs">
+                  No transaction or activity data logged for this timeframe
                 </div>
               ) : (
-                <div className="w-full relative">
-                  <svg 
+                <div className="w-full">
+                  <svg
                     viewBox={`0 0 ${lineChartPoints.width} ${lineChartPoints.height}`}
-                    className="w-full h-auto overflow-visible"
+                    className="w-full h-auto overflow-visible select-none"
                   >
                     <defs>
-                      <linearGradient id="chartAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop 
-                          offset="0%" 
-                          stopColor={
-                            activeMetric === 'revenue' ? '#FF0080' :
-                            activeMetric === 'signups' ? '#00FF94' : '#BF00FF'
-                          } 
-                          stopOpacity="0.4" 
-                        />
-                        <stop 
-                          offset="100%" 
-                          stopColor={
-                            activeMetric === 'revenue' ? '#FF0080' :
-                            activeMetric === 'signups' ? '#00FF94' : '#BF00FF'
-                          } 
-                          stopOpacity="0.0" 
-                        />
+                      <linearGradient id="chartGradientMinimal" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={metricColor.fillGradient} stopOpacity="0.18" />
+                        <stop offset="100%" stopColor={metricColor.fillGradient} stopOpacity="0.00" />
                       </linearGradient>
                     </defs>
 
-                    {/* Horizontal Gridlines */}
-                    {[0, 0.25, 0.5, 0.75, 1].map((r, i) => {
-                      const y = lineChartPoints.height - lineChartPoints.paddingBottom - r * lineChartPoints.graphHeight
+                    {/* Horizontal Gridlines & Y-Axis Labels */}
+                    {[0, 0.33, 0.66, 1].map((ratio, idx) => {
+                      const y = lineChartPoints.height - lineChartPoints.paddingBottom - ratio * lineChartPoints.graphHeight
+                      const labelVal = Math.round(ratio * lineChartPoints.maxVal)
                       return (
-                        <g key={i}>
-                          <line 
+                        <g key={idx}>
+                          <line
                             x1={lineChartPoints.paddingLeft}
                             y1={y}
-                            x2={lineChartPoints.width - 15}
+                            x2={lineChartPoints.width - 20}
                             y2={y}
-                            stroke="#1d1d20"
+                            stroke="#222226"
                             strokeWidth="1"
                             strokeDasharray="4 4"
                           />
-                          <text 
+                          <text
                             x={lineChartPoints.paddingLeft - 8}
-                            y={y + 3}
-                            fill="#52525b"
-                            className="text-[8px] font-mono font-bold"
+                            y={y + 3.5}
+                            fill="#71717a"
+                            className="text-[9px] font-mono"
                             textAnchor="end"
                           >
-                            {activeMetric === 'revenue' ? `₹${Math.round(r * lineChartPoints.maxVal)}` : Math.round(r * lineChartPoints.maxVal)}
+                            {activeMetric === 'revenue'
+                              ? (labelVal >= 1000 ? `₹${(labelVal / 1000).toFixed(1)}k` : `₹${labelVal}`)
+                              : labelVal}
                           </text>
                         </g>
                       )
                     })}
 
-                    {/* Gradient Area Path */}
-                    <path 
-                      d={lineChartPoints.areaPath} 
-                      fill="url(#chartAreaGradient)"
-                    />
+                    {/* Gradient Area Fill */}
+                    <path d={lineChartPoints.areaPath} fill="url(#chartGradientMinimal)" />
 
-                    {/* Volatility Line Path */}
-                    <path 
-                      d={lineChartPoints.linePath} 
-                      fill="none" 
-                      stroke={
-                        activeMetric === 'revenue' ? '#FF0080' :
-                        activeMetric === 'signups' ? '#00FF94' : '#BF00FF'
-                      } 
+                    {/* Volatility Path Line */}
+                    <path
+                      d={lineChartPoints.linePath}
+                      fill="none"
+                      stroke={metricColor.stroke}
                       strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     />
 
-                    {/* Interactive points circles */}
-                    {lineChartPoints.points.map((p, i) => (
-                      <g 
-                        key={i}
-                        className="cursor-pointer"
-                        onMouseEnter={() => setHoveredPoint({ date: p.date, value: p.value })}
-                        onMouseLeave={() => setHoveredPoint(null)}
-                      >
-                        <circle 
-                          cx={p.x} 
-                          cy={p.y} 
-                          r={hoveredPoint && hoveredPoint.date === p.date ? '6' : '4'} 
-                          fill={
-                            activeMetric === 'revenue' ? '#00FF94' :
-                            activeMetric === 'signups' ? '#FF0080' : '#FFE600'
-                          } 
-                          stroke="#000000" 
-                          strokeWidth="1.5"
-                          className="transition-all duration-150"
-                        />
-                        <text
-                          x={p.x}
-                          y={p.y - 8}
-                          fill="#ffffff"
-                          className="text-[7px] font-mono font-bold"
-                          textAnchor="middle"
+                    {/* Vertical Crosshair Line when hovering */}
+                    {activePoint && (
+                      <line
+                        x1={activePoint.x}
+                        y1={20}
+                        x2={activePoint.x}
+                        y2={lineChartPoints.height - lineChartPoints.paddingBottom}
+                        stroke="#3f3f46"
+                        strokeWidth="1"
+                        strokeDasharray="3 3"
+                      />
+                    )}
+
+                    {/* Interactive Points (No overlapping text badges!) */}
+                    {lineChartPoints.points.map((p, i) => {
+                      const isHovered = hoveredPointIndex === i
+                      return (
+                        <g
+                          key={i}
+                          className="cursor-pointer"
+                          onMouseEnter={() => setHoveredPointIndex(i)}
+                          onMouseLeave={() => setHoveredPointIndex(null)}
                         >
-                          {activeMetric === 'revenue' ? `₹${p.value}` : p.value}
-                        </text>
-                        <text
-                          x={p.x}
-                          y={lineChartPoints.height - 8}
-                          fill="#71717a"
-                          className="text-[7px] font-mono font-bold"
-                          textAnchor="middle"
-                        >
-                          {p.date}
-                        </text>
-                      </g>
-                    ))}
+                          {/* Expanded transparent hit area for easy hover */}
+                          <circle cx={p.x} cy={p.y} r="18" fill="transparent" />
+
+                          {/* Outer glow ring on hover */}
+                          {isHovered && (
+                            <circle
+                              cx={p.x}
+                              cy={p.y}
+                              r="8"
+                              fill={metricColor.stroke}
+                              fillOpacity="0.25"
+                            />
+                          )}
+
+                          {/* Point Dot */}
+                          <circle
+                            cx={p.x}
+                            cy={p.y}
+                            r={isHovered ? '5' : '3.5'}
+                            fill={isHovered ? '#ffffff' : metricColor.stroke}
+                            stroke="#0e0e11"
+                            strokeWidth="2"
+                            className="transition-all duration-150"
+                          />
+
+                          {/* X-Axis Date Label */}
+                          <text
+                            x={p.x}
+                            y={lineChartPoints.height - 10}
+                            fill={isHovered ? '#ffffff' : '#71717a'}
+                            className="text-[9px] font-mono font-medium transition-colors"
+                            textAnchor="middle"
+                          >
+                            {p.date}
+                          </text>
+                        </g>
+                      )
+                    })}
                   </svg>
                 </div>
               )}
             </div>
           </div>
 
-          {/* 2. BESTSELLING PACKS BAR DISTRIBUTION */}
-          <div className="border-4 border-black bg-[#121212] p-5 shadow-premium">
-            <div className="flex items-center gap-2 border-b-2 border-black pb-3 mb-4">
-              <Layers className="w-5 h-5 text-studio-neon" />
-              <h3 className="font-sans font-black text-sm text-zinc-100 leading-none">
-                📊 CATEGORY & PRODUCT SALES SHARE
-              </h3>
+          {/* 2. CATEGORY & PRODUCT SALES SHARE */}
+          <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-4 sm:p-5 shadow-sm">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-900">
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-zinc-400" />
+                <h3 className="font-sans font-bold text-sm text-zinc-100">
+                  Pack Sales Share & Revenue Distribution
+                </h3>
+              </div>
+              <span className="text-[10px] text-zinc-500 font-mono">
+                Top {topPacks.length} performers
+              </span>
             </div>
 
-            <div className="space-y-4 bg-black border-2 border-black p-4 shadow-premium-sm">
-              {topPacks.length === 0 ? (
-                <div className="text-center py-6 text-zinc-500 font-bold text-[10px]">
-                  NO PACK TRANSACTIONS LOGGED TO EXTRACT SHARE SUMMARY
-                </div>
-              ) : (
-                topPacks.map((pack, idx) => (
-                  <div key={idx} className="space-y-1.5">
-                    <div className="flex justify-between text-[10px] font-black uppercase">
-                      <span className="text-zinc-200 truncate max-w-[240px]">{pack.name}</span>
-                      <span className="text-studio-neon">₹{pack.revenue.toLocaleString()} ({pack.sales} sales)</span>
+            {topPacks.length === 0 ? (
+              <div className="py-6 text-center text-zinc-500 text-xs">
+                No pack sales recorded yet
+              </div>
+            ) : (
+              <div className="space-y-3.5">
+                {topPacks.map((pack, idx) => {
+                  const percent = Math.round((pack.revenue / totalTopRevenue) * 100)
+                  return (
+                    <div key={idx} className="space-y-1.5 group">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2 min-w-0 pr-2">
+                          <span className="text-zinc-600 font-mono text-[10px] font-semibold">
+                            #{String(idx + 1).padStart(2, '0')}
+                          </span>
+                          <span className="text-zinc-200 font-medium truncate" title={pack.name}>
+                            {pack.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0 text-[11px]">
+                          <span className="font-sans font-semibold text-white">
+                            ₹{pack.revenue.toLocaleString()}
+                          </span>
+                          <span className="text-zinc-500 font-mono text-[10px]">
+                            ({pack.sales} sales · {percent}%)
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="w-full bg-zinc-900/90 h-2 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-blue-500 rounded-full transition-all duration-500 group-hover:bg-blue-400"
+                          style={{ width: `${Math.max(percent, 4)}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-[#161618] border-2 border-black h-4 rounded-none overflow-hidden relative">
-                      <div 
-                        className="h-full bg-studio-pink border-r-2 border-black shadow-[0_0_8px_rgba(255,0,128,0.3)] transition-all duration-500"
-                        style={{ width: `${(pack.revenue / maxPackRevenue) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
         </div>
 
-        {/* RIGHT PANEL: OVERALL KPI NUMBERS & AUDITS */}
-        <div className="space-y-6">
+        {/* RIGHT COLUMN: GLOBAL DETAILED KPI CARDS & LATEST SALES (1 col) */}
+        <div className="space-y-5">
           
           {/* GLOBAL KPI CARDS */}
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3.5">
             
-            {/* TOTAL REVENUE OVERALL */}
-            <div className="border-4 border-black bg-[#121212] p-4 flex items-center gap-4 shadow-premium relative">
-              <div className="w-12 h-12 border-2 border-black bg-studio-yellow/15 flex items-center justify-center text-studio-yellow flex-shrink-0">
-                <DollarSign className="w-6 h-6" />
+            {/* Card 1: Total Revenue */}
+            <div className="bg-[#0e0e11] border border-zinc-800/80 hover:border-zinc-700/80 rounded-lg p-4 transition-all shadow-sm group">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
+                  Total Sales Volume
+                </span>
+                <div className="p-1.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                  <DollarSign className="w-3.5 h-3.5" />
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3 className="text-[9px] font-black text-zinc-500 leading-none">TOTAL SALES VOLUME</h3>
-                <p className="font-sans font-bold text-xl text-white mt-1.5 leading-none">
-                  ₹{stats.totalRevenueINR.toLocaleString()}
-                </p>
+              <p className="font-sans font-bold text-2xl text-white mt-2 tracking-tight">
+                ₹{stats.totalRevenueINR.toLocaleString()}
+              </p>
+              <div className="mt-2.5 pt-2 border-t border-zinc-900/80 flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
+                <span>AOV: ₹{kpiDetails.aov.toLocaleString()}</span>
+                <span>{kpiDetails.paidCount} paid orders</span>
+              </div>
+              {kpiDetails.usdCount > 0 && (
+                <div className="mt-1 text-[9px] text-emerald-400 font-mono">
+                  Includes {kpiDetails.usdCount} USD orders converted to INR
+                </div>
+              )}
+            </div>
+
+            {/* Card 2: Registered Users */}
+            <div className="bg-[#0e0e11] border border-zinc-800/80 hover:border-zinc-700/80 rounded-lg p-4 transition-all shadow-sm group">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
+                  Customer Registrations
+                </span>
+                <div className="p-1.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                  <Users className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <p className="font-sans font-bold text-2xl text-white mt-2 tracking-tight">
+                {stats.totalUsers} <span className="text-sm font-normal text-zinc-400">Users</span>
+              </p>
+              <div className="mt-2.5 pt-2 border-t border-zinc-900/80 flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
+                <span>{kpiDetails.uniqueBuyers} active buyers</span>
+                <span className="text-emerald-400">{kpiDetails.buyerConversion}% conversion</span>
               </div>
             </div>
 
-            {/* TOTAL USERS REGISTRATION */}
-            <div className="border-4 border-black bg-[#121212] p-4 flex items-center gap-4 shadow-premium relative">
-              <div className="w-12 h-12 border-2 border-black bg-studio-pink/15 flex items-center justify-center text-studio-pink flex-shrink-0">
-                <Users className="w-6 h-6" />
+            {/* Card 3: Vault Downloads */}
+            <div className="bg-[#0e0e11] border border-zinc-800/80 hover:border-zinc-700/80 rounded-lg p-4 transition-all shadow-sm group">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
+                  Secure Vault Deliveries
+                </span>
+                <div className="p-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                  <Activity className="w-3.5 h-3.5" />
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3 className="text-[9px] font-black text-zinc-500 leading-none">CUSTOMER REGISTRATIONS</h3>
-                <p className="font-sans font-bold text-xl text-white mt-1.5 leading-none">
-                  {stats.totalUsers} USERS
-                </p>
-              </div>
-            </div>
-
-            {/* DYNAMIC TOTAL DOWNLOADS */}
-            <div className="border-4 border-black bg-[#121212] p-4 flex items-center gap-4 shadow-premium relative">
-              <div className="w-12 h-12 border-2 border-black bg-studio-neon/15 flex items-center justify-center text-studio-neon flex-shrink-0">
-                <Activity className="w-6 h-6" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-[9px] font-black text-zinc-500 leading-none">SECURE ACCESS DOWNLOADS</h3>
-                <p className="font-sans font-bold text-xl text-white mt-1.5 leading-none">
-                  {stats.totalDownloads || 0} DOWNLOADS
-                </p>
+              <p className="font-sans font-bold text-2xl text-white mt-2 tracking-tight">
+                {stats.totalDownloads || 0} <span className="text-sm font-normal text-zinc-400">Downloads</span>
+              </p>
+              <div className="mt-2.5 pt-2 border-t border-zinc-900/80 flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
+                <span>Avg ~{kpiDetails.downloadsPerUser} / user</span>
+                <span className="text-zinc-500">Verified access</span>
               </div>
             </div>
 
-            {/* TOTAL PACKS IN INVENTORY */}
-            <div className="border-4 border-black bg-[#121212] p-4 flex items-center gap-4 shadow-premium relative">
-              <div className="w-12 h-12 border-2 border-black bg-studio-orange/15 flex items-center justify-center text-studio-orange flex-shrink-0">
-                <Layers className="w-6 h-6" />
+            {/* Card 4: Inventory Sample Packs */}
+            <div className="bg-[#0e0e11] border border-zinc-800/80 hover:border-zinc-700/80 rounded-lg p-4 transition-all shadow-sm group">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
+                  Catalog Inventory
+                </span>
+                <div className="p-1.5 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-400">
+                  <Layers className="w-3.5 h-3.5" />
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3 className="text-[9px] font-black text-zinc-500 leading-none">INVENTORY SAMPLE PACKS</h3>
-                <p className="font-sans font-bold text-xl text-white mt-1.5 leading-none">
-                  {stats.samplePacksCount || 0} PACKS
-                </p>
+              <p className="font-sans font-bold text-2xl text-white mt-2 tracking-tight">
+                {stats.samplePacksCount || 0} <span className="text-sm font-normal text-zinc-400">Packs</span>
+              </p>
+              <div className="mt-2.5 pt-2 border-t border-zinc-900/80 flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
+                <span>Live in catalog</span>
+                <span>{stats.wishlistCount || 0} bookmarks</span>
               </div>
             </div>
 
           </div>
 
-          {/* LATEST 5 VAULT ACQUISITIONS LIST */}
-          <div className="border-4 border-black bg-[#121212] p-5 shadow-premium">
-            <div className="flex items-center justify-between border-b-2 border-black pb-3 mb-4">
+          {/* LATEST VAULT SALES FEED */}
+          <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-4 shadow-sm">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-zinc-900">
               <div className="flex items-center gap-2">
-                <Coins className="w-5 h-5 text-studio-yellow" />
-                <h3 className="font-sans font-black text-sm text-zinc-100 leading-none">
-                  📦 LATEST VAULT SALES
+                <Coins className="w-4 h-4 text-zinc-400" />
+                <h3 className="font-sans font-bold text-xs uppercase tracking-wide text-zinc-200">
+                  Latest Vault Sales
                 </h3>
               </div>
-              <span className="text-[8px] font-black bg-black text-studio-pink px-2 py-0.5 border border-black rounded shadow-premium-sm">
-                LATEST 5
+              <span className="text-[9px] font-mono font-medium px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+                Recent 5
               </span>
             </div>
 
-            <div className="space-y-3.5">
-              {!stats.recentVaultSales || stats.recentVaultSales.length === 0 ? (
-                <div className="text-center py-6 text-zinc-500 font-bold text-[10px]">
-                  NO ACTIVE ACQUISITIONS IN SYSTEM RECORD
-                </div>
-              ) : (
-                stats.recentVaultSales.map((sale: any, idx: number) => (
-                  <div key={idx} className="bg-black border-2 border-black p-3 shadow-premium-sm flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-bold text-zinc-100 uppercase text-[10px] truncate max-w-[150px] leading-tight" title={sale.pack_name}>
-                        {sale.pack_name}
-                      </p>
-                      <p className="text-[9px] text-zinc-500 mt-1 flex items-center gap-1 font-mono">
-                        BUYER: <span className="text-zinc-400 font-black">{sale.user_id ? `${sale.user_id.slice(0, 8)}` : 'Customer'}</span>
-                      </p>
-                    </div>
+            {!stats.recentVaultSales || stats.recentVaultSales.length === 0 ? (
+              <div className="py-6 text-center text-zinc-500 text-xs font-mono">
+                No acquisitions logged yet
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {stats.recentVaultSales.map((sale: any, idx: number) => {
+                  const isFree = Number(sale.amount) === 0
+                  const dateStr = sale.created_at
+                    ? new Date(sale.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                    : ''
 
-                    <div className="text-right flex-shrink-0">
-                      <div className="text-right">
-                          <p className="font-sans font-black text-white text-[12px] leading-none">
-                            {sale.is_usd ? `${Number(sale.original_amount !== undefined ? sale.original_amount : sale.amount).toFixed(2)} USD` : (Number(sale.amount) === 0 ? 'FREE' : `₹${sale.amount || 0}`)}
-                          </p>
-                          {sale.is_usd && (
-                            <span className="text-[9px] text-[#00FF94] font-mono font-bold block mt-0.5">
-                              ≈ ₹{sale.converted_amount_inr?.toLocaleString() || Math.round(Number(sale.amount) * 90)}
-                            </span>
-                          )}
-                        </div>
-                      <span className="inline-block text-[7px] font-black uppercase px-1.5 py-0.5 mt-1.5 border border-black bg-studio-pink text-black">
-                        PAID
-                      </span>
+                  return (
+                    <div
+                      key={idx}
+                      className="bg-zinc-950/60 border border-zinc-900 hover:border-zinc-800 rounded p-2.5 transition-colors flex items-center justify-between gap-2.5"
+                    >
+                      <div className="min-w-0">
+                        <p
+                          className="font-sans font-medium text-zinc-200 text-xs truncate max-w-[150px]"
+                          title={sale.pack_name}
+                        >
+                          {sale.pack_name}
+                        </p>
+                        <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">
+                          #{sale.user_id ? sale.user_id.slice(0, 8) : 'guest'} · {dateStr}
+                        </p>
+                      </div>
+
+                      <div className="text-right flex-shrink-0">
+                        <p className="font-sans font-bold text-white text-xs">
+                          {sale.is_usd
+                            ? `$${Number(sale.original_amount !== undefined ? sale.original_amount : sale.amount).toFixed(2)}`
+                            : (isFree ? 'FREE' : `₹${sale.amount}`)}
+                        </p>
+                        {sale.is_usd && (
+                          <span className="text-[9px] text-emerald-400 font-mono block">
+                            ≈ ₹{sale.converted_amount_inr?.toLocaleString() || Math.round(Number(sale.amount) * 90)}
+                          </span>
+                        )}
+                        <span
+                          className={`inline-block text-[8px] font-sans font-semibold uppercase px-1.5 py-0.2 rounded mt-1 ${
+                            isFree
+                              ? 'bg-zinc-800 text-zinc-400'
+                              : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          }`}
+                        >
+                          {isFree ? 'Claimed' : 'Paid'}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))
-              )}
-            </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
 
         </div>
