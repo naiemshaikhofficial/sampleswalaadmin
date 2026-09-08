@@ -213,7 +213,8 @@ export default function AdminDashboard() {
     const filtered = vaultSalesList.filter(s => isDateWithinRange(s.created_at))
     count = filtered.length
     filtered.forEach(s => {
-      revenue += Number(s.amount || 0)
+      const amt = s.converted_amount_inr !== undefined ? Number(s.converted_amount_inr) : Number(s.amount || 0)
+      revenue += amt
       if (s.buyer_email) {
         uniqueBuyers.add(s.buyer_email)
       }

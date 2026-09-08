@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
+import { getUsdToInrRate, getExchangeRateInfo, convertUsdToInr, isUsdOrder } from '@/lib/exchangeRate'
 
 let cachedDb: any = null
 
@@ -108,6 +109,10 @@ export async function verifyTurnstile(token: string | null): Promise<boolean> {
 /**
  * 1. Admin Verification
  */
+export async function getLiveExchangeRate() {
+  return await getExchangeRateInfo()
+}
+
 export async function checkIsAdmin(userId: string): Promise<boolean> {
   try {
     const db = getDB()
@@ -154,10 +159,12 @@ export async function getDashboardStats() {
       db.from('software_orders').select('amount_paid').in('status', ['complete', 'paid']),
       db.from('sample_packs').select('id, name, is_featured, display_rank'),
       db.from('wishlist').select('id', { count: 'exact', head: true }),
-      db.from('user_vault').select('amount')
+      db.from('user_vault').select('amount, razorpay_order_id, razorpay_payment_id')
     ])
 
-    // Calculate revenue
+    const liveRate = await getUsdToInrRate()
+
+    // Calculate revenue converting USD orders to INR accurately
     let totalRevenueINR = 0
     if (softwareOrdersRes.data) {
       softwareOrdersRes.data.forEach((order: any) => {
@@ -166,22 +173,34 @@ export async function getDashboardStats() {
     }
     if (vaultSalesRes.data) {
       vaultSalesRes.data.forEach((sale: any) => {
-        totalRevenueINR += Number(sale.amount || 0)
+        const rawAmt = Number(sale.amount || 0)
+        if (isUsdOrder(sale)) {
+          totalRevenueINR += convertUsdToInr(rawAmt, liveRate)
+        } else {
+          totalRevenueINR += rawAmt
+        }
       })
     }
 
     // Recent orders
     const [recentSoftwares, recentVaultSales] = await Promise.all([
       db.from('software_orders').select('id, user_email, software_name, amount_paid, status, created_at').order('created_at', { ascending: false }).limit(5),
-      db.from('user_vault').select('user_id, item_id, amount, created_at').order('created_at', { ascending: false }).limit(5)
+      db.from('user_vault').select('user_id, item_id, amount, razorpay_order_id, razorpay_payment_id, created_at').order('created_at', { ascending: false }).limit(5)
     ])
 
-    // Enrich recent vault sales with sample pack names
+    // Enrich recent vault sales with sample pack names and converted INR
     const enrichedVaultSales = (recentVaultSales.data || []).map((sale: any) => {
       const pack = (samplePacksRes.data || []).find((p: any) => p.id === sale.item_id)
+      const isUsd = isUsdOrder(sale)
+      const rawAmt = Number(sale.amount || 0)
+      const convertedAmt = isUsd ? convertUsdToInr(rawAmt, liveRate) : rawAmt
       return {
         ...sale,
-        pack_name: pack?.name || 'Sample Pack Purchase'
+        pack_name: pack?.name || 'Sample Pack Purchase',
+        is_usd: isUsd,
+        currency: isUsd ? 'USD' : 'INR',
+        original_amount: rawAmt,
+        converted_amount_inr: convertedAmt
       }
     })
 
@@ -194,7 +213,8 @@ export async function getDashboardStats() {
       recentSoftwares: recentSoftwares.data || [],
       recentVaultSales: enrichedVaultSales,
       samplePacksCount: samplePacksRes.data?.length || 0,
-      wishlistCount: wishlistRes.count || 0
+      wishlistCount: wishlistRes.count || 0,
+      exchangeRate: liveRate
     }
 
     cachedDashboardStats = stats
@@ -833,6 +853,8 @@ export async function getAllVaultSales() {
       .select('order_id, coupons(code, discount_percent)')
     if (couponErr) throw couponErr
 
+    const liveRate = await getUsdToInrRate()
+
     const enrichedSales = (sales || []).map((sale: any) => {
       const pack = (packs || []).find((p: any) => p.id === sale.item_id)
       const account = (userAccounts || []).find((a: any) => a.user_id === sale.user_id)
@@ -844,9 +866,18 @@ export async function getAllVaultSales() {
         discount_percent: usage.coupons.discount_percent
       } : null
 
+      const isUsd = isUsdOrder(sale)
+      const rawAmt = Number(sale.amount || 0)
+      const convertedAmt = isUsd ? convertUsdToInr(rawAmt, liveRate) : rawAmt
+
       return {
         id: sale.id,
         amount: sale.amount || 0,
+        is_usd: isUsd,
+        currency: isUsd ? 'USD' : 'INR',
+        original_amount: rawAmt,
+        converted_amount_inr: convertedAmt,
+        exchange_rate: liveRate,
         created_at: sale.created_at,
         razorpay_order_id: sale.razorpay_order_id || 'N/A',
         razorpay_payment_id: sale.razorpay_payment_id || 'N/A',

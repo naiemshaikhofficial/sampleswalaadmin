@@ -55,17 +55,34 @@ export function SalesTab({
     if (filteredSales.length === 0) return
 
     // Define CSV Headers
-    const headers = ['Order ID', 'Product', 'Amount (INR)', 'Buyer Name', 'Email', 'Phone', 'Address', 'Razorpay Order ID', 'Razorpay Payment ID', 'Timestamp']
+    const headers = [
+      'Order ID',
+      'Product',
+      'Original Amount',
+      'Currency',
+      'Converted Amount (INR)',
+      'Exchange Rate',
+      'Buyer Name',
+      'Email',
+      'Phone',
+      'Address',
+      'Order ID (Gateway)',
+      'Payment ID (Gateway)',
+      'Timestamp'
+    ]
     
     // Form row records
     const rows = filteredSales.map(s => [
       s.id || '',
-      s.pack_name || '',
-      s.amount || 0,
-      s.buyer_name || '',
+      `"${(s.pack_name || '').replace(/"/g, '""')}"`,
+      s.original_amount !== undefined ? s.original_amount : (s.amount || 0),
+      s.currency || (s.is_usd ? 'USD' : 'INR'),
+      s.converted_amount_inr !== undefined ? s.converted_amount_inr : (s.amount || 0),
+      s.exchange_rate || '',
+      `"${(s.buyer_name || '').replace(/"/g, '""')}"`,
       s.buyer_email || '',
       s.buyer_phone || '',
-      `"${(s.buyer_address || '').replace(/"/g, '""')}"`, // escape quotes
+      `"${(s.buyer_address || '').replace(/"/g, '""')}"`,
       s.razorpay_order_id || '',
       s.razorpay_payment_id || '',
       new Date(s.created_at).toLocaleString()
@@ -180,7 +197,26 @@ export function SalesTab({
                       <td className="p-4 text-center">
                         <div className="inline-block bg-black border border-zinc-800 p-2.5 font-mono text-left font-medium">
                           <p className="text-[10px] text-zinc-500 font-sans">PAYMENT TOTAL:</p>
-                          <p className="text-base font-bold text-zinc-100 mt-0.5">₹{s.amount?.toLocaleString()}</p>
+                          {s.is_usd ? (
+                            <div>
+                              <p className="text-base font-black text-studio-neon mt-0.5">
+                                ${Number(s.original_amount !== undefined ? s.original_amount : s.amount).toFixed(2)}{' '}
+                                <span className="text-[9px] font-bold text-zinc-400">USD</span>
+                              </p>
+                              <div className="mt-1 inline-flex items-center gap-1 bg-[#00FF94]/10 border border-[#00FF94]/30 px-1.5 py-0.5 rounded text-[9px] font-bold text-[#00FF94]">
+                                <span>≈ ₹{s.converted_amount_inr?.toLocaleString() || Math.round(Number(s.amount) * 90)} INR</span>
+                                <span className="text-zinc-500 font-normal text-[8px]">(@ ₹{s.exchange_rate?.toFixed(1) || '90'}/$)</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-base font-bold text-zinc-100 mt-0.5">
+                              {Number(s.amount) === 0 ? (
+                                <span className="text-[#00FF94] font-black">FREE CLAIM (₹0)</span>
+                              ) : (
+                                `₹${s.amount?.toLocaleString()}`
+                              )}
+                            </p>
+                          )}
                           {s.coupon && (
                             <div className="mt-1 text-[8px] font-black uppercase text-studio-yellow">
                               🏷️ {s.coupon.code} ({s.coupon.discount_percent}% OFF)
@@ -310,7 +346,20 @@ export function SalesTab({
               )}
               <div className="flex justify-between border-b border-zinc-900 pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">TOTAL VALUE PAID</span>
-                <span className="text-studio-neon font-bold text-sm">₹{activeOrder.amount?.toLocaleString()}</span>
+                {activeOrder.is_usd ? (
+                  <div className="text-right">
+                    <span className="text-studio-neon font-black text-sm">
+                      ${Number(activeOrder.original_amount !== undefined ? activeOrder.original_amount : activeOrder.amount).toFixed(2)} USD
+                    </span>
+                    <p className="text-[10px] text-[#00FF94] font-bold font-mono">
+                      ≈ ₹{activeOrder.converted_amount_inr?.toLocaleString() || Math.round(Number(activeOrder.amount) * 90)} INR (@ ₹{activeOrder.exchange_rate?.toFixed(1) || '90'}/$)
+                    </p>
+                  </div>
+                ) : (
+                  <span className="text-studio-neon font-bold text-sm">
+                    {Number(activeOrder.amount) === 0 ? 'FREE CLAIM (₹0)' : `₹${activeOrder.amount?.toLocaleString()}`}
+                  </span>
+                )}
               </div>
               <div className="flex justify-between border-b border-zinc-900 pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">RAZORPAY ORDER ID</span>

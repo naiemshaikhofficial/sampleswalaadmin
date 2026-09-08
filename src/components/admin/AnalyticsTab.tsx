@@ -59,7 +59,8 @@ export function AnalyticsTab({
         if (!s.created_at) return
         const d = new Date(s.created_at)
         const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-        groups[dateStr] = (groups[dateStr] || 0) + Number(s.amount || 0)
+        const val = s.converted_amount_inr !== undefined ? Number(s.converted_amount_inr) : Number(s.amount || 0)
+        groups[dateStr] = (groups[dateStr] || 0) + val
       })
     } else if (activeMetric === 'signups') {
       usersList.forEach(u => {
@@ -146,7 +147,7 @@ export function AnalyticsTab({
     const counts: Record<string, { revenue: number; sales: number }> = {}
     vaultSalesList.forEach(s => {
       const name = s.pack_name || 'Other Packs'
-      const amt = Number(s.amount || 0)
+      const amt = s.converted_amount_inr !== undefined ? Number(s.converted_amount_inr) : Number(s.amount || 0)
       if (!counts[name]) {
         counts[name] = { revenue: 0, sales: 0 }
       }
@@ -554,7 +555,16 @@ export function AnalyticsTab({
                     </div>
 
                     <div className="text-right flex-shrink-0">
-                      <p className="font-sans font-black text-white text-[12px] leading-none">₹{sale.amount || 0}</p>
+                      <div className="text-right">
+                          <p className="font-sans font-black text-white text-[12px] leading-none">
+                            {sale.is_usd ? `${Number(sale.original_amount !== undefined ? sale.original_amount : sale.amount).toFixed(2)} USD` : (Number(sale.amount) === 0 ? 'FREE' : `₹${sale.amount || 0}`)}
+                          </p>
+                          {sale.is_usd && (
+                            <span className="text-[9px] text-[#00FF94] font-mono font-bold block mt-0.5">
+                              ≈ ₹{sale.converted_amount_inr?.toLocaleString() || Math.round(Number(sale.amount) * 90)}
+                            </span>
+                          )}
+                        </div>
                       <span className="inline-block text-[7px] font-black uppercase px-1.5 py-0.5 mt-1.5 border border-black bg-studio-pink text-black">
                         PAID
                       </span>
