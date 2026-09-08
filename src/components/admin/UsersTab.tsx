@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Search, Mail, Phone, MapPin, Ban, ShieldCheck, Trash2, X } from 'lucide-react'
+import { Search, Mail, Phone, MapPin, Ban, ShieldCheck, Trash2, X, Download } from 'lucide-react'
 import { banUser, unbanUser, deleteUser, updateUserRole } from '@/app/actions'
 
 interface UsersTabProps {
@@ -48,10 +48,10 @@ export function UsersTab({
 
   const handleBanUser = async (userId: string, email: string) => {
     const approved = await askConfirmation(
-      '⚠️ CONFIRM USER ACCESS LOCK',
-      `Are you absolutely sure you want to BAN and lock user "${email}" from accessing SamplesWala? They will not be able to log in or download samples.`,
+      'Confirm User Lock',
+      `Are you sure you want to ban user "${email}" from accessing SamplesWala? They will not be able to log in or download samples.`,
       true,
-      'LOCK USER ACCOUNT'
+      'Lock User Account'
     )
     if (!approved) return
     setActionLoading(true)
@@ -72,10 +72,10 @@ export function UsersTab({
 
   const handleUnbanUser = async (userId: string, email: string) => {
     const approved = await askConfirmation(
-      '✅ CONFIRM USER ACTIVATION',
-      `Are you sure you want to UNBAN and restore active command access for user "${email}"?`,
+      'Confirm User Activation',
+      `Are you sure you want to unban and restore active access for user "${email}"?`,
       false,
-      'ACTIVATE ACCOUNT'
+      'Activate Account'
     )
     if (!approved) return
     setActionLoading(true)
@@ -96,10 +96,10 @@ export function UsersTab({
 
   const handleDeleteUser = async (userId: string, email: string) => {
     const approved = await askConfirmation(
-      '🚨 DANGER - PERMANENT USER DELETION',
-      `You are about to permanently DELETE user "${email}" from the entire database. This destroys their profile, download histories, credit packages, billing tokens, and auth credentials FOREVER. This action CANNOT BE UNDONE.`,
+      'Permanent User Deletion',
+      `You are about to permanently delete user "${email}". This removes their profile, order histories, credits, and credentials. This action cannot be undone.`,
       true,
-      'DELETE FOREVER'
+      'Delete Permanently'
     )
     if (!approved) return
     setActionLoading(true)
@@ -120,14 +120,14 @@ export function UsersTab({
     setActionLoading(true)
     try {
       await updateUserRole(userId, newRole)
-      showToast(`User role cleared to ${newRole}!`, 'success')
+      showToast(`User role updated to ${newRole}!`, 'success')
       addAuditLog('ROLE_CHANGE', `Changed user role for ${email} to ${newRole}`, 'info')
       invalidateCacheAndReload('users')
       if (activeUser && activeUser.id === userId) {
         setActiveUser((prev: any) => ({ ...prev, role: newRole }))
       }
     } catch (err: any) {
-      showToast(err.message || 'Failed to change staff role', 'error')
+      showToast(err.message || 'Failed to change role', 'error')
     } finally {
       setActionLoading(false)
     }
@@ -136,16 +136,14 @@ export function UsersTab({
   const handleExportCSV = () => {
     if (usersList.length === 0) return
 
-    // Define CSV Headers
     const headers = ['User ID', 'Name', 'Email', 'Phone', 'Address', 'Credits', 'Subscription Status', 'Subscription Tier', 'Auth Provider', 'Banned Status', 'Registered Date']
     
-    // Form row records
     const rows = usersList.map(u => [
       u.id || '',
       u.full_name || '',
       u.email || '',
       u.phone_number || '',
-      `"${(u.address || '').replace(/"/g, '""')}"`, // escape quotes
+      `"${(u.address || '').replace(/"/g, '""')}"`,
       u.credits ?? 0,
       u.subscription_status || 'INACTIVE',
       u.subscription_tier || 'NONE',
@@ -154,10 +152,8 @@ export function UsersTab({
       new Date(u.created_at).toLocaleString()
     ])
 
-    // Join to single CSV content string
     const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n')
 
-    // Create secure browser download URL
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -170,332 +166,355 @@ export function UsersTab({
   }
 
   return (
-    <div className="space-y-6 animate-fadeIn font-mono text-xs">
-      <div className="bg-[#121212] p-4 border-4 border-black flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+    <div className="space-y-6 animate-fadeIn font-sans text-xs">
+      {/* HEADER CONTROLS BAR */}
+      <div className="bg-[#18181c] p-4 sm:p-5 border border-white/10 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-md">
         <div>
-          <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-pink">
-            👥 USERS HUB & ACCESS CONTROL
+          <h3 className="font-sans font-bold text-lg text-white">
+            Users & Registrations
           </h3>
-          <p className="text-zinc-400 mt-1 uppercase text-[10px] font-black">
-            Manage accounts, track billing details, view addresses, and issue bans.
+          <p className="text-zinc-400 mt-0.5 text-xs">
+            Manage user accounts, monitor credits balance, manage addresses, and handle access locks.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
             onClick={handleExportCSV}
-            className="comic-button bg-studio-neon hover:bg-studio-neon font-black text-black text-[10px] uppercase h-10 px-4 border-2 border-black flex items-center justify-center cursor-pointer shadow-premium-sm"
+            className="studio-button bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-semibold px-3.5 py-2 rounded-xl flex items-center gap-2 cursor-pointer transition-all"
           >
-            📥 DOWNLOAD CSV
+            <Download className="w-3.5 h-3.5 text-blue-400" />
+            Export CSV
           </button>
-          <div className="relative">
-            <Search className="absolute left-3 top-3 w-4 h-4 text-zinc-500" />
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
             <input
               type="text"
-              placeholder="SEARCH BY NAME/EMAIL/ADDR..."
+              placeholder="Search by name, email, phone..."
               value={userSearch}
               onChange={e => setUserSearch(e.target.value)}
-              className="pl-9 pr-4 py-2.5 bg-black border-2 border-black text-white font-bold placeholder-zinc-600 outline-none focus:border-studio-pink uppercase"
+              className="w-full pl-9 pr-3.5 py-2 bg-black/40 border border-white/10 rounded-xl text-white placeholder-zinc-500 outline-none focus:border-blue-500 text-xs transition-colors"
             />
           </div>
           <select
             value={userFilter}
             onChange={e => setUserFilter(e.target.value as any)}
-            className="bg-black border-2 border-black px-3 py-2.5 text-white font-bold outline-none focus:border-studio-pink h-10"
+            className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500 text-xs cursor-pointer transition-colors"
           >
-            <option value="all">ALL REGISTRATIONS</option>
-            <option value="active">ACTIVE USERS</option>
-            <option value="banned">BANNED ONLY</option>
-            <option value="subscribed">ACTIVE SUBSCRIBERS</option>
+            <option value="all">All Users</option>
+            <option value="active">Active Only</option>
+            <option value="banned">Banned Only</option>
+            <option value="subscribed">Subscribers Only</option>
           </select>
         </div>
       </div>
 
-      <div className="border-4 border-black bg-black overflow-x-auto">
-        <table className="w-full text-left uppercase font-bold border-collapse">
-          <thead>
-            <tr className="bg-[#121212] border-b-4 border-black text-zinc-400">
-              <th className="p-4">USER PROFILE</th>
-              <th className="p-4">CONTACT & ADDRESS</th>
-              <th className="p-4 text-center">ACCESS LOCK</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y-3 divide-black">
-            {(() => {
-              const filtered = usersList.filter(u => {
-                const searchLower = userSearch.toLowerCase()
-                const matchQuery =
-                  (u.email || '').toLowerCase().includes(searchLower) ||
-                  (u.full_name || '').toLowerCase().includes(searchLower) ||
-                  (u.address || '').toLowerCase().includes(searchLower) ||
-                  (u.phone_number || '').includes(searchLower)
+      {/* USERS TABLE */}
+      <div className="border border-white/10 bg-[#18181c] rounded-2xl overflow-hidden shadow-md">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left font-sans border-collapse">
+            <thead>
+              <tr className="bg-white/[0.02] border-b border-white/10 text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
+                <th className="p-4">User Profile</th>
+                <th className="p-4">Contact & Location</th>
+                <th className="p-4 text-center">Account Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/[0.06]">
+              {(() => {
+                const filtered = usersList.filter(u => {
+                  const searchLower = userSearch.toLowerCase()
+                  const matchQuery =
+                    (u.email || '').toLowerCase().includes(searchLower) ||
+                    (u.full_name || '').toLowerCase().includes(searchLower) ||
+                    (u.address || '').toLowerCase().includes(searchLower) ||
+                    (u.phone_number || '').includes(searchLower)
 
-                if (!matchQuery) return false
+                  if (!matchQuery) return false
 
-                if (userFilter === 'banned') return u.is_banned
-                if (userFilter === 'active') return !u.is_banned
-                if (userFilter === 'subscribed') return u.subscription_status === 'ACTIVE' || u.subscription_tier !== 'NONE'
-                return true
-              })
+                  if (userFilter === 'banned') return u.is_banned
+                  if (userFilter === 'active') return !u.is_banned
+                  if (userFilter === 'subscribed') return u.subscription_status === 'ACTIVE' || u.subscription_tier !== 'NONE'
+                  return true
+                })
 
-              if (filtered.length === 0) {
-                return (
-                  <tr>
-                    <td colSpan={3} className="p-8 text-center text-zinc-500 uppercase font-black">
-                      No matching users found.
-                    </td>
-                  </tr>
+                if (filtered.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={3} className="p-10 text-center text-zinc-500 font-medium">
+                        No registered users match your filter criteria.
+                      </td>
+                    </tr>
+                  )
+                }
+
+                // Compute paginated subset
+                const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
+                const paginatedUsers = filtered.slice(
+                  (currentPage - 1) * ITEMS_PER_PAGE,
+                  currentPage * ITEMS_PER_PAGE
                 )
-              }
 
-              // Compute paginated subset
-              const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
-              const paginatedUsers = filtered.slice(
-                (currentPage - 1) * ITEMS_PER_PAGE,
-                currentPage * ITEMS_PER_PAGE
-              )
-
-              return (
-                <>
-                  {paginatedUsers.map((u: any) => (
-                    <tr
-                      key={u.id}
-                      onClick={() => {
-                        setActiveUser(u)
-                        setShowUserModal(true)
-                      }}
-                      className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors cursor-pointer"
-                      title="Click to view full detailed user profile, credits, and device fingerprints"
-                    >
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-none bg-studio-pink border-2 border-black text-black font-sans font-black text-sm flex items-center justify-center flex-shrink-0">
-                            {u.full_name?.charAt(0) || '?'}
+                return (
+                  <>
+                    {paginatedUsers.map((u: any) => (
+                      <tr
+                        key={u.id}
+                        onClick={() => {
+                          setActiveUser(u)
+                          setShowUserModal(true)
+                        }}
+                        className="hover:bg-white/[0.03] transition-colors cursor-pointer"
+                        title="Click to view full user profile"
+                      >
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold flex items-center justify-center flex-shrink-0 text-sm shadow-sm">
+                              {u.full_name?.charAt(0) || u.email?.charAt(0) || 'U'}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <p className="font-bold text-sm text-zinc-100 leading-snug">
+                                  {u.full_name || 'Anonymous User'}
+                                </p>
+                                {u.provider === 'google' ? (
+                                  <span className="bg-blue-500/15 text-blue-400 border border-blue-500/30 text-[9px] font-bold px-1.5 py-0.5 rounded">
+                                    Google SSO
+                                  </span>
+                                ) : (
+                                  <span className="bg-white/5 text-zinc-400 border border-white/10 text-[9px] font-medium px-1.5 py-0.5 rounded">
+                                    Email/Pass
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-zinc-400 font-mono mt-0.5 select-all flex items-center gap-1.5">
+                                <Mail className="w-3 h-3 text-zinc-500" />
+                                {u.email}
+                              </p>
+                              <div className="flex items-center gap-2 mt-1.5">
+                                <span className="text-[10px] bg-white/[0.06] text-zinc-300 px-2 py-0.5 rounded font-mono font-medium">
+                                  {u.credits ?? 0} Credits
+                                </span>
+                                {u.subscription_status === 'ACTIVE' && (
+                                  <span className="text-[10px] bg-amber-500/15 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded font-bold uppercase">
+                                    {u.subscription_tier}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-sans font-bold text-sm tracking-wide text-zinc-100 leading-none">{u.full_name}</p>
-                              {u.provider === 'google' ? (
-                                <span className="bg-studio-pink/15 text-studio-pink border border-studio-pink/30 font-bold uppercase text-[7px] px-1.5 py-0.5 tracking-wider" title="Authenticated via Google SSO">
-                                  GOOGLE SSO
-                                </span>
+                        </td>
+                        <td className="p-4 text-zinc-300">
+                          <div className="text-[11px] font-mono flex items-center gap-1.5">
+                            <Phone className="w-3.5 h-3.5 text-zinc-500" />
+                            <span>{u.phone_number || 'No phone number'}</span>
+                          </div>
+                          <div className="text-[11px] text-zinc-400 mt-1.5 flex items-start gap-1.5 max-w-sm">
+                            <MapPin className="w-3.5 h-3.5 text-blue-400 flex-shrink-0 mt-0.5" />
+                            <span className="line-clamp-2 leading-relaxed">{u.address || 'No physical address provided'}</span>
+                          </div>
+                        </td>
+                        <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-2.5">
+                            <div className="flex flex-col items-center justify-center gap-1">
+                              {u.is_banned ? (
+                                <>
+                                  <span className="bg-red-500/15 text-red-400 border border-red-500/30 font-bold uppercase text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
+                                    <Ban className="w-2.5 h-2.5 text-red-400" /> Banned
+                                  </span>
+                                  <button
+                                    type="button"
+                                    disabled={actionLoading}
+                                    onClick={(e) => { e.stopPropagation(); handleUnbanUser(u.id, u.email); }}
+                                    className="px-2 py-1 border border-white/10 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 font-medium text-[9px] transition-all cursor-pointer disabled:opacity-50"
+                                  >
+                                    Activate
+                                  </button>
+                                </>
                               ) : (
-                                <span className="bg-zinc-900 text-zinc-500 border border-zinc-800 font-bold uppercase text-[7px] px-1.5 py-0.5 tracking-wider" title="Authenticated via Email & Password">
-                                  EMAIL PASS
-                                </span>
+                                <>
+                                  <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold uppercase text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                    <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" /> Active
+                                  </span>
+                                  <button
+                                    type="button"
+                                    disabled={actionLoading}
+                                    onClick={(e) => { e.stopPropagation(); handleBanUser(u.id, u.email); }}
+                                    className="px-2 py-1 border border-white/10 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 font-medium text-[9px] transition-all cursor-pointer disabled:opacity-50"
+                                  >
+                                    Ban User
+                                  </button>
+                                </>
                               )}
                             </div>
-                            <p className="text-[10px] text-zinc-400 lowercase font-mono mt-1 flex items-center gap-1 normal-case font-medium">
-                              <Mail className="w-3.5 h-3.5 inline text-studio-pink" /> {u.email}
-                            </p>
-                            <p className="text-[9px] text-zinc-600 mt-0.5 font-medium">REGISTERED: {new Date(u.created_at).toLocaleDateString()}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4 normal-case text-zinc-300 font-medium leading-normal max-w-xs">
-                        <p className="flex items-center gap-1.5 text-[10px] normal-case">
-                          <Phone className="w-3.5 h-3.5 text-zinc-500 inline flex-shrink-0" /> {u.phone_number || 'N/A'}
-                        </p>
-                        <div className="flex items-start gap-1.5 mt-1.5 text-[10px] font-mono leading-tight normal-case">
-                          <MapPin className="w-3.5 h-3.5 text-studio-pink inline flex-shrink-0 mt-0.5" />
-                          <span className="text-zinc-400 leading-normal">{u.address || 'NO ADDRESS PROVIDED'}</span>
-                        </div>
-                      </td>
-                      <td className="p-4 text-center" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-2">
-                          <div className="flex flex-col items-center justify-center gap-1">
-                            {u.is_banned ? (
-                              <>
-                                <span className="bg-studio-red text-white border-2 border-black font-black uppercase text-[8px] px-2 py-0.5 flex items-center gap-1 animate-pulse">
-                                  <Ban className="w-2.5 h-2.5 text-white" /> BANNED LOCK
-                                </span>
-                                <button
-                                  disabled={actionLoading}
-                                  onClick={(e) => { e.stopPropagation(); handleUnbanUser(u.id, u.email); }}
-                                  className="px-2 py-1 border border-black bg-studio-neon hover:bg-studio-neon-hover text-black font-bold uppercase text-[8px] tracking-wider transition-all cursor-pointer disabled:opacity-50"
-                                >
-                                  ACTIVATE
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <span className="bg-studio-neon/10 text-studio-neon border border-studio-neon font-black uppercase text-[8px] px-2 py-0.5 flex items-center gap-1">
-                                  <ShieldCheck className="w-2.5 h-2.5 text-studio-neon" /> ACCESS OK
-                                </span>
-                                <button
-                                  disabled={actionLoading}
-                                  onClick={(e) => { e.stopPropagation(); handleBanUser(u.id, u.email); }}
-                                  className="px-2 py-1 border border-black bg-studio-red text-white hover:bg-studio-red/80 font-bold uppercase text-[8px] tracking-wider transition-all cursor-pointer disabled:opacity-50"
-                                >
-                                  BAN USER
-                                </button>
-                              </>
-                            )}
-                          </div>
-                          <button
-                            disabled={actionLoading}
-                            onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id, u.email); }}
-                            className="p-2 border-2 border-black bg-studio-red text-white hover:bg-studio-red/80 transition-all cursor-pointer inline-flex items-center justify-center disabled:opacity-50"
-                            title="Permanently Delete User Account"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  
-                  {/* Pagination Controller Row nested as tbody extension or separate layout block */}
-                  {totalPages > 1 && (
-                    <tr>
-                      <td colSpan={3} className="p-4 bg-[#121212] border-t-4 border-black">
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[10px] uppercase font-black">
-                          <div className="text-zinc-400">
-                            SHOWING {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} OF {filtered.length} REGISTRATIONS
-                          </div>
-                          <div className="flex items-center gap-1">
                             <button
-                              disabled={currentPage === 1}
-                              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                              className="px-3 py-1.5 border-2 border-black bg-black text-white hover:bg-studio-pink hover:text-black font-bold uppercase transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                              type="button"
+                              disabled={actionLoading}
+                              onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id, u.email); }}
+                              className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer inline-flex items-center justify-center disabled:opacity-50"
+                              title="Permanently Delete User Account"
                             >
-                              PREV
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
-                            
-                            {Array.from({ length: totalPages }, (_, i) => i + 1)
-                              .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
-                              .map((p, idx, arr) => {
-                                const elements = []
-                                if (idx > 0 && p - arr[idx - 1] > 1) {
-                                  elements.push(<span key={`dot-${p}`} className="text-zinc-600 px-1">...</span>)
-                                }
-                                elements.push(
-                                  <button
-                                    key={p}
-                                    onClick={() => setCurrentPage(p)}
-                                    className={`w-7 h-7 border-2 border-black font-bold uppercase transition-all cursor-pointer ${
-                                      currentPage === p 
-                                        ? 'bg-studio-pink text-white border-studio-pink' 
-                                        : 'bg-black text-white hover:bg-zinc-800'
-                                    }`}
-                                  >
-                                    {p}
-                                  </button>
-                                )
-                                return elements
-                              })}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
 
-                            <button
-                              disabled={currentPage === totalPages}
-                              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                              className="px-3 py-1.5 border-2 border-black bg-black text-white hover:bg-studio-pink hover:text-black font-bold uppercase transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
-                            >
-                              NEXT
-                            </button>
+                    {/* Pagination Controller Row */}
+                    {totalPages > 1 && (
+                      <tr>
+                        <td colSpan={3} className="p-4 bg-[#141418] border-t border-white/10">
+                          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[11px]">
+                            <div className="text-zinc-400">
+                              Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} users
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                disabled={currentPage === 1}
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                className="px-3 py-1.5 border border-white/10 rounded-lg bg-white/5 text-white hover:bg-white/10 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                              >
+                                Previous
+                              </button>
+                              
+                              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                                .map((p, idx, arr) => {
+                                  const elements = []
+                                  if (idx > 0 && p - arr[idx - 1] > 1) {
+                                    elements.push(<span key={`dot-${p}`} className="text-zinc-500 px-1">...</span>)
+                                  }
+                                  elements.push(
+                                    <button
+                                      key={p}
+                                      onClick={() => setCurrentPage(p)}
+                                      className={`w-7 h-7 rounded-lg border font-bold transition-all cursor-pointer ${
+                                        currentPage === p 
+                                          ? 'bg-blue-600 text-white border-blue-500 shadow-sm' 
+                                          : 'bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10'
+                                      }`}
+                                    >
+                                      {p}
+                                    </button>
+                                  )
+                                  return elements
+                                })}
+
+                              <button
+                                disabled={currentPage === totalPages}
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                className="px-3 py-1.5 border border-white/10 rounded-lg bg-white/5 text-white hover:bg-white/10 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                              >
+                                Next
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </>
-              )
-            })()}
-          </tbody>
-        </table>
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                )
+              })()}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* DETAILED USER PROFILE MODAL DRAWER */}
       {showUserModal && activeUser && (
-        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn font-sans text-xs">
-          <div className="bg-[#121212] border-4 border-black p-6 w-full max-w-lg relative text-left shadow-premium animate-scaleIn">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 font-sans text-xs">
+          <div className="bg-[#18181c] border border-white/15 rounded-2xl p-6 sm:p-7 w-full max-w-lg relative text-left shadow-2xl">
             <button
+              type="button"
               onClick={() => setShowUserModal(false)}
-              className="absolute top-4 right-4 p-1 bg-black border-2 border-black hover:border-studio-pink text-zinc-400 hover:text-white transition-all cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="font-sans font-bold text-xl uppercase text-studio-pink mb-6">
-              👥 DETAILED USER ACCESS & PROFILE
+            <h3 className="font-sans font-bold text-lg text-white mb-6 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+              User Profile & Details
             </h3>
 
             {/* USER PROFILE METADATA */}
-            <div className="bg-black border border-zinc-800 p-4 space-y-3.5 mb-6 text-zinc-300 font-sans">
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">USER ID (AUTH ID)</span>
+            <div className="bg-[#141418] border border-white/10 rounded-xl p-4 space-y-3 mb-6 text-zinc-300 font-sans">
+              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">User ID</span>
                 <span className="text-white font-mono font-bold select-all">{activeUser.id}</span>
               </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">FULL NAME</span>
-                <span className="text-white font-bold text-sm normal-case">{activeUser.full_name || 'Anonymous'}</span>
+              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">Full Name</span>
+                <span className="text-white font-bold text-sm">{activeUser.full_name || 'Anonymous'}</span>
               </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">EMAIL ADDRESS</span>
-                <span className="text-white font-mono font-medium lowercase select-all">{activeUser.email || 'N/A'}</span>
+              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">Email Address</span>
+                <span className="text-white font-mono select-all">{activeUser.email || 'N/A'}</span>
               </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">PHONE NUMBER</span>
-                <span className="text-white font-mono font-medium select-all">{activeUser.phone_number || 'N/A'}</span>
+              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">Phone Number</span>
+                <span className="text-white font-mono select-all">{activeUser.phone_number || 'N/A'}</span>
               </div>
-              <div className="flex flex-col space-y-1.5 border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">PHYSICAL ADDRESS</span>
-                <span className="text-zinc-300 font-mono leading-normal bg-[#0c0c0c] border border-zinc-900 p-2.5 rounded-none text-[10px] normal-case select-all">
+              <div className="flex flex-col space-y-1.5 border-b border-white/[0.06] pb-2">
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">Physical Address</span>
+                <span className="text-zinc-300 font-mono leading-normal bg-black/40 border border-white/10 p-2.5 rounded-lg text-[10px] select-all">
                   {activeUser.address || 'No physical delivery address provided.'}
                 </span>
               </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">CREDITS BALANCE</span>
-                <span className="text-studio-neon font-bold text-sm">{activeUser.credits} CR</span>
+              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">Credits Balance</span>
+                <span className="text-[#00FF94] font-bold text-sm">{activeUser.credits} CR</span>
               </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">SUBSCRIPTION TIER</span>
-                <span className="text-studio-pink font-bold uppercase">{activeUser.subscription_tier || 'NONE'} ({activeUser.subscription_status || 'INACTIVE'})</span>
+              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">Subscription Tier</span>
+                <span className="text-amber-400 font-bold uppercase">{activeUser.subscription_tier || 'NONE'} ({activeUser.subscription_status || 'INACTIVE'})</span>
               </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">AUTH PROVIDER</span>
+              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">Auth Provider</span>
                 <span className="text-white font-bold uppercase flex items-center gap-1.5">
                   {activeUser.provider === 'google' ? (
                     <>
-                      <span className="w-2 h-2 rounded-full bg-studio-pink" /> GOOGLE SSO
+                      <span className="w-2 h-2 rounded-full bg-blue-500" /> Google SSO
                     </>
                   ) : (
                     <>
-                      <span className="w-2 h-2 rounded-full bg-studio-yellow" /> EMAIL & PASSWORD
+                      <span className="w-2 h-2 rounded-full bg-amber-400" /> Email & Password
                     </>
                   )}
                 </span>
               </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">DEVICE FINGERPRINT</span>
-                <span className="text-zinc-400 font-mono font-medium text-[10px] select-all">{activeUser.device_fingerprint || 'N/A'}</span>
+              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">Device Fingerprint</span>
+                <span className="text-zinc-400 font-mono text-[10px] select-all">{activeUser.device_fingerprint || 'N/A'}</span>
               </div>
-              <div className="flex justify-between border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">REGISTRATION TIMESTAMP</span>
+              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">Registered Date</span>
                 <span className="text-zinc-400 font-mono text-[10px]">{new Date(activeUser.created_at).toLocaleString()}</span>
               </div>
-              <div className="flex justify-between items-center border-b border-zinc-900 pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">STAFF CLEARANCE ROLE</span>
+              <div className="flex justify-between items-center border-b border-white/[0.06] pb-2">
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">Admin Role</span>
                 <select
                   value={activeUser.role || 'Super Admin'}
                   onChange={e => handleUpdateUserRole(activeUser.id, activeUser.email, e.target.value)}
                   disabled={actionLoading}
-                  className="bg-black border border-zinc-800 p-1.5 text-white font-bold outline-none focus:border-studio-pink text-[10px] cursor-pointer"
+                  className="bg-black/50 border border-white/10 rounded-lg p-1.5 text-white font-medium outline-none focus:border-white/25 text-xs cursor-pointer"
                 >
-                  <option value="Super Admin">SUPER ADMIN</option>
-                  <option value="Support Agent">SUPPORT AGENT</option>
-                  <option value="Billing Manager">BILLING MANAGER</option>
+                  <option value="Super Admin">Super Admin</option>
+                  <option value="Support Agent">Support Agent</option>
+                  <option value="Billing Manager">Billing Manager</option>
                 </select>
               </div>
               <div className="flex justify-between items-center pt-1.5">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">ACCOUNT STATUS</span>
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">Account Status</span>
                 <div>
                   {activeUser.is_banned ? (
-                    <span className="bg-studio-red text-white border-2 border-black font-black uppercase text-[8px] px-2 py-0.5 inline-flex items-center gap-1 animate-pulse">
-                      <Ban className="w-2.5 h-2.5 text-white" /> BANNED LOCK
+                    <span className="bg-red-500/15 text-red-400 border border-red-500/30 font-bold uppercase text-[9px] px-2.5 py-1 rounded-full inline-flex items-center gap-1 animate-pulse">
+                      <Ban className="w-2.5 h-2.5 text-red-400" /> Banned
                     </span>
                   ) : (
-                    <span className="bg-studio-neon/10 text-studio-neon border border-studio-neon font-black uppercase text-[8px] px-2 py-0.5 inline-flex items-center gap-1">
-                      <ShieldCheck className="w-2.5 h-2.5 text-studio-neon" /> ACCESS ACTIVE
+                    <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold uppercase text-[9px] px-2.5 py-1 rounded-full inline-flex items-center gap-1">
+                      <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" /> Active
                     </span>
                   )}
                 </div>
@@ -507,36 +526,40 @@ export function UsersTab({
               <div className="flex gap-3">
                 {activeUser.is_banned ? (
                   <button
+                    type="button"
                     disabled={actionLoading}
                     onClick={() => handleUnbanUser(activeUser.id, activeUser.email)}
-                    className="flex-1 studio-button bg-studio-neon text-black border-2 border-black font-bold uppercase hover:bg-studio-neon/80 py-2 text-xs cursor-pointer font-sans disabled:opacity-50"
+                    className="flex-1 studio-button bg-[#00FF94] hover:bg-[#00FF94]/90 text-black font-bold uppercase py-2.5 text-xs rounded-xl cursor-pointer disabled:opacity-50"
                   >
-                    ACTIVATE & UNBAN
+                    Activate & Unban
                   </button>
                 ) : (
                   <button
+                    type="button"
                     disabled={actionLoading}
                     onClick={() => handleBanUser(activeUser.id, activeUser.email)}
-                    className="flex-1 studio-button bg-studio-red text-white border-2 border-black font-bold uppercase hover:bg-studio-red/80 py-2 text-xs cursor-pointer font-sans disabled:opacity-50"
+                    className="flex-1 studio-button bg-amber-600 hover:bg-amber-500 text-white font-bold uppercase py-2.5 text-xs rounded-xl cursor-pointer disabled:opacity-50"
                   >
-                    BAN ACCOUNT
+                    Ban Account
                   </button>
                 )}
 
                 <button
+                  type="button"
                   disabled={actionLoading}
                   onClick={() => handleDeleteUser(activeUser.id, activeUser.email)}
-                  className="flex-1 studio-button bg-studio-red text-white border-2 border-black font-bold uppercase hover:bg-studio-red-hover py-2 text-xs cursor-pointer font-sans disabled:opacity-50"
+                  className="flex-1 studio-button bg-red-600 hover:bg-red-500 text-white font-bold uppercase py-2.5 text-xs rounded-xl cursor-pointer disabled:opacity-50"
                 >
-                  ❌ DELETE FOREVER
+                  Delete Account
                 </button>
               </div>
 
               <button
+                type="button"
                 onClick={() => setShowUserModal(false)}
-                className="studio-button w-full bg-zinc-800 text-white border-2 border-black font-bold uppercase hover:bg-zinc-700 py-2 text-xs cursor-pointer font-sans"
+                className="studio-button w-full bg-white/[0.08] hover:bg-white/[0.15] text-white border border-white/15 font-bold uppercase py-2.5 text-xs rounded-xl cursor-pointer"
               >
-                CLOSE DETAIL DRAWER
+                Close Drawer
               </button>
             </div>
           </div>

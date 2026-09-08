@@ -82,44 +82,45 @@ body {
   background: var(--color-studio-pink);
 }
 
-/* Modern EGS UI Style CSS Components */
+/* Modern Studio Panel & Components Matching SamplesWala2 */
 .studio-panel {
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background-color: #121212;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #18181c;
   backdrop-filter: blur(20px);
-  box-shadow: var(--shadow-premium);
-  border-radius: 8px;
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.6);
+  border-radius: 16px;
 }
 
 .studio-button {
-  padding: 0.75rem 1.5rem;
+  padding: 0.65rem 1.25rem;
   background-color: #0074e4;
   color: white;
-  font-weight: 900;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 10px;
-  border-radius: 4px;
+  letter-spacing: 0.05em;
+  font-size: 11px;
+  border-radius: 10px;
   transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: none;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0px 4px 12px rgba(0, 116, 228, 0.25);
   cursor: pointer;
 }
 
 .studio-button:hover {
   background-color: #0082f8;
   transform: translateY(-1px);
-  box-shadow: 0px 4px 15px rgba(0, 116, 228, 0.35);
+  box-shadow: 0px 6px 18px rgba(0, 116, 228, 0.4);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .studio-button:active {
   transform: translateY(1px);
-  box-shadow: 0px 1px 4px rgba(0, 116, 228, 0.2);
+  box-shadow: 0px 2px 6px rgba(0, 116, 228, 0.2);
 }
 
 .comic-text {
@@ -127,16 +128,16 @@ body {
 }
 
 .neon-border, .pink-border, .blue-border, .yellow-border, .orange-border {
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
   box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5) !important;
-  border-radius: 6px !important;
+  border-radius: 12px !important;
 }
 
 .comic-panel {
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  background: #121212 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: #18181c !important;
   box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.6) !important;
-  border-radius: 8px !important;
+  border-radius: 16px !important;
   position: relative;
   overflow: hidden;
   transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
@@ -145,41 +146,42 @@ body {
 .comic-panel:hover {
   border-color: rgba(255, 255, 255, 0.2) !important;
   box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 116, 228, 0.15) !important;
-  transform: translateY(-4px) !important;
+  transform: translateY(-2px) !important;
 }
 
 .comic-panel::before {
   display: none !important;
 }
 
-/* Redefined to EGS Button */
+/* Redefined to Clean Studio Action Button */
 .comic-button {
   position: relative;
-  padding: 0.75rem 1.5rem;
-  background-color: white;
-  color: black;
-  font-weight: 900;
+  padding: 0.65rem 1.25rem;
+  background-color: #ffffff;
+  color: #000000;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-size: 11px;
-  border: 1px solid rgba(0, 0, 0, 0.1) !important;
-  border-radius: 4px !important;
-  box-shadow: none !important;
-  transition: all 0.1s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 10px !important;
+  box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.4) !important;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
 }
 
 .comic-button:hover {
-  transform: translateY(-0.5px);
-  box-shadow: 0px 4px 12px rgba(255, 255, 255, 0.15) !important;
-  background-color: #f7f7f7 !important;
+  transform: translateY(-1px);
+  box-shadow: 0px 6px 18px rgba(255, 255, 255, 0.2) !important;
+  background-color: #f0f0f0 !important;
 }
 
 .comic-button:active {
-  transform: translateY(0.5px);
+  transform: translateY(1px);
   box-shadow: none !important;
 }
 
@@ -205,25 +207,28 @@ body {
 }
 
 /* ======================================================== */
-/* BRUTALIST TO PREMIUM EGS THEME MAPPING & OVERRIDES       */
+/* BRUTALIST TO PREMIUM STUDIO THEME MAPPING & OVERRIDES    */
 /* ======================================================== */
 
 .border-4.border-black {
   border-width: 1px !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  border-radius: 8px !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 16px !important;
+  background-color: #18181c !important;
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.5) !important;
 }
 
 .border-3.border-black {
   border-width: 1px !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  border-radius: 6px !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  background-color: #18181c !important;
 }
 
 .border-2.border-black {
   border-width: 1px !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  border-radius: 4px !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 10px !important;
 }
 
 .border-b-4.border-black {
@@ -241,54 +246,48 @@ body {
   border-right-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Override blocky shadows to high-end soft drop shadows */
-.\/shadow-\[3px_3px_0px_black\],
-.\/shadow-\[6px_6px_0px_black\],
-.\/shadow-\[6px_6px_0px_\#FF0080\],
-.\/shadow-\[6px_6px_0px_\#00BFFF\],
-.\/shadow-\[6px_6px_0px_\#00FF94\],
-.\/shadow-\[6px_6px_0px_\#FF5C00\],
-.\/shadow-\[6px_6px_0px_\#FFE600\],
-.\/shadow-\[6px_6px_0px_\#BF00FF\],
-.\/shadow-\[3px_3px_0px_white\] {
+/* Override blocky shadows to high-end soft studio drop shadows */
+[class*="shadow-["] {
   box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.55) !important;
 }
 
 /* Modern inputs, selects, textareas overrides */
 input, select, textarea {
-  border-radius: 4px !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  background-color: #18181c !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background-color: #141418 !important;
   color: white !important;
   padding: 0.65rem 0.85rem !important;
   font-family: var(--font-mono) !important;
   font-size: 11px !important;
   font-weight: 500 !important;
-  transition: all 0.2s ease !important;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
 }
 
 input:focus, select:focus, textarea:focus {
   outline: none !important;
   border-color: #0074e4 !important;
-  box-shadow: 0 0 10px rgba(0, 116, 228, 0.25) !important;
-  background-color: #1c1c22 !important;
+  box-shadow: 0 0 12px rgba(0, 116, 228, 0.3) !important;
+  background-color: #1a1a20 !important;
 }
 
-/* Dialog background */
-.fixed.inset-0.bg-black\/92 {
-  background-color: rgba(10, 10, 10, 0.85) !important;
-  backdrop-filter: blur(8px);
+/* Dialog backdrop blur */
+.fixed.inset-0.bg-black\/92,
+.fixed.inset-0.bg-black\/80 {
+  background-color: rgba(10, 10, 12, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
 }
 
 /* Table styling optimization */
 table {
-  border-collapse: collapse !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
   width: 100% !important;
   font-family: var(--font-mono) !important;
 }
 
 thead {
-  background-color: #0d0d0d !important;
+  background-color: #141418 !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
@@ -299,6 +298,7 @@ thead th {
   font-size: 10px !important;
   padding: 0.85rem 1rem !important;
   letter-spacing: 0.05em !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
 tbody tr {
@@ -307,7 +307,7 @@ tbody tr {
 }
 
 tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.02) !important;
+  background-color: rgba(255, 255, 255, 0.03) !important;
 }
 
 tbody td {
@@ -315,13 +315,14 @@ tbody td {
   color: #d4d4d8 !important;
   font-size: 11px !important;
   vertical-align: middle !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
 }
 
-/* Floating custom title badges overrides */
+/* Title badges overrides */
 .absolute.-top-5.left-6 {
   top: -12px !important;
-  border-radius: 4px !important;
+  border-radius: 8px !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   padding: 0.25rem 0.75rem !important;
-  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.5) !important;
 }

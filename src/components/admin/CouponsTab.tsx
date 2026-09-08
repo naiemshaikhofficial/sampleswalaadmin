@@ -93,13 +93,19 @@ export function CouponsTab({
     }
   }
 
-  return (
-    <div className="space-y-6 animate-fadeIn font-mono">
-      <div className="bg-[#121212] p-4 border-4 border-black flex justify-between items-center">
-        <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-blue">
-          🎟️ COUPON DISCOUNTS
-        </h3>
+   return (
+    <div className="space-y-6 animate-fadeIn font-mono text-xs">
+      <div className="bg-[#18181c] p-4 sm:p-5 border border-white/10 rounded-2xl shadow-md flex justify-between items-center">
+        <div>
+          <h3 className="font-sans font-bold text-lg text-white">
+            Promo & Discount Coupons
+          </h3>
+          <p className="text-zinc-400 text-xs font-sans mt-0.5">
+            Create discount codes, set percentage reductions, and configure usage limits.
+          </p>
+        </div>
         <button
+          type="button"
           onClick={() => {
             setActiveCoupon({
               code: '',
@@ -112,78 +118,79 @@ export function CouponsTab({
             })
             setShowCouponModal(true)
           }}
-          className="comic-button bg-studio-blue hover:bg-studio-blue text-white"
+          className="studio-button bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-md cursor-pointer font-sans"
         >
-          <Plus className="w-4 h-4" /> ADD DISCOUNT COUPON
+          <Plus className="w-4 h-4" /> Create Coupon
         </button>
       </div>
 
       {/* LIST TABLE OF COUPONS */}
-      <div className="border-4 border-black bg-black overflow-x-auto">
-        <table className="w-full text-left text-xs uppercase font-black border-collapse">
+      <div className="border border-white/10 rounded-2xl bg-[#18181c] overflow-x-auto shadow-md">
+        <table className="w-full text-left text-xs font-sans border-collapse">
           <thead>
-            <tr className="bg-[#121212] border-b-4 border-black">
-              <th className="p-4">COUPON CODE</th>
-              <th className="p-4 text-center">DISCOUNT PERCENTAGE</th>
-              <th className="p-4 text-center">USES / LIMITS</th>
-              <th className="p-4 text-center">STATUS</th>
-              <th className="p-4 text-center">EXPIRATION DATE</th>
-              <th className="p-4 text-center">ACTIONS</th>
+            <tr className="bg-[#141418] border-b border-white/10 text-zinc-400 text-[10px] uppercase font-semibold tracking-wider">
+              <th className="p-4">Coupon Code</th>
+              <th className="p-4 text-center">Discount</th>
+              <th className="p-4 text-center">Uses / Limits</th>
+              <th className="p-4 text-center">Status</th>
+              <th className="p-4 text-center">Expiration Date</th>
+              <th className="p-4 text-center">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y-3 divide-black">
+          <tbody className="divide-y divide-white/[0.04]">
             {coupons.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-zinc-500 uppercase font-black">
+                <td colSpan={6} className="p-8 text-center text-zinc-500 font-sans">
                   No coupons created yet.
                 </td>
               </tr>
             ) : (
               coupons.map((coupon: any) => (
-                <tr key={coupon.id} className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors">
-                  <td className="p-4 text-white font-black text-sm tracking-wider">
-                    <div>{coupon.code}</div>
-                    <div className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest mt-1 font-sans">
+                <tr key={coupon.id} className="hover:bg-white/[0.03] transition-colors">
+                  <td className="p-4 text-white font-bold text-sm tracking-wider">
+                    <div className="font-mono text-blue-400">{coupon.code}</div>
+                    <div className="text-[9px] text-zinc-500 uppercase tracking-wider mt-0.5 font-sans">
                       {coupon.applicable_items && coupon.applicable_items.length > 0 
-                        ? `🎯 ${coupon.applicable_items.length} SPECIFIC ITEMS` 
-                        : '🌎 ALL PRODUCTS'}
-                    </div>
-                  </td>
-                  <td className="p-4 text-center font-mono font-black text-studio-blue text-lg">
-                    {coupon.discount_percent}% OFF
-                  </td>
-                  <td className="p-4 text-center font-mono font-bold text-zinc-400">
-                    <div>
-                      USES: {coupon.uses_count} / {coupon.max_uses !== null ? coupon.max_uses : '♾️'}
-                    </div>
-                    <div className="text-[9px] text-zinc-500 mt-1 font-sans">
-                      USER LIMIT: {coupon.limit_per_user !== null ? `${coupon.limit_per_user} MAX` : '♾️'}
+                        ? `${coupon.applicable_items.length} Specific Items` 
+                        : 'All Store Products'}
                     </div>
                   </td>
                   <td className="p-4 text-center">
-                    {coupon.is_active ? (
-                      <span className="bg-studio-neon/20 border border-studio-neon text-studio-neon text-[8px] px-2 py-0.5">ACTIVE</span>
-                    ) : (
-                      <span className="bg-studio-red/20 border border-studio-red text-studio-red text-[8px] px-2 py-0.5">EXPIRED/INACTIVE</span>
-                    )}
+                    <span className="font-bold text-sm text-[#00FF94] font-mono">
+                      {coupon.discount_percent}% OFF
+                    </span>
                   </td>
-                  <td className="p-4 text-center font-mono text-zinc-400 font-bold">
-                    {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : 'INFINITE / NO EXPIRY'}
+                  <td className="p-4 text-center text-zinc-300 font-mono text-[11px]">
+                    {coupon.max_uses ? `${coupon.current_uses || 0} / ${coupon.max_uses}` : 'Unlimited'}
                   </td>
                   <td className="p-4 text-center">
-                    <div className="flex items-center justify-center gap-2">
+                    <span className={`inline-block text-[9px] font-bold uppercase px-2.5 py-1 rounded-full ${
+                      coupon.is_active ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-zinc-800 text-zinc-500'
+                    }`}>
+                      {coupon.is_active ? 'Active' : 'Disabled'}
+                    </span>
+                  </td>
+                  <td className="p-4 text-center text-zinc-400 font-mono text-[10px]">
+                    {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : 'No Expiry'}
+                  </td>
+                  <td className="p-4 text-center">
+                    <div className="flex items-center justify-center gap-1.5">
                       <button
+                        type="button"
                         onClick={() => {
-                          setActiveCoupon(coupon)
+                          setActiveCoupon({ ...coupon })
                           setShowCouponModal(true)
                         }}
-                        className="p-1.5 border-2 border-black bg-studio-yellow text-black hover:bg-studio-yellow-hover"
+                        className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 hover:text-white transition-all cursor-pointer"
+                        title="Edit Coupon"
                       >
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleCouponDelete(coupon.id, coupon.code)}
-                        className="p-1.5 border-2 border-black bg-studio-red text-white hover:bg-studio-red/80"
+                        className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer"
+                        title="Delete Coupon"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -196,40 +203,41 @@ export function CouponsTab({
         </table>
       </div>
 
-      {/* MODAL DRAWER: COUPON CRUD DETAILS */}
+      {/* MODAL DRAWER: COUPON DETAILS */}
       {showCouponModal && activeCoupon && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
           <form
             onSubmit={handleCouponSave}
-            className="w-full max-w-md border-4 border-black bg-[#121212] p-6 shadow-premium relative font-mono text-xs"
+            className="w-full max-w-md border border-white/15 bg-[#18181c] rounded-2xl p-6 sm:p-7 shadow-2xl relative font-sans text-xs"
           >
             <button
               type="button"
               onClick={() => setShowCouponModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors"
+              className="absolute top-4 right-4 p-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="font-luckiest-guy text-2xl uppercase text-studio-blue mb-6">
-              {activeCoupon.id ? '🎟️ edit coupon details' : '🎟️ create discount coupon'}
+            <h3 className="font-sans font-bold text-lg text-white mb-6 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+              {activeCoupon.id ? 'Edit Coupon' : 'Create Discount Coupon'}
             </h3>
 
              <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
               <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">COUPON CODE</label>
+                <label className="block text-[10px] font-bold uppercase text-zinc-400 mb-1.5">Coupon Code</label>
                 <input
                   type="text"
                   required
                   value={activeCoupon.code}
                   onChange={e => setActiveCoupon((prev: any) => ({ ...prev, code: e.target.value.toUpperCase() }))}
-                  placeholder="e.g. MAURYA30"
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-blue font-black uppercase text-sm tracking-widest"
+                  placeholder="e.g. FESTIVAL30"
+                  className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-bold uppercase text-sm tracking-widest"
                 />
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">DISCOUNT PERCENTAGE (%)</label>
+                <label className="block text-[10px] font-bold uppercase text-zinc-400 mb-1.5">Discount Percentage (%)</label>
                 <input
                   type="number"
                   min="1"
@@ -237,64 +245,63 @@ export function CouponsTab({
                   required
                   value={activeCoupon.discount_percent}
                   onChange={e => setActiveCoupon((prev: any) => ({ ...prev, discount_percent: Number(e.target.value) }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-blue font-black text-sm"
+                  className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-bold text-sm"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">MAX OVERALL USES (OPTIONAL)</label>
+                  <label className="block text-[10px] font-bold uppercase text-zinc-400 mb-1.5">Max Total Uses</label>
                   <input
                     type="number"
                     min="1"
-                    placeholder="INFINITE"
+                    placeholder="Infinite"
                     value={activeCoupon.max_uses || ''}
                     onChange={e => setActiveCoupon((prev: any) => ({ ...prev, max_uses: e.target.value ? Number(e.target.value) : null }))}
-                    className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-blue font-bold text-sm"
+                    className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-medium text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">LIMIT PER USER (OPTIONAL)</label>
+                  <label className="block text-[10px] font-bold uppercase text-zinc-400 mb-1.5">Limit Per User</label>
                   <input
                     type="number"
                     min="1"
-                    placeholder="INFINITE"
+                    placeholder="Infinite"
                     value={activeCoupon.limit_per_user || ''}
                     onChange={e => setActiveCoupon((prev: any) => ({ ...prev, limit_per_user: e.target.value ? Number(e.target.value) : null }))}
-                    className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-blue font-bold text-sm"
+                    className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-medium text-xs"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">APPLICABILITY</label>
+                <label className="block text-[10px] font-bold uppercase text-zinc-400 mb-1.5">Applicability</label>
                 <div className="flex gap-2 mb-3">
                   <button
                     type="button"
                     onClick={() => setActiveCoupon((prev: any) => ({ ...prev, applicable_items: null }))}
-                    className={`flex-grow p-2.5 text-[9px] font-black uppercase border-2 border-black transition-colors ${!activeCoupon.applicable_items ? 'bg-studio-blue text-white' : 'bg-black text-white/40 hover:text-white'}`}
+                    className={`flex-grow p-2 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${!activeCoupon.applicable_items ? 'bg-blue-600 text-white' : 'bg-white/5 border border-white/10 text-zinc-400 hover:text-white'}`}
                   >
                     All Products
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveCoupon((prev: any) => ({ ...prev, applicable_items: prev.applicable_items || [] }))}
-                    className={`flex-grow p-2.5 text-[9px] font-black uppercase border-2 border-black transition-colors ${activeCoupon.applicable_items ? 'bg-studio-blue text-white' : 'bg-black text-white/40 hover:text-white'}`}
+                    className={`flex-grow p-2 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${activeCoupon.applicable_items ? 'bg-blue-600 text-white' : 'bg-white/5 border border-white/10 text-zinc-400 hover:text-white'}`}
                   >
                     Specific Products
                   </button>
                 </div>
 
                 {activeCoupon.applicable_items && (
-                  <div className="border-2 border-black bg-black p-3 max-h-40 overflow-y-auto space-y-3 font-mono text-[9px]">
-                    {/* Sample Packs Group */}
+                  <div className="border border-white/10 bg-[#141418] rounded-xl p-3 max-h-40 overflow-y-auto space-y-3 font-mono text-[9px]">
                     {packs.length > 0 && (
                       <div className="space-y-1.5">
-                        <p className="text-[8px] text-studio-blue font-black uppercase tracking-wider">📦 Sample Packs</p>
+                        <p className="text-[9px] text-blue-400 font-bold uppercase tracking-wider">Sample Packs</p>
                         {packs.map(pack => {
                           const isChecked = activeCoupon.applicable_items?.includes(pack.id)
                           return (
-                            <label key={pack.id} className="flex items-center gap-2 text-zinc-300 font-bold hover:text-white cursor-pointer select-none">
+                            <label key={pack.id} className="flex items-center gap-2 text-zinc-300 font-medium hover:text-white cursor-pointer select-none">
                               <input
                                 type="checkbox"
                                 checked={isChecked}
@@ -305,7 +312,7 @@ export function CouponsTab({
                                     : current.filter((id: string) => id !== pack.id)
                                   setActiveCoupon((prev: any) => ({ ...prev, applicable_items: next }))
                                 }}
-                                className="accent-studio-blue"
+                                className="accent-blue-500"
                               />
                               {pack.name}
                             </label>
@@ -314,14 +321,13 @@ export function CouponsTab({
                       </div>
                     )}
 
-                    {/* Presets Group */}
                     {presets.length > 0 && (
                       <div className="space-y-1.5 pt-2 border-t border-white/5">
-                        <p className="text-[8px] text-studio-pink font-black uppercase tracking-wider">🎹 Presets</p>
+                        <p className="text-[9px] text-purple-400 font-bold uppercase tracking-wider">Presets</p>
                         {presets.map(preset => {
                           const isChecked = activeCoupon.applicable_items?.includes(preset.id)
                           return (
-                            <label key={preset.id} className="flex items-center gap-2 text-zinc-300 font-bold hover:text-white cursor-pointer select-none">
+                            <label key={preset.id} className="flex items-center gap-2 text-zinc-300 font-medium hover:text-white cursor-pointer select-none">
                               <input
                                 type="checkbox"
                                 checked={isChecked}
@@ -332,7 +338,7 @@ export function CouponsTab({
                                     : current.filter((id: string) => id !== preset.id)
                                   setActiveCoupon((prev: any) => ({ ...prev, applicable_items: next }))
                                 }}
-                                className="accent-studio-pink"
+                                className="accent-purple-500"
                               />
                               {preset.name}
                             </label>
@@ -345,33 +351,33 @@ export function CouponsTab({
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">EXPIRATION TIMESTAMP (OPTIONAL)</label>
+                <label className="block text-[10px] font-bold uppercase text-zinc-400 mb-1.5">Expiration Date</label>
                 <input
                   type="datetime-local"
                   value={activeCoupon.expires_at ? activeCoupon.expires_at.slice(0, 16) : ''}
                   onChange={e => setActiveCoupon((prev: any) => ({ ...prev, expires_at: e.target.value ? new Date(e.target.value).toISOString() : '' }))}
-                  className="w-full bg-black border-2 border-black p-2.5 text-white outline-none focus:border-studio-blue font-bold"
+                  className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-medium"
                 />
               </div>
 
-              <label className="border-2 border-black bg-black p-3 flex items-center gap-2 cursor-pointer font-bold text-[10px]">
+              <label className="border border-white/10 bg-[#141418] rounded-xl p-3 flex items-center gap-2 cursor-pointer font-bold text-xs">
                 <input
                   type="checkbox"
                   checked={activeCoupon.is_active}
                   onChange={e => setActiveCoupon((prev: any) => ({ ...prev, is_active: e.target.checked }))}
-                  className="accent-studio-blue"
+                  className="accent-blue-500"
                 />
-                IS ACTIVE & ENABLED FOR CHECKOUT
+                Enabled for Checkout
               </label>
 
               <button
                 type="submit"
                 disabled={saveLoading}
-                className="studio-button w-full mt-4 bg-studio-blue text-white font-black"
+                className="studio-button w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl cursor-pointer"
               >
-                {saveLoading ? 'SAVING...' : (
+                {saveLoading ? 'Saving...' : (
                   <>
-                    <Check className="w-4 h-4" /> SAVE DISCOUNT COUPON REGISTER
+                    <Check className="w-4 h-4" /> Save Coupon
                   </>
                 )}
               </button>

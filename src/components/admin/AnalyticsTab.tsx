@@ -280,7 +280,7 @@ export function AnalyticsTab({
       
       {/* 🚀 QUICK STORE PERFORMANCE HIGHLIGHTS */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-        <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between hover:border-white/[0.15] transition-all shadow-sm group">
+        <div className="bg-[#18181c] border border-white/10 rounded-2xl shadow-md p-3 sm:p-3.5 flex flex-col justify-between hover:border-white/[0.15] transition-all shadow-sm group">
           <div className="flex items-center justify-between text-zinc-500">
             <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">Today's Sales</span>
             <div className="p-1 rounded bg-blue-500/10 text-blue-400">
@@ -297,7 +297,7 @@ export function AnalyticsTab({
           </div>
         </div>
 
-        <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between hover:border-white/[0.15] transition-all shadow-sm group">
+        <div className="bg-[#18181c] border border-white/10 rounded-2xl shadow-md p-3 sm:p-3.5 flex flex-col justify-between hover:border-white/[0.15] transition-all shadow-sm group">
           <div className="flex items-center justify-between text-zinc-500">
             <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">This Month</span>
             <div className="p-1 rounded bg-emerald-500/10 text-emerald-400">
@@ -314,7 +314,7 @@ export function AnalyticsTab({
           </div>
         </div>
 
-        <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between hover:border-white/[0.15] transition-all shadow-sm group">
+        <div className="bg-[#18181c] border border-white/10 rounded-2xl shadow-md p-3 sm:p-3.5 flex flex-col justify-between hover:border-white/[0.15] transition-all shadow-sm group">
           <div className="flex items-center justify-between text-zinc-500">
             <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">Paid Ratio</span>
             <div className="p-1 rounded bg-amber-500/10 text-amber-400">
@@ -331,7 +331,7 @@ export function AnalyticsTab({
           </div>
         </div>
 
-        <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3 sm:p-3.5 flex flex-col justify-between hover:border-white/[0.15] transition-all shadow-sm group">
+        <div className="bg-[#18181c] border border-white/10 rounded-2xl shadow-md p-3 sm:p-3.5 flex flex-col justify-between hover:border-white/[0.15] transition-all shadow-sm group">
           <div className="flex items-center justify-between text-zinc-500">
             <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">Wishlist</span>
             <div className="p-1 rounded bg-pink-500/10 text-pink-400">
@@ -390,7 +390,7 @@ export function AnalyticsTab({
 
       {/* 🎯 FILTERED PERIOD SUMMARY BANNER (Minimalist & Detailed) */}
       {(filterStartDate || filterEndDate) && (
-        <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3.5 sm:p-4 shadow-sm">
+        <div className="bg-[#18181c] border border-white/10 rounded-2xl shadow-md p-3.5 sm:p-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-white/[0.08]">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -442,7 +442,7 @@ export function AnalyticsTab({
         <div className="lg:col-span-2 space-y-4 sm:space-y-5">
           
           {/* 1. PERFORMANCE & VOLATILITY CHART */}
-          <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3.5 sm:p-5 shadow-sm">
+          <div className="bg-[#18181c] border border-white/10 rounded-2xl shadow-md p-3.5 sm:p-5 shadow-sm">
             
             {/* Chart Header & Controls */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-white/[0.08]">
@@ -677,7 +677,7 @@ export function AnalyticsTab({
           </div>
 
           {/* 2. TOP SELLING PRODUCTS */}
-          <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3.5 sm:p-5 shadow-sm">
+          <div className="bg-[#18181c] border border-white/10 rounded-2xl shadow-md p-3.5 sm:p-5 shadow-sm">
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
                 <Package className="w-4 h-4 text-zinc-400" />
@@ -741,7 +741,7 @@ export function AnalyticsTab({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-3.5">
             
             {/* Card 1: Total Revenue */}
-            <div className="bg-[#0a0a0d] border border-white/[0.08] hover:border-white/[0.15] rounded-xl p-4 transition-all shadow-sm group">
+            <div className="bg-[#18181c] border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all shadow-md group">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
                   Total Revenue
@@ -765,7 +765,7 @@ export function AnalyticsTab({
             </div>
 
             {/* Card 2: Total Customers */}
-            <div className="bg-[#0a0a0d] border border-white/[0.08] hover:border-white/[0.15] rounded-xl p-4 transition-all shadow-sm group">
+            <div className="bg-[#18181c] border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all shadow-md group">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
                   Total Customers
@@ -784,7 +784,7 @@ export function AnalyticsTab({
             </div>
 
             {/* Card 3: Total Orders (Replaced Secure Vault Deliveries) */}
-            <div className="bg-[#0a0a0d] border border-white/[0.08] hover:border-white/[0.15] rounded-xl p-4 transition-all shadow-sm group">
+            <div className="bg-[#18181c] border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all shadow-md group">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
                   Total Orders
@@ -805,7 +805,7 @@ export function AnalyticsTab({
             </div>
 
             {/* Card 4: Total Products (Replaced Catalog Inventory) */}
-            <div className="bg-[#0a0a0d] border border-white/[0.08] hover:border-white/[0.15] rounded-xl p-4 transition-all shadow-sm group">
+            <div className="bg-[#18181c] border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all shadow-md group">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
                   Total Products
@@ -826,7 +826,7 @@ export function AnalyticsTab({
           </div>
 
           {/* RECENT ORDERS FEED */}
-          <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-3.5 sm:p-4 shadow-sm">
+          <div className="bg-[#18181c] border border-white/10 rounded-2xl shadow-md p-3.5 sm:p-4 shadow-sm">
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="w-4 h-4 text-zinc-400" />
