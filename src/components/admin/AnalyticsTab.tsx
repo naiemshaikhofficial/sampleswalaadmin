@@ -12,7 +12,12 @@ import {
   TrendingUp,
   Clock,
   Sparkles,
-  Ticket
+  Ticket,
+  ShoppingCart,
+  Package,
+  Heart,
+  AlertCircle,
+  ArrowRight
 } from 'lucide-react'
 
 interface VaultSale {
@@ -51,6 +56,7 @@ interface AnalyticsTabProps {
   vaultSalesList: any[]
   usersList?: any[]
   tickets?: any[]
+  setActiveTab?: (tab: any) => void
 }
 
 export function AnalyticsTab({
@@ -60,7 +66,8 @@ export function AnalyticsTab({
   filteredMetrics,
   vaultSalesList,
   usersList = [],
-  tickets = []
+  tickets = [],
+  setActiveTab
 }: AnalyticsTabProps) {
   const [activeMetric, setActiveMetric] = React.useState<'revenue' | 'signups' | 'tickets'>('revenue')
   const [hoveredPointIndex, setHoveredPointIndex] = React.useState<number | null>(null)
@@ -210,6 +217,55 @@ export function AnalyticsTab({
     return topPacks.reduce((acc, p) => acc + p.revenue, 0) || 1
   }, [topPacks])
 
+  // Quick Store Highlights (Today, Month, Breakdown)
+  const quickHighlights = React.useMemo(() => {
+    const now = new Date()
+    const todayYear = now.getFullYear()
+    const todayMonth = now.getMonth()
+    const todayDate = now.getDate()
+
+    let todayRevenue = 0
+    let todayOrders = 0
+    let monthRevenue = 0
+    let monthOrders = 0
+    let totalPaidOrders = 0
+    let totalFreeDownloads = 0
+
+    vaultSalesList.forEach(s => {
+      const amt = s.converted_amount_inr !== undefined ? Number(s.converted_amount_inr) : Number(s.amount || 0)
+      if (amt > 0) {
+        totalPaidOrders++
+      } else {
+        totalFreeDownloads++
+      }
+
+      if (s.created_at) {
+        const d = new Date(s.created_at)
+        if (d.getFullYear() === todayYear && d.getMonth() === todayMonth && d.getDate() === todayDate) {
+          todayRevenue += amt
+          todayOrders++
+        }
+        if (d.getFullYear() === todayYear && d.getMonth() === todayMonth) {
+          monthRevenue += amt
+          monthOrders++
+        }
+      }
+    })
+
+    const totalOrdersCount = vaultSalesList.length
+    const paidPercentage = totalOrdersCount > 0 ? Math.round((totalPaidOrders / totalOrdersCount) * 100) : 0
+
+    return {
+      todayRevenue,
+      todayOrders,
+      monthRevenue,
+      monthOrders,
+      totalPaidOrders,
+      totalFreeDownloads,
+      paidPercentage
+    }
+  }, [vaultSalesList])
+
   const activePoint = hoveredPointIndex !== null ? lineChartPoints.points[hoveredPointIndex] : null
 
   const metricColor =
@@ -222,6 +278,108 @@ export function AnalyticsTab({
   return (
     <div className="space-y-5 animate-fadeIn font-mono text-xs">
       
+      {/* 🚀 QUICK STORE PERFORMANCE HIGHLIGHTS */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-3 sm:p-3.5 flex flex-col justify-between hover:border-zinc-700/80 transition-all">
+          <div className="flex items-center justify-between text-zinc-500">
+            <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">Today's Sales</span>
+            <Clock className="w-3.5 h-3.5 text-blue-400" />
+          </div>
+          <div className="mt-2">
+            <span className="font-sans font-bold text-lg text-white">
+              ₹{quickHighlights.todayRevenue.toLocaleString()}
+            </span>
+            <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
+              {quickHighlights.todayOrders} {quickHighlights.todayOrders === 1 ? 'order' : 'orders'} today
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-3 sm:p-3.5 flex flex-col justify-between hover:border-zinc-700/80 transition-all">
+          <div className="flex items-center justify-between text-zinc-500">
+            <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">This Month</span>
+            <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+          </div>
+          <div className="mt-2">
+            <span className="font-sans font-bold text-lg text-white">
+              ₹{quickHighlights.monthRevenue.toLocaleString()}
+            </span>
+            <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
+              {quickHighlights.monthOrders} {quickHighlights.monthOrders === 1 ? 'order' : 'orders'} this month
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-3 sm:p-3.5 flex flex-col justify-between hover:border-zinc-700/80 transition-all">
+          <div className="flex items-center justify-between text-zinc-500">
+            <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">Paid Ratio</span>
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          </div>
+          <div className="mt-2">
+            <span className="font-sans font-bold text-lg text-white">
+              {quickHighlights.paidPercentage}% <span className="text-xs font-normal text-zinc-400">Paid</span>
+            </span>
+            <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
+              {quickHighlights.totalPaidOrders} paid · {quickHighlights.totalFreeDownloads} free
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-3 sm:p-3.5 flex flex-col justify-between hover:border-zinc-700/80 transition-all">
+          <div className="flex items-center justify-between text-zinc-500">
+            <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">Wishlist</span>
+            <Heart className="w-3.5 h-3.5 text-pink-400" />
+          </div>
+          <div className="mt-2">
+            <span className="font-sans font-bold text-lg text-white">
+              {stats.wishlistCount || 0} <span className="text-xs font-normal text-zinc-400">Saved</span>
+            </span>
+            <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
+              Items saved by users
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* ⚠️ STORE ALERTS & PENDING TASKS (If any open tickets or pending KYCs) */}
+      {(stats.openTickets > 0 || stats.pendingKYCs > 0) && (
+        <div className="bg-amber-950/25 border border-amber-500/30 rounded-lg p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 animate-pulse" />
+            <div>
+              <span className="font-sans font-semibold text-amber-200">
+                Action Required:
+              </span>{' '}
+              <span className="text-zinc-300">
+                {stats.openTickets > 0 && `${stats.openTickets} open support ticket${stats.openTickets > 1 ? 's' : ''}`}
+                {stats.openTickets > 0 && stats.pendingKYCs > 0 && ' and '}
+                {stats.pendingKYCs > 0 && `${stats.pendingKYCs} artist KYC${stats.pendingKYCs > 1 ? 's' : ''} waiting for approval`}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {stats.openTickets > 0 && setActiveTab && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('tickets')}
+                className="px-2.5 py-1 text-[11px] font-medium bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 rounded transition-all cursor-pointer flex items-center gap-1"
+              >
+                View Tickets <ArrowRight className="w-3 h-3" />
+              </button>
+            )}
+            {stats.pendingKYCs > 0 && setActiveTab && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('kyc')}
+                className="px-2.5 py-1 text-[11px] font-medium bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 text-blue-200 rounded transition-all cursor-pointer flex items-center gap-1"
+              >
+                Review KYCs <ArrowRight className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* 🎯 FILTERED PERIOD SUMMARY BANNER (Minimalist & Detailed) */}
       {(filterStartDate || filterEndDate) && (
         <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-4 shadow-sm">
@@ -284,11 +442,11 @@ export function AnalyticsTab({
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-zinc-400" />
                   <h3 className="font-sans font-bold text-sm text-zinc-100">
-                    Activity & Volume Trends
+                    Sales & Growth Trends
                   </h3>
                 </div>
                 <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">
-                  Trailing 7 active chronological periods
+                  Performance and activity over time
                 </p>
               </div>
 
@@ -320,7 +478,7 @@ export function AnalyticsTab({
                       : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
-                  Signups
+                  New Customers
                 </button>
                 <button
                   type="button"
@@ -334,7 +492,7 @@ export function AnalyticsTab({
                       : 'text-zinc-400 hover:text-zinc-200'
                   }`}
                 >
-                  Tickets
+                  Support Tickets
                 </button>
               </div>
             </div>
@@ -357,7 +515,7 @@ export function AnalyticsTab({
                 </div>
                 <div className="h-6 w-[1px] bg-zinc-800 hidden sm:block" />
                 <div className="hidden sm:block">
-                  <span className="text-zinc-500 text-[10px] block uppercase">Peak Day</span>
+                  <span className="text-zinc-500 text-[10px] block uppercase">Best Day</span>
                   <span className="font-sans font-semibold text-xs text-zinc-300">
                     {chartSummary.peak.date} ({activeMetric === 'revenue' ? `₹${chartSummary.peak.value.toLocaleString()}` : chartSummary.peak.value})
                   </span>
@@ -510,23 +668,23 @@ export function AnalyticsTab({
             </div>
           </div>
 
-          {/* 2. CATEGORY & PRODUCT SALES SHARE */}
+          {/* 2. TOP SELLING PRODUCTS */}
           <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-4 sm:p-5 shadow-sm">
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-900">
               <div className="flex items-center gap-2">
-                <Layers className="w-4 h-4 text-zinc-400" />
+                <Package className="w-4 h-4 text-zinc-400" />
                 <h3 className="font-sans font-bold text-sm text-zinc-100">
-                  Pack Sales Share & Revenue Distribution
+                  Top Selling Products
                 </h3>
               </div>
               <span className="text-[10px] text-zinc-500 font-mono">
-                Top {topPacks.length} performers
+                Top {topPacks.length} by revenue
               </span>
             </div>
 
             {topPacks.length === 0 ? (
               <div className="py-6 text-center text-zinc-500 text-xs">
-                No pack sales recorded yet
+                No product sales recorded yet
               </div>
             ) : (
               <div className="space-y-3.5">
@@ -548,7 +706,7 @@ export function AnalyticsTab({
                             ₹{pack.revenue.toLocaleString()}
                           </span>
                           <span className="text-zinc-500 font-mono text-[10px]">
-                            ({pack.sales} sales · {percent}%)
+                            ({pack.sales} {pack.sales === 1 ? 'sale' : 'sales'} · {percent}% share)
                           </span>
                         </div>
                       </div>
@@ -568,7 +726,7 @@ export function AnalyticsTab({
 
         </div>
 
-        {/* RIGHT COLUMN: GLOBAL DETAILED KPI CARDS & LATEST SALES (1 col) */}
+        {/* RIGHT COLUMN: GLOBAL DETAILED KPI CARDS & RECENT ORDERS (1 col) */}
         <div className="space-y-5">
           
           {/* GLOBAL KPI CARDS */}
@@ -578,7 +736,7 @@ export function AnalyticsTab({
             <div className="bg-[#0e0e11] border border-zinc-800/80 hover:border-zinc-700/80 rounded-lg p-4 transition-all shadow-sm group">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
-                  Total Sales Volume
+                  Total Revenue
                 </span>
                 <div className="p-1.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400">
                   <DollarSign className="w-3.5 h-3.5" />
@@ -588,92 +746,104 @@ export function AnalyticsTab({
                 ₹{stats.totalRevenueINR.toLocaleString()}
               </p>
               <div className="mt-2.5 pt-2 border-t border-zinc-900/80 flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
-                <span>AOV: ₹{kpiDetails.aov.toLocaleString()}</span>
+                <span>Avg Order: ₹{kpiDetails.aov.toLocaleString()}</span>
                 <span>{kpiDetails.paidCount} paid orders</span>
               </div>
               {kpiDetails.usdCount > 0 && (
                 <div className="mt-1 text-[9px] text-emerald-400 font-mono">
-                  Includes {kpiDetails.usdCount} USD orders converted to INR
+                  Includes {kpiDetails.usdCount} international USD orders
                 </div>
               )}
             </div>
 
-            {/* Card 2: Registered Users */}
+            {/* Card 2: Total Customers */}
             <div className="bg-[#0e0e11] border border-zinc-800/80 hover:border-zinc-700/80 rounded-lg p-4 transition-all shadow-sm group">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
-                  Customer Registrations
+                  Total Customers
                 </span>
                 <div className="p-1.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-400">
                   <Users className="w-3.5 h-3.5" />
                 </div>
               </div>
               <p className="font-sans font-bold text-2xl text-white mt-2 tracking-tight">
-                {stats.totalUsers} <span className="text-sm font-normal text-zinc-400">Users</span>
+                {stats.totalUsers} <span className="text-sm font-normal text-zinc-400">Customers</span>
               </p>
               <div className="mt-2.5 pt-2 border-t border-zinc-900/80 flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
-                <span>{kpiDetails.uniqueBuyers} active buyers</span>
+                <span>{kpiDetails.uniqueBuyers} paying buyers</span>
                 <span className="text-emerald-400">{kpiDetails.buyerConversion}% conversion</span>
               </div>
             </div>
 
-            {/* Card 3: Vault Downloads */}
+            {/* Card 3: Total Orders (Replaced Secure Vault Deliveries) */}
             <div className="bg-[#0e0e11] border border-zinc-800/80 hover:border-zinc-700/80 rounded-lg p-4 transition-all shadow-sm group">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
-                  Secure Vault Deliveries
+                  Total Orders
                 </span>
                 <div className="p-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                  <Activity className="w-3.5 h-3.5" />
+                  <ShoppingCart className="w-3.5 h-3.5" />
                 </div>
               </div>
               <p className="font-sans font-bold text-2xl text-white mt-2 tracking-tight">
-                {stats.totalDownloads || 0} <span className="text-sm font-normal text-zinc-400">Downloads</span>
+                {kpiDetails.paidCount} <span className="text-sm font-normal text-zinc-400">Paid Orders</span>
               </p>
               <div className="mt-2.5 pt-2 border-t border-zinc-900/80 flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
-                <span>Avg ~{kpiDetails.downloadsPerUser} / user</span>
-                <span className="text-zinc-500">Verified access</span>
+                <span>₹{stats.totalRevenueINR.toLocaleString()} paid volume</span>
+                <span className="text-zinc-500">
+                  {kpiDetails.freeCount || (stats.totalDownloads > kpiDetails.paidCount ? stats.totalDownloads - kpiDetails.paidCount : 0)} free claims
+                </span>
               </div>
             </div>
 
-            {/* Card 4: Inventory Sample Packs */}
+            {/* Card 4: Total Products (Replaced Catalog Inventory) */}
             <div className="bg-[#0e0e11] border border-zinc-800/80 hover:border-zinc-700/80 rounded-lg p-4 transition-all shadow-sm group">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
-                  Catalog Inventory
+                  Total Products
                 </span>
                 <div className="p-1.5 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-400">
-                  <Layers className="w-3.5 h-3.5" />
+                  <Package className="w-3.5 h-3.5" />
                 </div>
               </div>
               <p className="font-sans font-bold text-2xl text-white mt-2 tracking-tight">
-                {stats.samplePacksCount || 0} <span className="text-sm font-normal text-zinc-400">Packs</span>
+                {stats.samplePacksCount || 0} <span className="text-sm font-normal text-zinc-400">Products</span>
               </p>
               <div className="mt-2.5 pt-2 border-t border-zinc-900/80 flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
-                <span>Live in catalog</span>
-                <span>{stats.wishlistCount || 0} bookmarks</span>
+                <span>Published in store</span>
+                <span>{stats.wishlistCount || 0} saved in wishlist</span>
               </div>
             </div>
 
           </div>
 
-          {/* LATEST VAULT SALES FEED */}
+          {/* RECENT ORDERS FEED (Replaced Latest Vault Sales) */}
           <div className="bg-[#0e0e11] border border-zinc-800/80 rounded-lg p-4 shadow-sm">
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-zinc-900">
               <div className="flex items-center gap-2">
-                <Coins className="w-4 h-4 text-zinc-400" />
+                <ShoppingCart className="w-4 h-4 text-zinc-400" />
                 <h3 className="font-sans font-bold text-xs uppercase tracking-wide text-zinc-200">
-                  Latest Vault Sales
+                  Recent Orders
                 </h3>
               </div>
-              <span className="text-[9px] font-mono font-medium px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
-                Recent 5
-              </span>
+              {setActiveTab ? (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('sales')}
+                  className="text-[10px] font-sans font-medium text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  View All Orders <ArrowRight className="w-3 h-3" />
+                </button>
+              ) : (
+                <span className="text-[9px] font-mono font-medium px-2 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400">
+                  Latest 5
+                </span>
+              )}
             </div>
 
             {!stats.recentVaultSales || stats.recentVaultSales.length === 0 ? (
               <div className="py-6 text-center text-zinc-500 text-xs font-mono">
-                No acquisitions logged yet
+                No orders logged yet
               </div>
             ) : (
               <div className="space-y-2">
@@ -712,13 +882,13 @@ export function AnalyticsTab({
                           </span>
                         )}
                         <span
-                          className={`inline-block text-[8px] font-sans font-semibold uppercase px-1.5 py-0.2 rounded mt-1 ${
+                          className={`inline-block text-[8px] font-sans font-semibold uppercase px-1.5 py-0.5 rounded mt-1 ${
                             isFree
                               ? 'bg-zinc-800 text-zinc-400'
                               : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                           }`}
                         >
-                          {isFree ? 'Claimed' : 'Paid'}
+                          {isFree ? 'Free Download' : 'Paid Order'}
                         </span>
                       </div>
                     </div>

@@ -891,6 +891,7 @@ export default function AdminDashboard() {
               vaultSalesList={vaultSalesList}
               usersList={usersList}
               tickets={tickets}
+              setActiveTab={setActiveTab}
             />
           )}
 
