@@ -63,7 +63,7 @@ export function Sidebar({
   showToast
 }: SidebarProps) {
   const adminRole = user?.app_metadata?.role || (typeof window !== 'undefined' ? localStorage.getItem(`admin_role_${user?.id}`) : null) || 'Super Admin'
-  
+
   const filteredNavItems = navItems.filter(item => {
     if (adminRole === 'Support Agent') {
       return ['packs', 'kyc', 'coupons', 'tickets', 'users', 'logs'].includes(item.tab)
@@ -84,14 +84,13 @@ export function Sidebar({
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 w-72 md:w-64 bg-[#0a0a0d] border-r border-white/[0.08] z-50 flex flex-col transition-transform duration-300 ease-out transform md:relative md:translate-x-0 ${
-        mobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
-      } md:flex flex-shrink-0`}
+      className={`fixed inset-y-0 left-0 w-72 md:w-64 bg-[#0a0a0d] border-r border-white/[0.08] z-50 flex flex-col transition-transform duration-300 ease-out transform md:relative md:translate-x-0 ${mobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
+        } md:flex flex-shrink-0`}
     >
       {/* LOGO & BRAND HEADER */}
       <div className="p-4 sm:p-5 border-b border-white/[0.08] bg-[#070709] flex items-center justify-between md:flex-col md:justify-center">
         <a
-          href="https://www.sampleswala.vercel.app"
+          href="https://sampleswala.vercel.app"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity"
@@ -129,23 +128,20 @@ export function Sidebar({
                 setActiveTab(tab)
                 setMobileMenuOpen(false)
               }}
-              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all text-left group cursor-pointer ${
-                isActive
-                  ? 'bg-white/[0.08] text-white border border-white/[0.12] shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.03] border border-transparent'
-              }`}
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all text-left group cursor-pointer ${isActive
+                ? 'bg-white/[0.08] text-white border border-white/[0.12] shadow-sm'
+                : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/[0.03] border border-transparent'
+                }`}
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div
-                  className={`p-1.5 rounded-md transition-colors ${
-                    isActive ? 'bg-white/10' : 'bg-transparent group-hover:bg-white/5'
-                  }`}
+                  className={`p-1.5 rounded-md transition-colors ${isActive ? 'bg-white/10' : 'bg-transparent group-hover:bg-white/5'
+                    }`}
                   style={{ color: isActive ? color : undefined }}
                 >
                   <Icon
-                    className={`w-4 h-4 transition-transform group-hover:scale-110 ${
-                      !isActive ? 'text-zinc-400 group-hover:text-zinc-200' : ''
-                    }`}
+                    className={`w-4 h-4 transition-transform group-hover:scale-110 ${!isActive ? 'text-zinc-400 group-hover:text-zinc-200' : ''
+                      }`}
                   />
                 </div>
                 <span className={`truncate text-xs tracking-wide ${isActive ? 'font-bold text-white' : 'font-medium text-zinc-300'}`}>
@@ -185,11 +181,10 @@ export function Sidebar({
                   showToast(`Accent set to ${item.label}!`, 'success')
                 }}
                 style={{ backgroundColor: item.hex }}
-                className={`h-5 w-5 rounded-full transition-all cursor-pointer ${
-                  isSelected
-                    ? 'ring-2 ring-white ring-offset-2 ring-offset-black scale-110 shadow-lg'
-                    : 'opacity-50 hover:opacity-100 hover:scale-105'
-                }`}
+                className={`h-5 w-5 rounded-full transition-all cursor-pointer ${isSelected
+                  ? 'ring-2 ring-white ring-offset-2 ring-offset-black scale-110 shadow-lg'
+                  : 'opacity-50 hover:opacity-100 hover:scale-105'
+                  }`}
                 title={`Accent: ${item.label}`}
               />
             )

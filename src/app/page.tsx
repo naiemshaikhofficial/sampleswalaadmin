@@ -801,7 +801,7 @@ export default function AdminDashboard() {
   // --- CORE AUTHORIZED ADMIN INTERFACE ---
   return (
     <div
-      className="h-screen flex flex-col md:flex-row bg-[#0c0c0c] text-white overflow-hidden"
+      className="h-screen flex flex-col md:flex-row bg-[#121212] text-white overflow-hidden"
       style={{
         ['--color-studio-pink' as any]: accentDetails[accent].hex,
       }}
@@ -1012,7 +1012,7 @@ export default function AdminDashboard() {
       </main>
 
       {/* MOBILE BOTTOM QUICK NAVIGATION BAR */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 bg-[#0a0a0d]/95 backdrop-blur-xl border-t border-white/[0.08] z-30 flex items-center justify-around px-2 py-2 safe-bottom">
+      <div className="md:hidden fixed bottom-0 inset-x-0 bg-[#121212]/95 backdrop-blur-xl border-t border-white/10 z-30 flex items-center justify-around px-2 py-2 safe-bottom">
         <button
           type="button"
           onClick={() => setActiveTab('analytics')}
