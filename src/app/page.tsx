@@ -107,30 +107,20 @@ export default function AdminDashboard() {
   // Collapsible Sidebar State (Persisted in localStorage)
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false)
 
-  // Dynamic Theme Accent Presets (User Controlled - Strictly No Orange)
-  type AccentKey = 'white' | 'platinum' | 'zinc' | 'emerald' | 'cyan' | 'purple' | 'noir'
-  const [accent, setAccent] = useState<AccentKey>('white')
+  // Dark / White Theme Mode State (Persisted in localStorage)
+  const [themeMode, setThemeMode] = useState<'dark' | 'white'>('dark')
 
-  const accentDetails: Record<AccentKey, { label: string; hex: string; borderClass: string }> = {
-    white: { label: 'Pure White', hex: '#FFFFFF', borderClass: 'shadow-[0_0_14px_rgba(255,255,255,0.25)]' },
-    platinum: { label: 'Platinum', hex: '#E4E4E7', borderClass: 'shadow-[0_0_14px_rgba(228,228,231,0.2)]' },
-    zinc: { label: 'Slate Zinc', hex: '#A1A1AA', borderClass: 'shadow-[0_0_14px_rgba(161,161,170,0.15)]' },
-    emerald: { label: 'Mint Emerald', hex: '#34D399', borderClass: 'shadow-[0_0_14px_rgba(52,211,153,0.25)]' },
-    cyan: { label: 'Ice Cyan', hex: '#38BDF8', borderClass: 'shadow-[0_0_14px_rgba(56,189,248,0.25)]' },
-    purple: { label: 'Synth Violet', hex: '#A855F7', borderClass: 'shadow-[0_0_14px_rgba(168,85,247,0.25)]' },
-    noir: { label: 'Stealth Noir', hex: '#3F3F46', borderClass: 'shadow-[0_0_14px_rgba(63,63,70,0.35)]' },
-  }
-
-  // Restore collapsed & accent state from localStorage
+  // Restore collapsed & themeMode state from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedCollapsed = localStorage.getItem('admin_sidebar_collapsed')
       if (savedCollapsed === 'true') {
         setSidebarCollapsed(true)
       }
-      const savedAccent = localStorage.getItem('admin_theme_accent') as AccentKey
-      if (savedAccent && accentDetails[savedAccent]) {
-        setAccent(savedAccent)
+      const savedTheme = localStorage.getItem('admin_theme_mode') as 'dark' | 'white'
+      if (savedTheme === 'white' || savedTheme === 'dark') {
+        setThemeMode(savedTheme)
+        document.documentElement.setAttribute('data-theme', savedTheme)
       }
     }
   }, [])
@@ -145,11 +135,14 @@ export default function AdminDashboard() {
     })
   }
 
-  const handleSetAccent = (newAccent: AccentKey) => {
-    setAccent(newAccent)
+  const handleToggleThemeMode = () => {
+    const nextMode = themeMode === 'dark' ? 'white' : 'dark'
+    setThemeMode(nextMode)
     if (typeof window !== 'undefined') {
-      localStorage.setItem('admin_theme_accent', newAccent)
+      localStorage.setItem('admin_theme_mode', nextMode)
+      document.documentElement.setAttribute('data-theme', nextMode)
     }
+    showToast(`Switched to ${nextMode === 'white' ? 'White' : 'Dark'} Mode`, 'success')
   }
 
   // Audit Logs
@@ -882,13 +875,8 @@ export default function AdminDashboard() {
   // --- CORE AUTHORIZED ADMIN INTERFACE ---
   return (
     <div
-      className="h-screen flex flex-col md:flex-row bg-[#121212] text-white overflow-hidden"
-      style={{
-        ['--theme-accent' as any]: accentDetails[accent]?.hex || '#ffffff',
-        ['--theme-accent-text' as any]: accentDetails[accent]?.hex || '#ffffff',
-        ['--theme-accent-border' as any]: accentDetails[accent]?.hex || '#ffffff',
-        ['--color-studio-pink' as any]: accentDetails[accent]?.hex || '#ffffff',
-      }}
+      data-theme={themeMode}
+      className="h-screen flex flex-col md:flex-row bg-[#121212] text-white overflow-hidden transition-colors duration-200"
     >
       {/* Hidden audio element for preview players */}
       {audioUrl && (
@@ -919,9 +907,6 @@ export default function AdminDashboard() {
         setMobileMenuOpen={setMobileMenuOpen}
         isCollapsed={sidebarCollapsed}
         setIsCollapsed={handleSetSidebarCollapsed}
-        accent={accent}
-        setAccent={handleSetAccent}
-        accentDetails={accentDetails}
         user={user}
         onLogout={handleLogout}
         showToast={showToast}
@@ -936,6 +921,8 @@ export default function AdminDashboard() {
           onMenuOpen={() => setMobileMenuOpen(true)}
           onPaletteOpen={() => setShowPalette(true)}
           onReload={handleReload}
+          themeMode={themeMode}
+          onToggleThemeMode={handleToggleThemeMode}
         />
 
         {/* SUB HEADER ROW (DESKTOP) */}
@@ -947,6 +934,8 @@ export default function AdminDashboard() {
           onReload={handleReload}
           isCollapsed={sidebarCollapsed}
           onToggleSidebar={() => handleSetSidebarCollapsed(p => !p)}
+          themeMode={themeMode}
+          onToggleThemeMode={handleToggleThemeMode}
         />
 
         {/* CONTAINER CONTENT */}
@@ -980,6 +969,7 @@ export default function AdminDashboard() {
               usersList={usersList}
               tickets={tickets}
               setActiveTab={setActiveTab}
+              themeMode={themeMode}
             />
           )}
 

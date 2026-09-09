@@ -57,6 +57,7 @@ interface AnalyticsTabProps {
   usersList?: any[]
   tickets?: any[]
   setActiveTab?: (tab: any) => void
+  themeMode?: 'dark' | 'white'
 }
 
 export function AnalyticsTab({
@@ -67,10 +68,22 @@ export function AnalyticsTab({
   vaultSalesList,
   usersList = [],
   tickets = [],
-  setActiveTab
+  setActiveTab,
+  themeMode
 }: AnalyticsTabProps) {
   const [activeMetric, setActiveMetric] = React.useState<'revenue' | 'signups' | 'tickets'>('revenue')
   const [hoveredPointIndex, setHoveredPointIndex] = React.useState<number | null>(null)
+
+  const [isWhite, setIsWhite] = React.useState(themeMode === 'white')
+  React.useEffect(() => {
+    if (themeMode) {
+      setIsWhite(themeMode === 'white')
+    } else if (typeof document !== 'undefined') {
+      setIsWhite(document.documentElement.getAttribute('data-theme') === 'white')
+    }
+  }, [themeMode])
+
+  const isWhiteMode = isWhite
 
   // 1. Group metric data chronologically
   const chartData = React.useMemo(() => {
@@ -270,10 +283,25 @@ export function AnalyticsTab({
 
   const metricColor =
     activeMetric === 'revenue'
-      ? { stroke: '#ffffff', fillGradient: '#ffffff', text: 'text-white', badge: 'bg-white/10 text-white border-white/20' }
+      ? {
+          stroke: isWhiteMode ? '#09090b' : '#ffffff',
+          fillGradient: isWhiteMode ? '#18181b' : '#ffffff',
+          text: isWhiteMode ? 'text-zinc-900 font-bold' : 'text-white',
+          badge: isWhiteMode ? 'bg-zinc-100 text-zinc-900 border border-zinc-300' : 'bg-white/10 text-white border border-white/20'
+        }
       : activeMetric === 'signups'
-      ? { stroke: '#00FF94', fillGradient: '#00FF94', text: 'text-emerald-400', badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' }
-      : { stroke: '#BF00FF', fillGradient: '#BF00FF', text: 'text-purple-400', badge: 'bg-purple-500/10 text-purple-400 border-purple-500/20' }
+      ? {
+          stroke: isWhiteMode ? '#059669' : '#00FF94',
+          fillGradient: isWhiteMode ? '#059669' : '#00FF94',
+          text: isWhiteMode ? 'text-emerald-700 font-bold' : 'text-emerald-400',
+          badge: isWhiteMode ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+        }
+      : {
+          stroke: isWhiteMode ? '#7c3aed' : '#BF00FF',
+          fillGradient: isWhiteMode ? '#7c3aed' : '#BF00FF',
+          text: isWhiteMode ? 'text-purple-700 font-bold' : 'text-purple-400',
+          badge: isWhiteMode ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+        }
 
   return (
     <div className="space-y-5 animate-fadeIn font-mono text-xs">
@@ -459,7 +487,7 @@ export function AnalyticsTab({
               </div>
 
               {/* Segmented Metric Control */}
-              <div className="inline-flex items-center bg-[#121212] p-1 rounded-lg border border-[#222222] self-start sm:self-auto">
+              <div className={`inline-flex items-center ${isWhiteMode ? 'bg-[#f4f4f5] border-[#e4e4e7]' : 'bg-[#121212] border-[#222222]'} p-1 rounded-lg border self-start sm:self-auto`}>
                 <button
                   type="button"
                   onClick={() => {
@@ -468,8 +496,8 @@ export function AnalyticsTab({
                   }}
                   className={`px-3 py-1 text-[11px] font-medium rounded transition-all cursor-pointer ${
                     activeMetric === 'revenue'
-                      ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      ? (isWhiteMode ? 'bg-[#09090b] text-white shadow-sm font-semibold' : 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60')
+                      : (isWhiteMode ? 'text-zinc-600 hover:text-black' : 'text-zinc-400 hover:text-zinc-200')
                   }`}
                 >
                   Revenue
@@ -482,8 +510,8 @@ export function AnalyticsTab({
                   }}
                   className={`px-3 py-1 text-[11px] font-medium rounded transition-all cursor-pointer ${
                     activeMetric === 'signups'
-                      ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      ? (isWhiteMode ? 'bg-[#09090b] text-white shadow-sm font-semibold' : 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60')
+                      : (isWhiteMode ? 'text-zinc-600 hover:text-black' : 'text-zinc-400 hover:text-zinc-200')
                   }`}
                 >
                   New Customers
@@ -496,8 +524,8 @@ export function AnalyticsTab({
                   }}
                   className={`px-3 py-1 text-[11px] font-medium rounded transition-all cursor-pointer ${
                     activeMetric === 'tickets'
-                      ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60'
-                      : 'text-zinc-400 hover:text-zinc-200'
+                      ? (isWhiteMode ? 'bg-[#09090b] text-white shadow-sm font-semibold' : 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60')
+                      : (isWhiteMode ? 'text-zinc-600 hover:text-black' : 'text-zinc-400 hover:text-zinc-200')
                   }`}
                 >
                   Support Tickets
@@ -506,25 +534,25 @@ export function AnalyticsTab({
             </div>
 
             {/* Micro Context Bar (Detailed Summaries) */}
-            <div className="flex flex-wrap items-center justify-between gap-3 py-3 border-b border-zinc-900/60 text-[11px]">
+            <div className={`flex flex-wrap items-center justify-between gap-3 py-3 border-b ${isWhiteMode ? 'border-[#e5e5e8]' : 'border-zinc-900/60'} text-[11px]`}>
               <div className="flex items-center gap-4">
                 <div>
                   <span className="text-zinc-500 text-[10px] block uppercase">Period Total</span>
-                  <span className="font-sans font-bold text-sm text-zinc-100">
+                  <span className={`font-sans font-bold text-sm ${isWhiteMode ? 'text-black' : 'text-zinc-100'}`}>
                     {activeMetric === 'revenue' ? `₹${chartSummary.total.toLocaleString()}` : `${chartSummary.total}`}
                   </span>
                 </div>
-                <div className="h-6 w-[1px] bg-zinc-800" />
+                <div className={`h-6 w-[1px] ${isWhiteMode ? 'bg-zinc-300' : 'bg-zinc-800'}`} />
                 <div>
                   <span className="text-zinc-500 text-[10px] block uppercase">Daily Average</span>
-                  <span className="font-sans font-bold text-sm text-zinc-200">
+                  <span className={`font-sans font-bold text-sm ${isWhiteMode ? 'text-zinc-800' : 'text-zinc-200'}`}>
                     {activeMetric === 'revenue' ? `₹${chartSummary.avg.toLocaleString()}` : `${chartSummary.avg}`}
                   </span>
                 </div>
-                <div className="h-6 w-[1px] bg-zinc-800 hidden sm:block" />
+                <div className={`h-6 w-[1px] ${isWhiteMode ? 'bg-zinc-300' : 'bg-zinc-800'} hidden sm:block`} />
                 <div className="hidden sm:block">
                   <span className="text-zinc-500 text-[10px] block uppercase">Best Day</span>
-                  <span className="font-sans font-semibold text-xs text-zinc-300">
+                  <span className={`font-sans font-semibold text-xs ${isWhiteMode ? 'text-zinc-700' : 'text-zinc-300'}`}>
                     {chartSummary.peak.date} ({activeMetric === 'revenue' ? `₹${chartSummary.peak.value.toLocaleString()}` : chartSummary.peak.value})
                   </span>
                 </div>
@@ -533,7 +561,7 @@ export function AnalyticsTab({
               {/* Active Hover / Instruction Pill */}
               <div>
                 {activePoint ? (
-                  <div className="flex items-center gap-2 bg-zinc-900/90 border border-zinc-700/80 px-2.5 py-1 rounded">
+                  <div className={`flex items-center gap-2 ${isWhiteMode ? 'bg-black text-white' : 'bg-zinc-900/90 border border-zinc-700/80'} px-2.5 py-1 rounded shadow-sm`}>
                     <span className="text-zinc-400 text-[10px]">{activePoint.date}:</span>
                     <span className="font-sans font-bold text-xs text-white">
                       {activeMetric === 'revenue' ? `₹${activePoint.value.toLocaleString()}` : `${activePoint.value}`}
@@ -561,7 +589,7 @@ export function AnalyticsTab({
                   >
                     <defs>
                       <linearGradient id="chartGradientMinimal" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={metricColor.fillGradient} stopOpacity="0.18" />
+                        <stop offset="0%" stopColor={metricColor.fillGradient} stopOpacity={isWhiteMode ? "0.14" : "0.22"} />
                         <stop offset="100%" stopColor={metricColor.fillGradient} stopOpacity="0.00" />
                       </linearGradient>
                     </defs>
@@ -577,7 +605,7 @@ export function AnalyticsTab({
                             y1={y}
                             x2={lineChartPoints.width - 20}
                             y2={y}
-                            stroke="#222226"
+                            stroke={isWhiteMode ? "#e4e4e7" : "#222226"}
                             strokeWidth="1"
                             strokeDasharray="4 4"
                           />
@@ -604,7 +632,7 @@ export function AnalyticsTab({
                       d={lineChartPoints.linePath}
                       fill="none"
                       stroke={metricColor.stroke}
-                      strokeWidth="2.5"
+                      strokeWidth="3"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                     />
@@ -616,7 +644,7 @@ export function AnalyticsTab({
                         y1={20}
                         x2={activePoint.x}
                         y2={lineChartPoints.height - lineChartPoints.paddingBottom}
-                        stroke="#3f3f46"
+                        stroke={isWhiteMode ? "#d4d4d8" : "#3f3f46"}
                         strokeWidth="1"
                         strokeDasharray="3 3"
                       />
@@ -642,7 +670,7 @@ export function AnalyticsTab({
                               cy={p.y}
                               r="8"
                               fill={metricColor.stroke}
-                              fillOpacity="0.25"
+                              fillOpacity={isWhiteMode ? "0.2" : "0.25"}
                             />
                           )}
 
@@ -650,10 +678,10 @@ export function AnalyticsTab({
                           <circle
                             cx={p.x}
                             cy={p.y}
-                            r={isHovered ? '5' : '3.5'}
-                            fill={isHovered ? '#ffffff' : metricColor.stroke}
-                            stroke="#0e0e11"
-                            strokeWidth="2"
+                            r={isHovered ? '6' : '4'}
+                            fill={isHovered ? (isWhiteMode ? '#000000' : '#ffffff') : metricColor.stroke}
+                            stroke={isWhiteMode ? '#ffffff' : '#0e0e11'}
+                            strokeWidth="2.5"
                             className="transition-all duration-150"
                           />
 
@@ -661,7 +689,7 @@ export function AnalyticsTab({
                           <text
                             x={p.x}
                             y={lineChartPoints.height - 10}
-                            fill={isHovered ? '#ffffff' : '#71717a'}
+                            fill={isHovered ? (isWhiteMode ? '#000000' : '#ffffff') : '#71717a'}
                             className="text-[9px] font-mono font-medium transition-colors"
                             textAnchor="middle"
                           >
@@ -721,7 +749,7 @@ export function AnalyticsTab({
 
                       <div className="w-full bg-[#121212] h-2 rounded-full overflow-hidden border border-[#202020]">
                         <div
-                          className="h-full bg-white rounded-full transition-all duration-500 group-hover:bg-zinc-200"
+                          className={`h-full ${isWhiteMode ? 'bg-[#09090b]' : 'bg-white'} rounded-full transition-all duration-500`}
                           style={{ width: `${Math.max(percent, 4)}%` }}
                         />
                       </div>

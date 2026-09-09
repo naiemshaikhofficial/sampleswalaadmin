@@ -285,3 +285,180 @@ select:-webkit-autofill:active {
 .animate-fade-in {
   animation: fadeInFast 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* ==============================================================================
+   WHITE MODE (STUDIO LIGHT THEME - STRICTLY ZERO ORANGE)
+   ============================================================================== */
+[data-theme="white"],
+html[data-theme="white"] body {
+  color-scheme: light;
+  background-color: #f7f7f8 !important;
+  color: #18181b !important;
+}
+
+[data-theme="white"] {
+  --epic-bg: #f7f7f8;
+  --epic-card: #ffffff;
+  --epic-card-hover: #f0f0f2;
+  --epic-border: #e4e4e7;
+  --epic-border-hover: #d4d4d8;
+  --epic-text: #09090b;
+  --epic-muted: #71717a;
+}
+
+/* Background surfaces */
+[data-theme="white"] .bg-\[\#121212\],
+[data-theme="white"] .bg-\[\#121212\]\/95 {
+  background-color: #f7f7f8 !important;
+}
+
+[data-theme="white"] .bg-\[\#181818\] {
+  background-color: #ffffff !important;
+}
+
+[data-theme="white"] .bg-\[\#141414\] {
+  background-color: #f4f4f5 !important;
+}
+
+[data-theme="white"] .bg-\[\#1a1a1a\],
+[data-theme="white"] .bg-\[\#1c1c1c\],
+[data-theme="white"] .bg-\[\#202020\],
+[data-theme="white"] .bg-\[\#222222\],
+[data-theme="white"] .bg-\[\#242424\],
+[data-theme="white"] .bg-\[\#252525\] {
+  background-color: #f0f0f2 !important;
+}
+
+[data-theme="white"] .bg-\[\#1e1e1e\] {
+  background-color: #09090b !important;
+  color: #ffffff !important;
+}
+
+[data-theme="white"] .bg-white\/\[0\.02\],
+[data-theme="white"] .bg-white\/\[0\.03\],
+[data-theme="white"] .bg-white\/\[0\.04\],
+[data-theme="white"] .bg-white\/\[0\.05\],
+[data-theme="white"] .bg-white\/5 {
+  background-color: #f4f4f5 !important;
+}
+
+[data-theme="white"] .hover\:bg-\[\#181818\]:hover,
+[data-theme="white"] .hover\:bg-\[\#1c1c1c\]:hover,
+[data-theme="white"] .hover\:bg-\[\#202020\]:hover,
+[data-theme="white"] .hover\:bg-\[\#222222\]:hover,
+[data-theme="white"] .hover\:bg-\[\#252525\]:hover,
+[data-theme="white"] .hover\:bg-\[\#282828\]:hover {
+  background-color: #e4e4e7 !important;
+}
+
+[data-theme="white"] .hover\:bg-white\/\[0\.03\]:hover,
+[data-theme="white"] .hover\:bg-white\/\[0\.04\]:hover,
+[data-theme="white"] .hover\:bg-white\/\[0\.05\]:hover,
+[data-theme="white"] .hover\:bg-white\/\[0\.08\]:hover,
+[data-theme="white"] .hover\:bg-white\/\[0\.1\]:hover,
+[data-theme="white"] .hover\:bg-white\/10:hover {
+  background-color: #ebebed !important;
+}
+
+/* Border overrides */
+[data-theme="white"] .border-\[\#202020\],
+[data-theme="white"] .border-\[\#222222\],
+[data-theme="white"] .border-\[\#252525\],
+[data-theme="white"] .border-\[\#282828\],
+[data-theme="white"] .border-\[\#2a2a2a\],
+[data-theme="white"] .border-\[\#2c2c2c\],
+[data-theme="white"] .border-\[\#333333\] {
+  border-color: #e5e5e8 !important;
+}
+
+[data-theme="white"] .divide-\[\#202020\] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #e5e5e8 !important;
+}
+
+/* Typography overrides */
+[data-theme="white"] .text-white {
+  color: #09090b !important;
+}
+
+[data-theme="white"] .text-zinc-100 {
+  color: #18181b !important;
+}
+
+[data-theme="white"] .text-zinc-200 {
+  color: #27272a !important;
+}
+
+[data-theme="white"] .text-zinc-300 {
+  color: #3f3f46 !important;
+}
+
+[data-theme="white"] .text-zinc-400 {
+  color: #52525b !important;
+}
+
+[data-theme="white"] .text-zinc-500 {
+  color: #71717a !important;
+}
+
+/* Primary Action Buttons (High contrast black with white text in white mode) */
+[data-theme="white"] button.bg-white,
+[data-theme="white"] a.bg-white,
+[data-theme="white"] .bg-white.text-black {
+  background-color: #09090b !important;
+  color: #ffffff !important;
+}
+
+[data-theme="white"] button.bg-white:hover,
+[data-theme="white"] a.bg-white:hover,
+[data-theme="white"] .bg-white.text-black:hover {
+  background-color: #27272a !important;
+}
+
+[data-theme="white"] button.bg-white svg,
+[data-theme="white"] .bg-white.text-black svg {
+  color: #ffffff !important;
+}
+
+/* Inputs & Form Controls */
+[data-theme="white"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="white"] textarea,
+[data-theme="white"] select {
+  background-color: #ffffff !important;
+  border-color: #d4d4d8 !important;
+  color: #09090b !important;
+}
+
+[data-theme="white"] input::placeholder,
+[data-theme="white"] textarea::placeholder {
+  color: #a1a1aa !important;
+}
+
+/* Sidebar Active Nav Item special handling */
+[data-theme="white"] aside .bg-\[\#1e1e1e\] {
+  background-color: #09090b !important;
+  color: #ffffff !important;
+}
+
+[data-theme="white"] aside .bg-\[\#1e1e1e\] .text-white,
+[data-theme="white"] aside .bg-\[\#1e1e1e\] span {
+  color: #ffffff !important;
+}
+
+[data-theme="white"] aside .bg-\[\#1e1e1e\] svg {
+  color: #ffffff !important;
+}
+
+/* Cards elevation shadow */
+[data-theme="white"] .bg-\[\#181818\] {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Modals should keep clean backdrop and white card */
+[data-theme="white"] .fixed.inset-0.bg-black\/80 {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme="white"] ::selection {
+  background-color: #000000;
+  color: #ffffff;
+}

@@ -15,17 +15,10 @@ import {
   LogOut,
   X,
   ChevronLeft,
-  ChevronRight,
-  Sparkles
+  ChevronRight
 } from 'lucide-react'
 
 type TabType = 'analytics' | 'packs' | 'kyc' | 'coupons' | 'tickets' | 'users' | 'sales' | 'logs' | 'newsletter' | 'settings'
-
-interface AccentDetail {
-  label: string
-  hex: string
-  borderClass: string
-}
 
 interface SidebarProps {
   activeTab: TabType
@@ -34,9 +27,6 @@ interface SidebarProps {
   setMobileMenuOpen: (open: boolean) => void
   isCollapsed: boolean
   setIsCollapsed: (collapsed: boolean | ((prev: boolean) => boolean)) => void
-  accent: string
-  setAccent: (accent: any) => void
-  accentDetails: Record<string, AccentDetail>
   user: any
   onLogout: () => Promise<void>
   showToast: (message: string, type: 'success' | 'error' | 'warning') => void
@@ -62,9 +52,6 @@ export function Sidebar({
   setMobileMenuOpen,
   isCollapsed,
   setIsCollapsed,
-  accent,
-  setAccent,
-  accentDetails,
   user,
   onLogout,
   showToast
@@ -88,18 +75,6 @@ export function Sidebar({
       setActiveTab(filteredNavItems[0].tab)
     }
   }, [adminRole, activeTab, filteredNavItems, setActiveTab])
-
-  const activeHex = accentDetails[accent]?.hex || '#ffffff'
-
-  // Cycle accent when clicked in collapsed mode
-  const handleCycleAccent = () => {
-    const keys = Object.keys(accentDetails)
-    const currentIndex = keys.indexOf(accent)
-    const nextIndex = (currentIndex + 1) % keys.length
-    const nextKey = keys[nextIndex]
-    setAccent(nextKey as any)
-    showToast(`Accent set to ${accentDetails[nextKey].label}!`, 'success')
-  }
 
   return (
     <aside
@@ -180,7 +155,6 @@ export function Sidebar({
                   className={`p-1 rounded-md transition-colors ${
                     isActive ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'
                   }`}
-                  style={{ color: isActive ? activeHex : undefined }}
                 >
                   <Icon className="w-4 h-4 transition-transform group-hover:scale-110" />
                 </div>
@@ -194,13 +168,11 @@ export function Sidebar({
               {isActive && (
                 isCollapsed ? (
                   <div
-                    className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-full"
-                    style={{ backgroundColor: activeHex, boxShadow: `0 0 8px ${activeHex}80` }}
+                    className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]"
                   />
                 ) : (
                   <div
-                    className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: activeHex, boxShadow: `0 0 8px ${activeHex}80` }}
+                    className="w-1.5 h-1.5 rounded-full flex-shrink-0 bg-white shadow-[0_0_6px_rgba(255,255,255,0.4)]"
                   />
                 )
               )}
@@ -208,56 +180,6 @@ export function Sidebar({
           )
         })}
       </nav>
-
-      {/* THEME ACCENT SWITCHER (SEAMLESS - NO DIVIDING LINE) */}
-      <div className={`${isCollapsed ? 'p-2 flex flex-col items-center' : 'px-4 py-3'} bg-[#121212] font-mono`}>
-        {isCollapsed ? (
-          <button
-            type="button"
-            onClick={handleCycleAccent}
-            className="p-2 rounded-lg hover:bg-[#1a1a1a] transition-colors cursor-pointer group"
-            title={`Accent: ${accentDetails[accent]?.label} (Click to switch)`}
-          >
-            <div
-              className="w-3.5 h-3.5 rounded-full transition-transform group-hover:scale-125 ring-2 ring-white/20"
-              style={{ backgroundColor: activeHex }}
-            />
-          </button>
-        ) : (
-          <>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold leading-none flex items-center gap-1">
-                <Sparkles className="w-2.5 h-2.5" /> ACCENT
-              </span>
-              <span className="text-[9px] font-semibold text-zinc-300 capitalize">
-                {accentDetails[accent]?.label || accent}
-              </span>
-            </div>
-            <div className="flex items-center justify-between gap-1.5">
-              {Object.entries(accentDetails).map(([key, item]) => {
-                const isSelected = accent === key
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => {
-                      setAccent(key as any)
-                      showToast(`Accent set to ${item.label}!`, 'success')
-                    }}
-                    style={{ backgroundColor: item.hex }}
-                    className={`h-4.5 w-4.5 rounded-full transition-all cursor-pointer ${
-                      isSelected
-                        ? 'ring-2 ring-white ring-offset-2 ring-offset-[#121212] scale-110 shadow-lg'
-                        : 'opacity-40 hover:opacity-100 hover:scale-105'
-                    }`}
-                    title={`Accent: ${item.label}`}
-                  />
-                )
-              })}
-            </div>
-          </>
-        )}
-      </div>
 
       {/* SIDEBAR FOOTER (ADMIN USER & LOGOUT - SEAMLESS) */}
       <div className={`${isCollapsed ? 'p-2 space-y-2' : 'p-3 space-y-2'} bg-[#121212] font-mono`}>
