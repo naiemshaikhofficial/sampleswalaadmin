@@ -257,7 +257,7 @@ export function UsersTab({
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold flex items-center justify-center flex-shrink-0 text-xs shadow-sm">
+                      <div className="w-9 h-9 rounded-lg bg-[#202020] text-white border border-white/10 font-bold flex items-center justify-center flex-shrink-0 text-xs">
                         {u.full_name?.charAt(0) || u.email?.charAt(0) || 'U'}
                       </div>
                       <div className="min-w-0 flex-1">
@@ -270,7 +270,7 @@ export function UsersTab({
                       </div>
                     </div>
                     <span className={`flex-shrink-0 text-[8px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                      u.is_banned ? 'bg-red-500/15 text-red-400 border border-red-500/30' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                      u.is_banned ? 'bg-[#222222] text-zinc-400 border border-zinc-700' : 'bg-white/10 text-white border border-white/20'
                     }`}>
                       {u.is_banned ? 'Banned' : 'Active'}
                     </span>
@@ -278,11 +278,11 @@ export function UsersTab({
 
                   <div className="flex items-center justify-between text-[10px] font-mono pt-2 border-t border-[#222222]">
                     <div className="flex items-center gap-2">
-                      <span className="bg-white/[0.06] text-zinc-300 px-1.5 py-0.5 rounded">
+                      <span className="bg-white/[0.06] text-zinc-300 px-1.5 py-0.5 rounded border border-white/10">
                         {u.credits ?? 0} CR
                       </span>
                       {u.subscription_status === 'ACTIVE' && (
-                        <span className="bg-white/10 text-white px-1.5 py-0.5 rounded font-bold uppercase text-[9px]">
+                        <span className="bg-white/10 text-white px-1.5 py-0.5 rounded font-bold uppercase text-[9px] border border-white/20">
                           {u.subscription_tier}
                         </span>
                       )}
@@ -293,7 +293,7 @@ export function UsersTab({
                           type="button"
                           disabled={actionLoading}
                           onClick={() => handleUnbanUser(u.id, u.email)}
-                          className="px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 text-[10px] font-bold cursor-pointer"
+                          className="px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/15 text-[10px] font-bold cursor-pointer transition-colors"
                         >
                           Unban
                         </button>
@@ -302,7 +302,7 @@ export function UsersTab({
                           type="button"
                           disabled={actionLoading}
                           onClick={() => handleBanUser(u.id, u.email)}
-                          className="px-2 py-1 rounded-lg bg-red-500/15 text-red-400 text-[10px] font-bold cursor-pointer"
+                          className="px-2 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white border border-zinc-700 text-[10px] font-bold cursor-pointer transition-colors"
                         >
                           Ban
                         </button>
@@ -311,7 +311,8 @@ export function UsersTab({
                         type="button"
                         disabled={actionLoading}
                         onClick={() => handleDeleteUser(u.id, u.email)}
-                        className="p-1.5 rounded-lg bg-white/5 text-zinc-400 hover:text-red-400 cursor-pointer"
+                        className="p-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-700/60 cursor-pointer transition-colors"
+                        title="Delete User"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -366,7 +367,7 @@ export function UsersTab({
                       >
                         <td className="p-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold flex items-center justify-center flex-shrink-0 text-sm shadow-sm">
+                            <div className="w-10 h-10 rounded-xl bg-[#202020] text-white border border-white/10 font-bold flex items-center justify-center flex-shrink-0 text-sm">
                               {u.full_name?.charAt(0) || u.email?.charAt(0) || 'U'}
                             </div>
                             <div>
@@ -389,7 +390,7 @@ export function UsersTab({
                                 {u.email}
                               </p>
                               <div className="flex items-center gap-2 mt-1.5">
-                                <span className="text-[10px] bg-white/[0.06] text-zinc-300 px-2 py-0.5 rounded font-mono font-medium">
+                                <span className="text-[10px] bg-white/[0.06] text-zinc-300 border border-white/10 px-2 py-0.5 rounded font-mono font-medium">
                                   {u.credits ?? 0} Credits
                                 </span>
                                 {u.subscription_status === 'ACTIVE' && (
@@ -416,28 +417,28 @@ export function UsersTab({
                             <div className="flex flex-col items-center justify-center gap-1">
                               {u.is_banned ? (
                                 <>
-                                  <span className="bg-red-500/15 text-red-400 border border-red-500/30 font-bold uppercase text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
-                                    <Ban className="w-2.5 h-2.5 text-red-400" /> Banned
+                                  <span className="bg-[#222222] text-zinc-400 border border-zinc-700 font-bold uppercase text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                    <Ban className="w-2.5 h-2.5 text-zinc-400" /> Banned
                                   </span>
                                   <button
                                     type="button"
                                     disabled={actionLoading}
                                     onClick={(e) => { e.stopPropagation(); handleUnbanUser(u.id, u.email); }}
-                                    className="px-2 py-1 border border-white/10 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 font-medium text-[9px] transition-all cursor-pointer disabled:opacity-50"
+                                    className="px-2 py-1 border border-white/15 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium text-[9px] transition-all cursor-pointer disabled:opacity-50"
                                   >
                                     Activate
                                   </button>
                                 </>
                               ) : (
                                 <>
-                                  <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold uppercase text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1">
-                                    <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" /> Active
+                                  <span className="bg-white/10 text-white border border-white/20 font-bold uppercase text-[9px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                    <ShieldCheck className="w-2.5 h-2.5 text-white" /> Active
                                   </span>
                                   <button
                                     type="button"
                                     disabled={actionLoading}
                                     onClick={(e) => { e.stopPropagation(); handleBanUser(u.id, u.email); }}
-                                    className="px-2 py-1 border border-white/10 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-400 font-medium text-[9px] transition-all cursor-pointer disabled:opacity-50"
+                                    className="px-2 py-1 border border-zinc-700 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white font-medium text-[9px] transition-all cursor-pointer disabled:opacity-50"
                                   >
                                     Ban User
                                   </button>
@@ -448,7 +449,7 @@ export function UsersTab({
                               type="button"
                               disabled={actionLoading}
                               onClick={(e) => { e.stopPropagation(); handleDeleteUser(u.id, u.email); }}
-                              className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer inline-flex items-center justify-center disabled:opacity-50"
+                              className="p-2 rounded-xl bg-zinc-800/80 hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-700/60 transition-all cursor-pointer inline-flex items-center justify-center disabled:opacity-50"
                               title="Permanently Delete User Account"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -508,7 +509,7 @@ export function UsersTab({
               </div>
               <div className="flex justify-between border-b border-white/[0.06] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Credits Balance</span>
-                <span className="text-[#00FF94] font-bold text-sm">{activeUser.credits} CR</span>
+                <span className="text-white font-bold text-sm">{activeUser.credits} CR</span>
               </div>
               <div className="flex justify-between border-b border-white/[0.06] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Subscription Tier</span>
@@ -518,13 +519,13 @@ export function UsersTab({
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Auth Provider</span>
                 <span className="text-white font-bold uppercase flex items-center gap-1.5">
                   {activeUser.provider === 'google' ? (
-                    <>
-                      <span className="w-2 h-2 rounded-full bg-white" /> Google SSO
-                    </>
+                    <span className="bg-white/10 text-white border border-white/20 text-[9px] font-bold px-2 py-0.5 rounded">
+                      Google OAuth
+                    </span>
                   ) : (
-                    <>
-                      <span className="w-2 h-2 rounded-full bg-zinc-400" /> Email & Password
-                    </>
+                    <span className="bg-white/5 text-zinc-400 border border-white/10 text-[9px] font-medium px-2 py-0.5 rounded">
+                      Email & Password
+                    </span>
                   )}
                 </span>
               </div>
@@ -553,12 +554,12 @@ export function UsersTab({
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Account Status</span>
                 <div>
                   {activeUser.is_banned ? (
-                    <span className="bg-red-500/15 text-red-400 border border-red-500/30 font-bold uppercase text-[9px] px-2.5 py-1 rounded-full inline-flex items-center gap-1 animate-pulse">
-                      <Ban className="w-2.5 h-2.5 text-red-400" /> Banned
+                    <span className="bg-[#222222] text-zinc-400 border border-zinc-700 font-bold uppercase text-[9px] px-2.5 py-1 rounded-full inline-flex items-center gap-1">
+                      <Ban className="w-2.5 h-2.5 text-zinc-400" /> Banned
                     </span>
                   ) : (
-                    <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold uppercase text-[9px] px-2.5 py-1 rounded-full inline-flex items-center gap-1">
-                      <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" /> Active
+                    <span className="bg-white/10 text-white border border-white/20 font-bold uppercase text-[9px] px-2.5 py-1 rounded-full inline-flex items-center gap-1">
+                      <ShieldCheck className="w-2.5 h-2.5 text-white" /> Active
                     </span>
                   )}
                 </div>

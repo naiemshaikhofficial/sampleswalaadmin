@@ -249,7 +249,7 @@ export function PacksTab({
                             {shortName}
                           </h3>
                           {pack.is_featured && (
-                            <span className="flex-shrink-0 px-1 py-0.2 text-[8px] font-bold uppercase rounded bg-amber-500/10 text-amber-400 border border-amber-500/20" title="Featured Pack">
+                            <span className="flex-shrink-0 px-1 py-0.2 text-[8px] font-bold uppercase rounded bg-white/10 text-white border border-white/20" title="Featured Pack">
                               ★
                             </span>
                           )}
@@ -287,7 +287,7 @@ export function PacksTab({
                         <button
                           type="button"
                           onClick={() => handlePackDelete(pack.id, pack.name)}
-                          className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors cursor-pointer"
+                          className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-700/60 transition-colors cursor-pointer"
                           title="Delete Pack"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -368,7 +368,7 @@ export function PacksTab({
                             <button
                               type="button"
                               onClick={() => handlePackDelete(pack.id, pack.name)}
-                              className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer"
+                              className="p-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-700/60 transition-all cursor-pointer"
                               title="Delete Pack"
                             >
                               <Trash2 className="w-3.5 h-3.5" />

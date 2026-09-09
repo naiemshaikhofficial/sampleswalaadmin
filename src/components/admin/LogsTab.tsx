@@ -102,12 +102,8 @@ export function LogsTab({
                   <div className="flex items-center justify-between gap-2">
                     <span className={`inline-block font-mono text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                       l.type === 'danger'
-                        ? 'bg-red-500/15 text-red-400 border border-red-500/30'
-                        : l.type === 'warning'
-                          ? 'bg-white/10 text-white border border-white/20'
-                          : l.type === 'success'
-                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                            : 'bg-white/5 text-zinc-300 border border-white/15'
+                        ? 'bg-[#222222] text-zinc-400 border border-zinc-700'
+                        : 'bg-white/10 text-white border border-white/20'
                     }`}>
                       {l.action}
                     </span>
@@ -172,12 +168,8 @@ export function LogsTab({
                         <td className="p-4">
                           <span className={`inline-block font-mono text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
                             l.type === 'danger'
-                              ? 'bg-red-500/15 text-red-400 border border-red-500/30'
-                              : l.type === 'warning'
-                                ? 'bg-white/10 text-white border border-white/20'
-                                : l.type === 'success'
-                                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                                  : 'bg-white/5 text-zinc-300 border border-white/15'
+                              ? 'bg-[#222222] text-zinc-400 border border-zinc-700'
+                              : 'bg-white/10 text-white border border-white/20'
                           }`}>
                             {l.action}
                           </span>
@@ -221,7 +213,7 @@ export function LogsTab({
                                       onClick={() => setCurrentPage(p)}
                                       className={`w-7 h-7 font-bold transition-all cursor-pointer rounded-lg border ${
                                         currentPage === p 
-                                          ? 'bg-blue-600 text-white border-blue-500 shadow-sm' 
+                                          ? 'bg-white text-black border-white shadow-sm font-bold' 
                                           : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10'
                                       }`}
                                     >

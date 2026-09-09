@@ -116,14 +116,14 @@ export function TicketsTab({
                     <p className="text-[11px] text-zinc-400 mt-0.5 font-medium">{ticket.user_name}</p>
                   </div>
                   <span className={`flex-shrink-0 text-[8px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                    ticket.status === 'open' ? 'bg-white/10 border border-white/20 text-white' : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+                    ticket.status === 'open' ? 'bg-white/10 border border-white/20 text-white' : 'bg-[#222222] text-zinc-400 border border-zinc-700'
                   }`}>
                     {ticket.status === 'open' ? 'Open' : 'Resolved'}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between text-[10px] font-mono pt-1 border-t border-[#222222]">
-                  <span className="text-[9px] bg-purple-500/10 border border-purple-500/30 text-purple-300 rounded px-1.5 py-0.2 font-mono font-bold">
+                  <span className="text-[9px] bg-white/5 border border-white/10 text-zinc-300 rounded px-1.5 py-0.2 font-mono font-bold">
                     {ticket.category}
                   </span>
                   <span className="text-zinc-500">
@@ -166,13 +166,13 @@ export function TicketsTab({
                     </td>
                     <td className="p-4">
                       <p className="text-zinc-100 font-medium text-sm">{ticket.subject}</p>
-                      <span className="inline-block text-[9px] bg-purple-500/10 border border-purple-500/30 text-purple-300 rounded px-2 py-0.5 mt-1 font-mono font-bold">
+                      <span className="inline-block text-[9px] bg-white/5 border border-white/10 text-zinc-300 rounded px-2 py-0.5 mt-1 font-mono font-bold">
                         {ticket.category}
                       </span>
                     </td>
                     <td className="p-4 text-center">
                       <span className={`inline-block text-[9px] font-bold uppercase px-2.5 py-1 rounded-full ${
-                        ticket.status === 'open' ? 'bg-white/10 border border-white/20 text-white' : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+                        ticket.status === 'open' ? 'bg-white/10 border border-white/20 text-white' : 'bg-[#222222] text-zinc-400 border border-zinc-700'
                       }`}>
                         {ticket.status === 'open' ? 'Open Ticket' : 'Resolved'}
                       </span>
@@ -273,7 +273,7 @@ export function TicketsTab({
                   </button>
                 </div>
               ) : (
-                <div className="bg-white/[0.02] border border-emerald-500/20 rounded-xl p-3 text-center font-sans font-bold text-emerald-400 text-xs">
+                <div className="bg-white/[0.02] border border-white/20 rounded-xl p-3 text-center font-sans font-bold text-white text-xs">
                   ✓ Ticket Resolved & Closed
                 </div>
               )}

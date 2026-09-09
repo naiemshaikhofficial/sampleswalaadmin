@@ -172,8 +172,8 @@ export function SalesTab({
                       </div>
                       <span className={`flex-shrink-0 text-[8px] font-bold uppercase rounded px-2 py-0.5 ${
                         Number(s.amount) === 0
-                          ? 'bg-zinc-800 text-zinc-400'
-                          : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                          ? 'bg-[#222222] text-zinc-400 border border-zinc-700'
+                          : 'bg-white/10 text-white border border-white/20'
                       }`}>
                         {Number(s.amount) === 0 ? 'Free' : 'Verified'}
                       </span>
@@ -185,7 +185,7 @@ export function SalesTab({
                       </div>
                       <div className="font-bold text-white text-right">
                         {s.is_usd ? (
-                          <span className="text-[#00FF94]">${Number(s.original_amount !== undefined ? s.original_amount : s.amount).toFixed(2)}</span>
+                          <span className="text-white">${Number(s.original_amount !== undefined ? s.original_amount : s.amount).toFixed(2)}</span>
                         ) : Number(s.amount) === 0 ? (
                           <span className="text-zinc-500">₹0</span>
                         ) : (
@@ -247,8 +247,8 @@ export function SalesTab({
                           <p className="font-sans font-bold text-sm text-zinc-100 leading-tight">{s.pack_name}</p>
                           <span className={`inline-block text-[8px] font-bold uppercase rounded px-2 py-0.5 mt-2 ${
                             Number(s.amount) === 0
-                              ? 'bg-zinc-800 text-zinc-400'
-                              : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                              ? 'bg-[#222222] text-zinc-400 border border-zinc-700'
+                              : 'bg-white/10 text-white border border-white/20'
                           }`}>
                             {Number(s.amount) === 0 ? 'Free Claim' : 'Verified Order'}
                           </span>
@@ -274,7 +274,7 @@ export function SalesTab({
                           <p className="text-[9px] text-zinc-500 font-sans uppercase font-bold tracking-wider">Total Paid:</p>
                           {s.is_usd ? (
                             <div className="mt-0.5">
-                              <p className="text-sm font-black text-[#00FF94] leading-tight">
+                              <p className="text-sm font-black text-white leading-tight">
                                 ${Number(s.original_amount !== undefined ? s.original_amount : s.amount).toFixed(2)}{' '}
                                 <span className="text-[8.5px] text-zinc-500 font-sans font-bold">USD</span>
                               </p>
@@ -333,7 +333,7 @@ export function SalesTab({
                                     onClick={() => setCurrentPage(p)}
                                     className={`w-7 h-7 rounded-lg border font-bold transition-all cursor-pointer ${
                                       currentPage === p 
-                                        ? 'bg-blue-600 text-white border-blue-500 shadow-sm' 
+                                        ? 'bg-white text-black border-white shadow-sm font-bold' 
                                         : 'bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10'
                                     }`}
                                   >

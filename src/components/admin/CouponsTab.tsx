@@ -141,12 +141,12 @@ export function CouponsTab({
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-zinc-100 font-bold text-sm">{coupon.code}</span>
-                    <span className="font-bold text-xs text-[#00FF94] font-mono bg-[#00FF94]/10 px-1.5 py-0.5 rounded border border-[#00FF94]/20">
+                    <span className="font-bold text-xs text-white font-mono bg-white/10 px-1.5 py-0.5 rounded border border-white/20">
                       {coupon.discount_percent}% OFF
                     </span>
                   </div>
                   <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                    coupon.is_active ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-zinc-800 text-zinc-500'
+                    coupon.is_active ? 'bg-white/10 text-white border border-white/20' : 'bg-[#222222] text-zinc-400 border border-zinc-700'
                   }`}>
                     {coupon.is_active ? 'Active' : 'Disabled'}
                   </span>
@@ -174,7 +174,7 @@ export function CouponsTab({
                     <button
                       type="button"
                       onClick={() => handleCouponDelete(coupon.id, coupon.code)}
-                      className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer"
+                      className="p-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-700/60 transition-all cursor-pointer"
                       title="Delete Coupon"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -210,7 +210,7 @@ export function CouponsTab({
                       </div>
                     </td>
                     <td className="p-4 text-center">
-                      <span className="font-bold text-sm text-[#00FF94] font-mono">
+                      <span className="font-bold text-sm text-white font-mono">
                         {coupon.discount_percent}% OFF
                       </span>
                     </td>
@@ -219,7 +219,7 @@ export function CouponsTab({
                     </td>
                     <td className="p-4 text-center">
                       <span className={`inline-block text-[9px] font-bold uppercase px-2.5 py-1 rounded-full ${
-                        coupon.is_active ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-zinc-800 text-zinc-500'
+                        coupon.is_active ? 'bg-white/10 text-white border border-white/20' : 'bg-[#222222] text-zinc-400 border border-zinc-700'
                       }`}>
                         {coupon.is_active ? 'Active' : 'Disabled'}
                       </span>
@@ -243,7 +243,7 @@ export function CouponsTab({
                         <button
                           type="button"
                           onClick={() => handleCouponDelete(coupon.id, coupon.code)}
-                          className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-700/60 transition-all cursor-pointer"
                           title="Delete Coupon"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
