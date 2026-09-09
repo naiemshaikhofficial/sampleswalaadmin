@@ -29,9 +29,7 @@ export function ConfirmDialog({
       <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-6 w-full max-w-md relative text-left shadow-2xl font-sans">
         {/* Header Banner */}
         <div className="flex items-center gap-3 border-b border-[#2a2a2a] pb-4 mb-4">
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-            isDanger ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-white/10 text-white border border-white/15'
-          }`}>
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-white/10 text-white border border-white/15">
             {isDanger ? <AlertCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
           </div>
           <div>
@@ -61,11 +59,7 @@ export function ConfirmDialog({
           <button
             type="button"
             onClick={onConfirm}
-            className={`flex-1 py-2.5 font-bold text-xs rounded-lg transition-all cursor-pointer ${
-              isDanger 
-                ? 'bg-red-600 hover:bg-red-500 text-white' 
-                : 'bg-white hover:bg-zinc-200 text-black'
-            }`}
+            className="flex-1 py-2.5 font-bold text-xs rounded-lg transition-all cursor-pointer bg-white hover:bg-zinc-200 text-black shadow-sm"
           >
             {confirmText}
           </button>

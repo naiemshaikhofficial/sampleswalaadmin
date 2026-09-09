@@ -64,7 +64,7 @@ export function LogsTab({
               ])
               showToast('Audit trail logs wiped!', 'warning')
             }}
-            className="px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-semibold text-xs transition-all cursor-pointer rounded-lg flex items-center gap-1.5"
+            className="px-3.5 py-2 bg-[#202020] hover:bg-[#282828] text-zinc-300 hover:text-white border border-[#333333] font-semibold text-xs transition-all cursor-pointer rounded-lg flex items-center gap-1.5"
           >
             <Trash2 className="w-3.5 h-3.5" />
             Clear Log History

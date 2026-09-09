@@ -194,7 +194,7 @@ export function Sidebar({
             <button
               type="button"
               onClick={onLogout}
-              className="p-2 text-zinc-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+              className="p-2 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
               title="Logout"
             >
               <LogOut className="w-4 h-4" />
@@ -219,7 +219,7 @@ export function Sidebar({
             <button
               type="button"
               onClick={onLogout}
-              className="w-full flex items-center justify-center gap-2 px-3 py-1.5 bg-transparent hover:bg-red-500/10 text-zinc-400 hover:text-red-400 transition-all text-xs font-semibold uppercase tracking-wider rounded-lg cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 px-3 py-1.5 bg-transparent hover:bg-white/10 text-zinc-400 hover:text-white transition-all text-xs font-semibold uppercase tracking-wider rounded-lg cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Logout</span>

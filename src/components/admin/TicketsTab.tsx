@@ -238,7 +238,7 @@ export function TicketsTab({
                 {activeTicket.admin_reply && (
                   <div className="flex flex-col items-end max-w-[85%] self-end space-y-1">
                     <span className="text-[8px] text-zinc-500 font-bold uppercase">{assignedAgent} ({activeTicket.replied_at ? new Date(activeTicket.replied_at).toLocaleDateString() : 'Replied'})</span>
-                    <div className="bg-purple-600/30 border border-purple-500/40 text-white p-3.5 rounded-2xl rounded-tr-sm text-xs font-sans leading-relaxed select-all">
+                    <div className="bg-[#242424] border border-[#333333] text-white p-3.5 rounded-2xl rounded-tr-sm text-xs font-sans leading-relaxed select-all">
                       {activeTicket.admin_reply}
                     </div>
                   </div>
@@ -301,7 +301,7 @@ export function TicketsTab({
                 <div className="flex flex-col gap-0.5 pb-2 border-b border-white/[0.06]">
                   <span className="text-zinc-500 font-bold text-[9px] uppercase">Inquiry Category</span>
                   <div>
-                    <span className="inline-block bg-purple-500/10 border border-purple-500/30 text-purple-300 text-[9px] px-2 py-0.5 font-bold uppercase rounded">
+                    <span className="inline-block bg-white/5 border border-white/10 text-zinc-300 text-[9px] px-2 py-0.5 font-bold uppercase rounded">
                       {activeTicket.category}
                     </span>
                   </div>

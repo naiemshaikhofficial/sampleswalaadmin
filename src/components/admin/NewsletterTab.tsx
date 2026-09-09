@@ -289,7 +289,7 @@ export function NewsletterTab({
 
         {/* 2. ACTIVE CONTACTS */}
         <div className="bg-[#181818] border border-[#222222] rounded-xl p-5 flex items-center gap-4 shadow-sm hover:border-[#333333] transition-all">
-          <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-400">
+          <div className="w-12 h-12 bg-white/10 border border-white/20 rounded-xl flex items-center justify-center text-white">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
@@ -302,7 +302,7 @@ export function NewsletterTab({
 
         {/* 3. BLACKLISTED CONTACTS */}
         <div className="bg-[#181818] border border-[#222222] rounded-xl p-5 flex items-center gap-4 shadow-sm hover:border-[#333333] transition-all">
-          <div className="w-12 h-12 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-center text-red-400">
+          <div className="w-12 h-12 bg-[#222222] border border-zinc-750 rounded-xl flex items-center justify-center text-zinc-400">
             <Ban className="w-6 h-6" />
           </div>
           <div>
@@ -352,7 +352,7 @@ export function NewsletterTab({
               setRecipientSearch('')
               setShowCampaignModal(true)
             }}
-            className="studio-button px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-xs transition-all cursor-pointer flex items-center gap-1.5"
+            className="w-full sm:w-auto px-4 py-2 bg-white hover:bg-zinc-200 text-black rounded-xl font-semibold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
           >
             Broadcast Campaign
           </button>
@@ -388,7 +388,7 @@ export function NewsletterTab({
                       {s.email}
                     </span>
                     <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-full flex-shrink-0 ${
-                      s.subscribed ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/15 text-red-400 border border-red-500/30'
+                      s.subscribed ? 'bg-white/10 text-white border border-white/20' : 'bg-[#222222] text-zinc-400 border border-zinc-700'
                     }`}>
                       {s.subscribed ? 'Active' : 'Unsubscribed'}
                     </span>
@@ -402,7 +402,7 @@ export function NewsletterTab({
                           type="button"
                           disabled={actionLoading}
                           onClick={() => handleNewsletterUnsubscribe(s.email)}
-                          className="px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[10px] font-bold transition-all cursor-pointer disabled:opacity-50"
+                          className="px-2.5 py-1 rounded-lg bg-[#202020] hover:bg-[#282828] text-zinc-400 hover:text-white border border-[#333333] text-[10px] font-semibold transition-all cursor-pointer disabled:opacity-50"
                         >
                           Unsubscribe
                         </button>
@@ -411,7 +411,7 @@ export function NewsletterTab({
                           type="button"
                           disabled={actionLoading}
                           onClick={() => handleNewsletterResubscribe(s.email)}
-                          className="px-2 py-1 rounded-lg bg-[#00FF94]/10 hover:bg-[#00FF94]/20 text-[#00FF94] text-[10px] font-bold transition-all cursor-pointer disabled:opacity-50"
+                          className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 text-[10px] font-semibold transition-all cursor-pointer disabled:opacity-50"
                         >
                           Resubscribe
                         </button>
@@ -446,11 +446,11 @@ export function NewsletterTab({
                         </td>
                         <td className="p-4 text-center">
                           {s.subscribed ? (
-                            <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">
+                            <span className="bg-white/10 text-white border border-white/20 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">
                               Active Subscriber
                             </span>
                           ) : (
-                            <span className="bg-red-500/15 text-red-400 border border-red-500/30 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">
+                            <span className="bg-[#222222] text-zinc-400 border border-zinc-700 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">
                               Unsubscribed
                             </span>
                           )}
@@ -465,7 +465,7 @@ export function NewsletterTab({
                                 type="button"
                                 disabled={actionLoading}
                                 onClick={() => handleNewsletterUnsubscribe(s.email)}
-                                className="px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-medium text-[11px] transition-all cursor-pointer disabled:opacity-50"
+                                className="px-2.5 py-1.5 rounded-lg bg-[#202020] hover:bg-[#282828] text-zinc-300 hover:text-white border border-[#333333] font-medium text-[11px] transition-all cursor-pointer disabled:opacity-50"
                               >
                                 Unsubscribe
                               </button>
@@ -474,7 +474,7 @@ export function NewsletterTab({
                                 type="button"
                                 disabled={actionLoading}
                                 onClick={() => handleNewsletterResubscribe(s.email)}
-                                className="px-2.5 py-1.5 rounded-lg bg-[#00FF94]/10 hover:bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/20 font-medium text-[11px] transition-all cursor-pointer disabled:opacity-50"
+                                className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium text-[11px] transition-all cursor-pointer disabled:opacity-50"
                               >
                                 Resubscribe
                               </button>
@@ -559,7 +559,7 @@ export function NewsletterTab({
             {/* Editor Header */}
             <div className="flex items-center justify-between border-b border-zinc-850 px-6 py-4 bg-[#0d0d12] flex-shrink-0">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-zinc-900/60 border border-zinc-800 rounded-lg text-studio-pink">
+                <div className="p-2 bg-zinc-900/60 border border-zinc-800 rounded-lg text-white">
                   <Mail className="w-5 h-5" />
                 </div>
                 <div>
@@ -669,7 +669,7 @@ export function NewsletterTab({
                     <div className="flex items-center gap-2">
                       <Users className="w-3.5 h-3.5 text-zinc-400" />
                       <label className="text-[10px] font-bold uppercase text-zinc-400 tracking-wider font-mono">Recipients</label>
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full font-mono bg-studio-neon/15 text-studio-neon border border-studio-neon/30">
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full font-mono bg-white/10 text-white border border-white/20">
                         {selectedRecipients.length} SELECTED
                       </span>
                     </div>
@@ -682,7 +682,7 @@ export function NewsletterTab({
                             .map((s: any) => s.email)
                           setSelectedRecipients(activeEmails)
                         }}
-                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-studio-neon hover:text-studio-neon text-[8px] font-bold uppercase text-zinc-400 rounded transition-all"
+                        className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 hover:border-white hover:text-white text-[8px] font-bold uppercase text-zinc-400 rounded transition-all"
                       >
                         All
                       </button>
@@ -725,7 +725,7 @@ export function NewsletterTab({
                           <label
                             key={sub.id || sub.email}
                             className={`flex items-center gap-2.5 px-4 py-2 border-b border-zinc-900/50 cursor-pointer transition-colors hover:bg-zinc-900/40 ${
-                              isChecked ? 'bg-studio-neon/5' : ''
+                              isChecked ? 'bg-white/5' : ''
                             }`}
                           >
                             <input
@@ -738,7 +738,7 @@ export function NewsletterTab({
                                   setSelectedRecipients(prev => prev.filter(em => em !== sub.email))
                                 }
                               }}
-                              className="accent-[#00FF94] w-3.5 h-3.5 flex-shrink-0"
+                              className="accent-white w-3.5 h-3.5 flex-shrink-0"
                             />
                             <span className="font-mono text-[10px] text-zinc-400 truncate">{sub.email}</span>
                           </label>
@@ -753,7 +753,7 @@ export function NewsletterTab({
               <div className="lg:col-span-7 bg-[#050508] bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] p-6 overflow-y-auto h-full flex flex-col space-y-4 scrollbar">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-855/80 pb-3 flex-shrink-0">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-studio-pink animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
                     <label className="block text-[10px] font-bold uppercase text-zinc-400 tracking-wider font-mono">Sandbox Viewport Previewer</label>
                   </div>
 
@@ -798,9 +798,9 @@ export function NewsletterTab({
                     } border border-zinc-800 bg-[#0c0c0e] rounded-xl overflow-hidden shadow-2xl`}>
                       <div className="bg-[#121216] border-b border-zinc-850 px-4 py-2 flex items-center justify-between select-none">
                         <div className="flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full bg-red-500" />
-                          <span className="w-2 h-2 rounded-full bg-yellow-500" />
-                          <span className="w-2 h-2 rounded-full bg-green-500" />
+                          <span className="w-2 h-2 rounded-full bg-zinc-700" />
+                          <span className="w-2 h-2 rounded-full bg-zinc-700" />
+                          <span className="w-2 h-2 rounded-full bg-zinc-700" />
                         </div>
                         <span className="text-[8px] font-mono text-zinc-500">https://sampleswala.com/newsletter/preview</span>
                       </div>

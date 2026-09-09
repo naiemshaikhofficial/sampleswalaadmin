@@ -37,7 +37,7 @@ export function LoginScreen({
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#121212] p-6 relative font-sans">
       <div className="absolute top-0 right-0 p-6 flex items-center gap-2.5 text-xs font-mono text-zinc-400">
-        <span className="w-2 h-2 bg-[#00FF94] rounded-full animate-pulse" />
+        <span className="w-2 h-2 bg-white rounded-full animate-pulse shadow-[0_0_8px_white]" />
         System Online
       </div>
 
@@ -45,7 +45,7 @@ export function LoginScreen({
         {session && !isAdmin ? (
           /* ACCESS DENIED CARD */
           <div className="border border-[#2a2a2a] bg-[#181818] rounded-xl p-8 shadow-2xl relative text-center">
-            <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-center mx-auto mb-5 text-red-400">
+            <div className="w-14 h-14 bg-white/10 border border-white/20 rounded-xl flex items-center justify-center mx-auto mb-5 text-white">
               <AlertTriangle className="w-7 h-7" />
             </div>
 

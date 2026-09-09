@@ -291,16 +291,16 @@ export function AnalyticsTab({
         }
       : activeMetric === 'signups'
       ? {
-          stroke: isWhiteMode ? '#059669' : '#00FF94',
-          fillGradient: isWhiteMode ? '#059669' : '#00FF94',
-          text: isWhiteMode ? 'text-emerald-700 font-bold' : 'text-emerald-400',
-          badge: isWhiteMode ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+          stroke: isWhiteMode ? '#52525b' : '#d4d4d8',
+          fillGradient: isWhiteMode ? '#52525b' : '#d4d4d8',
+          text: isWhiteMode ? 'text-zinc-900 font-bold' : 'text-zinc-200',
+          badge: isWhiteMode ? 'bg-zinc-100 text-zinc-900 border border-zinc-300' : 'bg-white/10 text-white border border-white/20'
         }
       : {
-          stroke: isWhiteMode ? '#7c3aed' : '#BF00FF',
-          fillGradient: isWhiteMode ? '#7c3aed' : '#BF00FF',
-          text: isWhiteMode ? 'text-purple-700 font-bold' : 'text-purple-400',
-          badge: isWhiteMode ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+          stroke: isWhiteMode ? '#71717a' : '#a1a1aa',
+          fillGradient: isWhiteMode ? '#71717a' : '#a1a1aa',
+          text: isWhiteMode ? 'text-zinc-900 font-bold' : 'text-zinc-300',
+          badge: isWhiteMode ? 'bg-zinc-100 text-zinc-900 border border-zinc-300' : 'bg-white/10 text-white border border-white/20'
         }
 
   return (
@@ -328,7 +328,7 @@ export function AnalyticsTab({
         <div className="bg-[#181818] border border-[#222222] rounded-xl shadow-sm p-3 sm:p-3.5 flex flex-col justify-between hover:border-[#2a2a2a] transition-all group">
           <div className="flex items-center justify-between text-zinc-500">
             <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">This Month</span>
-            <div className="p-1 rounded bg-emerald-500/10 text-emerald-400">
+            <div className="p-1 rounded bg-white/10 text-white">
               <Calendar className="w-3.5 h-3.5" />
             </div>
           </div>
@@ -362,7 +362,7 @@ export function AnalyticsTab({
         <div className="bg-[#181818] border border-[#222222] rounded-xl shadow-sm p-3 sm:p-3.5 flex flex-col justify-between hover:border-[#2a2a2a] transition-all group">
           <div className="flex items-center justify-between text-zinc-500">
             <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">Wishlist</span>
-            <div className="p-1 rounded bg-pink-500/10 text-pink-400">
+            <div className="p-1 rounded bg-white/10 text-white">
               <Heart className="w-3.5 h-3.5" />
             </div>
           </div>
@@ -421,7 +421,7 @@ export function AnalyticsTab({
         <div className="bg-[#181818] border border-[#222222] rounded-xl p-3.5 sm:p-4 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-[#222222]">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse shadow-[0_0_8px_white]" />
               <h4 className="font-sans font-bold text-xs uppercase tracking-wide text-zinc-200">
                 Filtered Period Performance
               </h4>
@@ -786,7 +786,7 @@ export function AnalyticsTab({
                 <span>{kpiDetails.paidCount} paid orders</span>
               </div>
               {kpiDetails.usdCount > 0 && (
-                <div className="mt-1 text-[9px] text-emerald-400 font-mono">
+                <div className="mt-1 text-[9px] text-zinc-400 font-mono">
                   Includes {kpiDetails.usdCount} international USD orders
                 </div>
               )}
@@ -807,7 +807,7 @@ export function AnalyticsTab({
               </p>
               <div className="mt-2.5 pt-2 border-t border-[#202020] flex flex-wrap items-center justify-between gap-1 text-[10px] text-zinc-400 font-mono">
                 <span>{kpiDetails.uniqueBuyers} paying buyers</span>
-                <span className="text-emerald-400">{kpiDetails.buyerConversion}% conversion</span>
+                <span className="text-white font-medium">{kpiDetails.buyerConversion}% conversion</span>
               </div>
             </div>
 
@@ -817,7 +817,7 @@ export function AnalyticsTab({
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
                   Total Orders
                 </span>
-                <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                <div className="p-1.5 rounded-lg bg-white/10 border border-white/20 text-white">
                   <ShoppingCart className="w-3.5 h-3.5" />
                 </div>
               </div>
@@ -838,7 +838,7 @@ export function AnalyticsTab({
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
                   Total Products
                 </span>
-                <div className="p-1.5 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400">
+                <div className="p-1.5 rounded-lg bg-[#202020] border border-[#2a2a2a] text-zinc-300">
                   <Package className="w-3.5 h-3.5" />
                 </div>
               </div>
@@ -913,7 +913,7 @@ export function AnalyticsTab({
                             : (isFree ? 'FREE' : `₹${sale.amount}`)}
                         </p>
                         {sale.is_usd && (
-                          <span className="text-[9px] text-emerald-400 font-mono block">
+                          <span className="text-[9px] text-zinc-400 font-mono block">
                             ≈ ₹{sale.converted_amount_inr?.toLocaleString() || Math.round(Number(sale.amount) * 90)}
                           </span>
                         )}
@@ -921,7 +921,7 @@ export function AnalyticsTab({
                           className={`inline-block text-[8px] font-sans font-semibold uppercase px-1.5 py-0.5 rounded mt-1 ${
                             isFree
                               ? 'bg-zinc-800 text-zinc-400'
-                              : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                              : 'bg-white/10 text-white border border-white/20'
                           }`}
                         >
                           {isFree ? 'Free Download' : 'Paid Order'}

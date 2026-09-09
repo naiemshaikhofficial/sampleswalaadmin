@@ -593,7 +593,7 @@ export function UsersTab({
                   type="button"
                   disabled={actionLoading}
                   onClick={() => handleDeleteUser(activeUser.id, activeUser.email)}
-                  className="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold uppercase py-2.5 text-xs rounded-lg cursor-pointer disabled:opacity-50 transition-all"
+                  className="flex-1 bg-[#202020] hover:bg-[#282828] text-zinc-300 hover:text-white border border-[#333333] font-bold uppercase py-2.5 text-xs rounded-lg cursor-pointer disabled:opacity-50 transition-all"
                 >
                   Delete Account
                 </button>

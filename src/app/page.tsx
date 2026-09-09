@@ -1101,9 +1101,9 @@ export default function AdminDashboard() {
           }`}
         >
           <div className="relative">
-            <LayoutDashboard className={`w-4.5 h-4.5 ${activeTab === 'analytics' ? 'text-pink-400' : ''}`} />
+            <LayoutDashboard className={`w-4.5 h-4.5 ${activeTab === 'analytics' ? 'text-white' : ''}`} />
             {activeTab === 'analytics' && (
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-pink-400" />
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white shadow-[0_0_8px_white]" />
             )}
           </div>
           <span className="text-[10px] tracking-tight">Overview</span>
@@ -1119,9 +1119,9 @@ export default function AdminDashboard() {
           }`}
         >
           <div className="relative">
-            <Library className={`w-4.5 h-4.5 ${activeTab === 'packs' ? 'text-yellow-400' : ''}`} />
+            <Library className={`w-4.5 h-4.5 ${activeTab === 'packs' ? 'text-white' : ''}`} />
             {activeTab === 'packs' && (
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-yellow-400" />
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white shadow-[0_0_8px_white]" />
             )}
           </div>
           <span className="text-[10px] tracking-tight">Packs</span>

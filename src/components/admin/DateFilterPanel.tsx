@@ -82,8 +82,8 @@ export function DateFilterPanel({
         {/* Right Actions */}
         <div className="flex items-center gap-2">
           {isFilterActive && (
-            <div className="flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded text-[10px]">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-white/10 border border-white/20 text-white rounded text-[10px]">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               <span>
                 {filterStartDate || 'Start'} → {filterEndDate || 'Now'}
               </span>

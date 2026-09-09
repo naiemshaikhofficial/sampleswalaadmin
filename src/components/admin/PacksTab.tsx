@@ -519,13 +519,13 @@ export function PacksTab({
                   </div>
                 ) : waveformPeaks.length > 0 ? (
                   <div className="w-full space-y-2.5 text-center z-20">
-                    <span className="text-[10px] font-bold text-[#00FF94]">Audio Waveform Generated</span>
+                    <span className="text-[10px] font-bold text-white">Audio Waveform Generated</span>
                     
                     <div className="h-10 flex items-end justify-center gap-0.5 bg-black/50 p-2 rounded-lg border border-[#252525]">
                       {waveformPeaks.map((peak, idx) => (
                         <div
                           key={idx}
-                          className="w-1 bg-blue-500 rounded-full transition-all duration-150"
+                          className="w-1 bg-white rounded-full transition-all duration-150"
                           style={{
                             height: `${Math.max(peak * 100, 10)}%`,
                             opacity: 0.3 + peak * 0.7

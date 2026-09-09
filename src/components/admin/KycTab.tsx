@@ -131,14 +131,12 @@ export function KycTab({
                       </div>
                       <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase flex-shrink-0 ${
                         artist.verification_status === 'approved' 
-                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
-                          : artist.verification_status === 'rejected' 
-                          ? 'bg-red-500/15 text-red-400 border border-red-500/30' 
-                          : 'bg-white/10 text-zinc-200 border border-white/20'
+                          ? 'bg-white/10 text-white border border-white/20' 
+                          : 'bg-[#222222] text-zinc-400 border border-zinc-700'
                       }`}>
-                        {artist.verification_status === 'approved' && <ShieldCheck className="w-3 h-3" />}
-                        {artist.verification_status === 'rejected' && <AlertCircle className="w-3 h-3" />}
-                        {artist.verification_status === 'pending' && <Clock className="w-3 h-3" />}
+                        {artist.verification_status === 'approved' && <ShieldCheck className="w-3 h-3 text-white" />}
+                        {artist.verification_status === 'rejected' && <AlertCircle className="w-3 h-3 text-zinc-400" />}
+                        {artist.verification_status === 'pending' && <Clock className="w-3 h-3 text-zinc-400" />}
                         {artist.verification_status}
                       </span>
                     </div>
@@ -167,7 +165,7 @@ export function KycTab({
                           setPayoutArtist(artist)
                           setShowPayoutModal(true)
                         }}
-                        className="px-2.5 py-1 rounded-lg bg-[#00FF94]/15 hover:bg-[#00FF94]/25 text-[#00FF94] border border-[#00FF94]/30 font-bold text-xs transition-all cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg bg-white hover:bg-zinc-200 text-black font-bold text-xs transition-all cursor-pointer"
                       >
                         ₹ Payout
                       </button>
@@ -203,14 +201,12 @@ export function KycTab({
                           <td className="p-4">
                             <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${
                               artist.verification_status === 'approved' 
-                                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
-                                : artist.verification_status === 'rejected' 
-                                ? 'bg-red-500/15 text-red-400 border border-red-500/30' 
-                                : 'bg-white/10 text-zinc-200 border border-white/20'
+                                ? 'bg-white/10 text-white border border-white/20' 
+                                : 'bg-[#222222] text-zinc-400 border border-zinc-700'
                             }`}>
-                              {artist.verification_status === 'approved' && <ShieldCheck className="w-3 h-3" />}
-                              {artist.verification_status === 'rejected' && <AlertCircle className="w-3 h-3" />}
-                              {artist.verification_status === 'pending' && <Clock className="w-3 h-3" />}
+                              {artist.verification_status === 'approved' && <ShieldCheck className="w-3 h-3 text-white" />}
+                              {artist.verification_status === 'rejected' && <AlertCircle className="w-3 h-3 text-zinc-400" />}
+                              {artist.verification_status === 'pending' && <Clock className="w-3 h-3 text-zinc-400" />}
                               {artist.verification_status}
                             </span>
                           </td>
@@ -238,7 +234,7 @@ export function KycTab({
                                   setPayoutArtist(artist)
                                   setShowPayoutModal(true)
                                 }}
-                                className="px-3 py-1.5 rounded-lg bg-[#00FF94]/15 hover:bg-[#00FF94]/25 text-[#00FF94] border border-[#00FF94]/30 font-bold text-xs transition-all cursor-pointer"
+                                className="px-3 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-black font-bold text-xs transition-all cursor-pointer"
                               >
                                 ₹ Payout
                               </button>
@@ -275,9 +271,9 @@ export function KycTab({
                 <div key={pay.id} className="bg-black/40 border border-white/[0.08] rounded-xl p-3.5 font-sans text-xs">
                   <div className="flex items-center justify-between border-b border-white/[0.06] pb-2 mb-2">
                     <span className="font-bold text-white text-xs">{pay.artist_name}</span>
-                    <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase">{pay.status}</span>
+                    <span className="bg-white/10 text-white border border-white/20 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase">{pay.status}</span>
                   </div>
-                  <p className="text-[#00FF94] font-bold text-base">₹{pay.amount.toLocaleString()}</p>
+                  <p className="text-white font-bold text-base">₹{pay.amount.toLocaleString()}</p>
                   <p className="text-zinc-400 mt-1 font-mono text-[11px]">Period: <span className="text-white">{pay.payout_month}</span></p>
                   <p className="text-zinc-400 font-mono text-[11px]">UTR: <span className="text-zinc-200 select-all">{pay.utr_number}</span></p>
                   {pay.notes && <p className="text-zinc-500 mt-1 italic text-[11px]">"{pay.notes}"</p>}
@@ -374,14 +370,14 @@ export function KycTab({
                 <button
                   type="button"
                   onClick={() => handleKycApproval(activeArtist.user_id, 'approved', activeArtist.full_name)}
-                  className="studio-button py-2.5 bg-[#00FF94] hover:bg-[#00FF94]/90 text-black font-bold uppercase text-xs rounded-xl cursor-pointer flex items-center justify-center gap-1.5"
+                  className="studio-button py-2.5 bg-white hover:bg-zinc-200 text-black font-bold uppercase text-xs rounded-xl cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
                 >
                   <Check className="w-4 h-4" /> Approve KYC
                 </button>
                 <button
                   type="button"
                   onClick={() => handleKycApproval(activeArtist.user_id, 'rejected', activeArtist.full_name)}
-                  className="studio-button py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold uppercase text-xs rounded-xl cursor-pointer flex items-center justify-center gap-1.5"
+                  className="studio-button py-2.5 bg-[#202020] hover:bg-[#282828] text-zinc-300 hover:text-white border border-[#333333] font-bold uppercase text-xs rounded-xl cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <X className="w-4 h-4" /> Reject KYC
                 </button>
@@ -407,7 +403,7 @@ export function KycTab({
             </button>
 
             <h3 className="font-sans font-bold text-lg text-white mb-6 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#00FF94]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-white" />
               Register Artist Payout
             </h3>
 
@@ -426,7 +422,7 @@ export function KycTab({
                   value={payoutAmount}
                   onChange={e => setPayoutAmount(e.target.value)}
                   placeholder="e.g. 15000"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-emerald-500 font-bold text-sm"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white font-bold text-sm"
                 />
               </div>
 
@@ -438,7 +434,7 @@ export function KycTab({
                   value={payoutMonth}
                   onChange={e => setPayoutMonth(e.target.value)}
                   placeholder="e.g. May 2026"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-emerald-500 text-xs"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white text-xs"
                 />
               </div>
 
@@ -450,7 +446,7 @@ export function KycTab({
                   value={payoutUtr}
                   onChange={e => setPayoutUtr(e.target.value)}
                   placeholder="e.g. UTRN056123490"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-emerald-500 font-mono text-xs uppercase"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white font-mono text-xs uppercase"
                 />
               </div>
 
@@ -461,14 +457,14 @@ export function KycTab({
                   value={payoutNotes}
                   onChange={e => setPayoutNotes(e.target.value)}
                   placeholder="Standard sales payout split share..."
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-emerald-500 text-xs"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white text-xs"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={saveLoading}
-                className="studio-button w-full mt-2 bg-[#00FF94] hover:bg-[#00FF94]/90 text-black font-bold uppercase py-3 rounded-xl cursor-pointer disabled:opacity-50 text-xs flex items-center justify-center gap-1.5"
+                className="studio-button w-full mt-2 bg-white hover:bg-zinc-200 text-black font-bold uppercase py-3 rounded-xl cursor-pointer disabled:opacity-50 text-xs flex items-center justify-center gap-1.5 shadow-sm"
               >
                 {saveLoading ? 'Registering...' : (
                   <>

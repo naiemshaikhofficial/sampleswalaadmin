@@ -419,7 +419,7 @@ export function SalesTab({
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Total Paid</span>
                 {activeOrder.is_usd ? (
                   <div className="text-right">
-                    <span className="text-[#00FF94] font-bold text-sm">
+                    <span className="text-white font-bold text-sm">
                       ${Number(activeOrder.original_amount !== undefined ? activeOrder.original_amount : activeOrder.amount).toFixed(2)} USD
                     </span>
                     <p className="text-[10px] text-zinc-400 font-mono">
@@ -427,7 +427,7 @@ export function SalesTab({
                     </p>
                   </div>
                 ) : (
-                  <span className="text-[#00FF94] font-bold text-sm">
+                  <span className="text-white font-bold text-sm">
                     {Number(activeOrder.amount) === 0 ? 'Free Claim (₹0)' : `₹${activeOrder.amount?.toLocaleString()}`}
                   </span>
                 )}
