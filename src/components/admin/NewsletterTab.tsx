@@ -273,69 +273,71 @@ export function NewsletterTab({
   return (
     <div className="space-y-6 animate-fadeIn font-mono text-xs">
       {/* STATS HEADER GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         {/* 1. TOTAL SUBSCRIBERS */}
-        <div className="comic-panel border-4 border-black p-5 flex items-center gap-4 bg-black shadow-[4px_4px_0px_#FF0080]">
-          <div className="w-12 h-12 bg-[#FF0080] border-3 border-black flex items-center justify-center text-black">
+        <div className="bg-[#18181c] border border-white/10 rounded-2xl p-5 flex items-center gap-4 shadow-md hover:border-white/20 transition-all">
+          <div className="w-12 h-12 bg-blue-500/15 border border-blue-500/30 rounded-xl flex items-center justify-center text-blue-400">
             <Mail className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-[10px] font-black uppercase text-zinc-400">TOTAL SUBSCRIBERS</h3>
-            <p className="font-sans font-bold text-xl tracking-normal text-white mt-1">
-              {subscribersList.length} CONTACTS
+            <h3 className="text-xs font-medium text-zinc-400">Total Subscribers</h3>
+            <p className="font-sans font-bold text-2xl text-white mt-0.5">
+              {subscribersList.length}
             </p>
           </div>
         </div>
 
         {/* 2. ACTIVE CONTACTS */}
-        <div className="comic-panel border-4 border-black p-5 flex items-center gap-4 bg-black shadow-[4px_4px_0px_#39FF14]">
-          <div className="w-12 h-12 bg-studio-neon border-3 border-black flex items-center justify-center text-black">
+        <div className="bg-[#18181c] border border-white/10 rounded-2xl p-5 flex items-center gap-4 shadow-md hover:border-white/20 transition-all">
+          <div className="w-12 h-12 bg-[#00FF94]/15 border border-[#00FF94]/30 rounded-xl flex items-center justify-center text-[#00FF94]">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-[10px] font-black uppercase text-zinc-400">ACTIVE LISTING</h3>
-            <p className="font-sans font-bold text-xl tracking-normal text-white mt-1">
-              {subscribersList.filter((s: any) => s.subscribed).length} SUBSCRIBED
+            <h3 className="text-xs font-medium text-zinc-400">Active Listing</h3>
+            <p className="font-sans font-bold text-2xl text-white mt-0.5">
+              {subscribersList.filter((s: any) => s.subscribed).length}
             </p>
           </div>
         </div>
 
         {/* 3. BLACKLISTED CONTACTS */}
-        <div className="comic-panel border-4 border-black p-5 flex items-center gap-4 bg-black shadow-[4px_4px_0px_#FF3131]">
-          <div className="w-12 h-12 bg-studio-red border-3 border-black flex items-center justify-center text-white">
+        <div className="bg-[#18181c] border border-white/10 rounded-2xl p-5 flex items-center gap-4 shadow-md hover:border-white/20 transition-all">
+          <div className="w-12 h-12 bg-red-500/15 border border-red-500/30 rounded-xl flex items-center justify-center text-red-400">
             <Ban className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-[10px] font-black uppercase text-zinc-400">UNSUBSCRIBED / BLACKLISTED</h3>
-            <p className="font-sans font-bold text-xl tracking-normal text-white mt-1">
-              {subscribersList.filter((s: any) => !s.subscribed).length} BLACKLISTED
+            <h3 className="text-xs font-medium text-zinc-400">Unsubscribed</h3>
+            <p className="font-sans font-bold text-2xl text-white mt-0.5">
+              {subscribersList.filter((s: any) => !s.subscribed).length}
             </p>
           </div>
         </div>
       </div>
 
       {/* ACTION COMMAND BAR */}
-      <div className="bg-[#121212] p-4 border-4 border-black flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-[#18181c] p-4 sm:p-5 border border-white/10 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-md">
         <div className="flex-1 relative font-sans">
-          <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-500" />
+          <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
           <input
             type="text"
-            placeholder="SEARCH CONTACTS BY EMAIL..."
+            placeholder="Search contacts by email..."
             value={newsletterSearch}
             onChange={e => setNewsletterSearch(e.target.value)}
-            className="pl-9 pr-4 py-2 w-full max-w-md bg-black border-2 border-black text-white font-bold placeholder-zinc-600 outline-none focus:border-studio-pink uppercase text-xs"
+            className="pl-9 pr-4 py-2 w-full max-w-md bg-black/40 border border-white/10 rounded-xl text-white placeholder-zinc-500 outline-none focus:border-blue-500 text-xs transition-colors"
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
+            type="button"
             onClick={() => setShowSubscribeModal(true)}
-            className="px-4 py-2 bg-studio-yellow text-black border-3 border-black shadow-[3px_3px_0px_black] hover:bg-studio-yellow-hover font-black uppercase text-xs transition-all active:translate-y-0.5 active:shadow-[1px_1px_0px_black]"
+            className="studio-button px-4 py-2 bg-white/10 hover:bg-white/15 text-white border border-white/15 rounded-xl font-semibold text-xs transition-all cursor-pointer flex items-center gap-1.5"
           >
-            ➕ ADD SUBSCRIBER
+            Add Subscriber
           </button>
 
           <button
+            type="button"
             onClick={() => {
               setCampaignSubject('')
               setCampaignTitle('')
@@ -350,142 +352,147 @@ export function NewsletterTab({
               setRecipientSearch('')
               setShowCampaignModal(true)
             }}
-            className="px-4 py-2 bg-[#FF0080] text-black border-3 border-black shadow-[3px_3px_0px_black] hover:bg-[#E00070] font-black uppercase text-xs transition-all active:translate-y-0.5 active:shadow-[1px_1px_0px_black]"
+            className="studio-button px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-semibold text-xs transition-all cursor-pointer flex items-center gap-1.5"
           >
-            🚀 BROADCAST CAMPAIGN
+            Broadcast Campaign
           </button>
         </div>
       </div>
 
       {/* LIST TABLE OF NEWSLETTER SUBSCRIBERS */}
-      <div className="border-4 border-black bg-black overflow-x-auto font-sans text-xs">
-        <table className="w-full text-left uppercase font-bold border-collapse">
-          <thead>
-            <tr className="bg-[#121212] border-b-4 border-black text-zinc-400">
-              <th className="p-4">MEMBER ID</th>
-              <th className="p-4">EMAIL ADDRESS</th>
-              <th className="p-4 text-center">SUBSCRIPTION STATUS</th>
-              <th className="p-4 text-center">CREATION DATE</th>
-              <th className="p-4 text-center">ACTIONS</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y-3 divide-black font-sans text-xs">
-            {(() => {
-              const filtered = subscribersList.filter(s => {
-                const searchLower = newsletterSearch.toLowerCase()
-                return (s.email || '').toLowerCase().includes(searchLower)
-              })
+      <div className="border border-white/10 bg-[#18181c] rounded-2xl overflow-hidden shadow-md font-sans text-xs">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left font-sans border-collapse">
+            <thead>
+              <tr className="bg-white/[0.02] border-b border-white/10 text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
+                <th className="p-4">Member ID</th>
+                <th className="p-4">Email Address</th>
+                <th className="p-4 text-center">Subscription Status</th>
+                <th className="p-4 text-center">Creation Date</th>
+                <th className="p-4 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/[0.06] font-sans text-xs">
+              {(() => {
+                const filtered = subscribersList.filter(s => {
+                  const searchLower = newsletterSearch.toLowerCase()
+                  return (s.email || '').toLowerCase().includes(searchLower)
+                })
 
-              if (filtered.length === 0) {
-                return (
-                  <tr>
-                    <td colSpan={5} className="p-8 text-center text-zinc-500 uppercase font-bold">
-                      No subscribers found in newsletter lists.
+                if (filtered.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan={5} className="p-10 text-center text-zinc-500 font-medium">
+                        No subscribers found in newsletter lists.
+                      </td>
+                    </tr>
+                  )
+                }
+
+                return filtered.map((s: any) => (
+                  <tr key={s.id} className="hover:bg-white/[0.03] transition-colors">
+                    <td className="p-4 font-mono font-medium text-zinc-500">
+                      #{s.id}
+                    </td>
+                    <td className="p-4 font-mono text-zinc-100 select-all text-xs">
+                      {s.email}
+                    </td>
+                    <td className="p-4 text-center">
+                      {s.subscribed ? (
+                        <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">
+                          Active Subscriber
+                        </span>
+                      ) : (
+                        <span className="bg-red-500/15 text-red-400 border border-red-500/30 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">
+                          Unsubscribed
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-4 text-center text-zinc-400 font-mono text-xs">
+                      {s.created_at ? new Date(s.created_at).toLocaleDateString() : 'N/A'}
+                    </td>
+                    <td className="p-4 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        {s.subscribed ? (
+                          <button
+                            type="button"
+                            disabled={actionLoading}
+                            onClick={() => handleNewsletterUnsubscribe(s.email)}
+                            className="px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-medium text-[11px] transition-all cursor-pointer disabled:opacity-50"
+                          >
+                            Unsubscribe
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={actionLoading}
+                            onClick={() => handleNewsletterResubscribe(s.email)}
+                            className="px-2.5 py-1.5 rounded-lg bg-[#00FF94]/10 hover:bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/20 font-medium text-[11px] transition-all cursor-pointer disabled:opacity-50"
+                          >
+                            Resubscribe
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
-                )
-              }
-
-              return filtered.map((s: any) => (
-                <tr key={s.id} className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors">
-                  <td className="p-4 font-mono font-bold text-zinc-500">
-                    #{s.id}
-                  </td>
-                  <td className="p-4 font-mono text-zinc-100 select-all normal-case text-xs">
-                    {s.email}
-                  </td>
-                  <td className="p-4 text-center">
-                    {s.subscribed ? (
-                      <span className="bg-studio-neon/20 border border-studio-neon text-studio-neon text-[8px] px-2.5 py-1 font-bold uppercase tracking-wider">
-                        ACTIVE SUBSCRIBER
-                      </span>
-                    ) : (
-                      <span className="bg-studio-red/20 border border-studio-red text-studio-red text-[8px] px-2.5 py-1 font-bold uppercase tracking-wider">
-                        UNSUBSCRIBED / BLACKLISTED
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-4 text-center text-zinc-500 font-mono text-[10px]">
-                    {s.created_at ? new Date(s.created_at).toLocaleString() : 'N/A'}
-                  </td>
-                  <td className="p-4 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      {s.subscribed ? (
-                        <button
-                          disabled={actionLoading}
-                          onClick={() => handleNewsletterUnsubscribe(s.email)}
-                          className="px-2.5 py-1.5 border-2 border-black bg-studio-red hover:bg-studio-red/80 text-white font-bold uppercase text-[9px] transition-all cursor-pointer shadow-[2px_2px_0px_black] disabled:opacity-50"
-                        >
-                          ❌ UNSUBSCRIBE
-                        </button>
-                      ) : (
-                        <button
-                          disabled={actionLoading}
-                          onClick={() => handleNewsletterResubscribe(s.email)}
-                          className="px-2.5 py-1.5 border-2 border-black bg-studio-neon hover:bg-studio-neon/80 text-black font-bold uppercase text-[9px] transition-all cursor-pointer shadow-[2px_2px_0px_black] disabled:opacity-50"
-                        >
-                          ✅ RESUBSCRIBE
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
-            })()}
-          </tbody>
-        </table>
+                ))
+              })()}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* MODAL DRAWER: MANUAL NEWSLETTER EMAIL SUBSCRIBE */}
       {showSubscribeModal && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/85 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
           <form
             onSubmit={handleNewsletterSubscribe}
-            className="w-full max-w-md border-4 border-black bg-[#121212] p-6 shadow-premium relative font-mono text-xs animate-scaleIn"
+            className="w-full max-w-md border border-white/15 bg-[#18181c] rounded-2xl p-6 sm:p-7 shadow-2xl relative font-sans text-xs animate-scaleIn"
           >
             <button
               type="button"
               onClick={() => setShowSubscribeModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-black border-2 border-black hover:bg-studio-red hover:text-white transition-colors"
+              className="absolute top-4 right-4 p-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
-            <h3 className="font-luckiest-guy text-2xl uppercase text-studio-yellow mb-6">
-              📬 Add manual subscriber
+            <h3 className="font-sans font-bold text-lg text-white mb-2 flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+              Add Subscriber
             </h3>
 
-            <div className="space-y-4">
-              <p className="text-zinc-400 text-[10px] leading-relaxed uppercase">
-                Manually register a contact directly to Brevo contacts database. Previously blacklisted contacts will be reactivated automatically.
-              </p>
+            <p className="text-zinc-400 text-xs mb-6">
+              Manually register a contact directly to the newsletter contacts list.
+            </p>
 
+            <div className="space-y-4">
               <div>
-                <label className="block text-[10px] font-black uppercase text-zinc-400 mb-2">EMAIL ADDRESS</label>
+                <label className="block text-[11px] font-semibold text-zinc-300 mb-1.5">Email Address</label>
                 <input
                   type="email"
                   required
                   value={newsletterEmailInput}
                   onChange={e => setNewsletterEmailInput(e.target.value)}
                   placeholder="e.g. producer@gmail.com"
-                  className="w-full bg-black border-2 border-black p-3 text-white outline-none focus:border-studio-yellow font-black text-sm tracking-wide normal-case"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-amber-400 text-xs"
                 />
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-2.5 pt-2">
                 <button
                   type="button"
                   onClick={() => setShowSubscribeModal(false)}
-                  className="flex-1 px-4 py-2.5 bg-zinc-800 text-white border-2 border-black font-bold uppercase text-[10px] hover:bg-zinc-700 active:translate-y-0.5"
+                  className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 font-semibold text-xs rounded-xl transition-all cursor-pointer"
                 >
-                  CANCEL / BACK
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="flex-1 px-4 py-2.5 bg-studio-yellow text-black border-2 border-black font-black uppercase text-[10px] hover:bg-studio-yellow-hover disabled:opacity-50 active:translate-y-0.5"
+                  className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded-xl transition-all disabled:opacity-50 cursor-pointer"
                 >
-                  {actionLoading ? 'PROCESSING...' : 'SUBSCRIBE EMAIL'}
+                  {actionLoading ? 'Processing...' : 'Subscribe Email'}
                 </button>
               </div>
             </div>

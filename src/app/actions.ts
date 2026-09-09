@@ -2,6 +2,8 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { getUsdToInrRate, getExchangeRateInfo, convertUsdToInr, isUsdOrder } from '@/lib/exchangeRate'
+import { unstable_cache } from 'next/cache'
+import { safeRevalidateTag, safeRevalidatePath, notifyMainSiteRevalidate } from '@/lib/revalidateHelper'
 
 let cachedDb: any = null
 
@@ -24,6 +26,32 @@ export async function clearServerCache(scope: 'all' | 'users' | 'stats' = 'all')
     cachedDashboardStats = null
     cachedDashboardStatsTimestamp = 0
   }
+}
+
+/**
+ * Revalidate Admin Cache Tags on-demand
+ */
+export async function revalidateAdminTag(tag?: string) {
+  if (!tag || tag === 'all') {
+    const allTags = [
+      'admin-stats',
+      'admin-packs',
+      'admin-samples',
+      'admin-kyc',
+      'admin-coupons',
+      'admin-tickets',
+      'admin-users',
+      'admin-sales',
+      'admin-newsletter',
+      'admin-settings'
+    ]
+    allTags.forEach(t => safeRevalidateTag(t))
+    safeRevalidatePath('/')
+  } else {
+    safeRevalidateTag(tag)
+  }
+  await clearServerCache('all')
+  return { success: true, revalidated: tag || 'all', timestamp: Date.now() }
 }
 
 async function getAuthUsers(db: any, forceRefresh = false) {
@@ -133,7 +161,7 @@ export async function checkIsAdmin(userId: string): Promise<boolean> {
 /**
  * 2. Get Dashboard Stats
  */
-export async function getDashboardStats() {
+async function fetchDashboardStats() {
   const now = Date.now()
   if (cachedDashboardStats && (now - cachedDashboardStatsTimestamp < DASHBOARD_STATS_CACHE_TTL)) {
     return cachedDashboardStats
@@ -226,10 +254,18 @@ export async function getDashboardStats() {
   }
 }
 
+export async function getDashboardStats() {
+  return unstable_cache(
+    async () => fetchDashboardStats(),
+    ['admin-dashboard-stats-v1'],
+    { tags: ['admin-stats'] }
+  )()
+}
+
 /**
  * 3. Sample Packs CRUD
  */
-export async function getSamplePacks() {
+async function fetchSamplePacks() {
   try {
     const db = getDB()
     const { data: packs, error } = await db
@@ -250,6 +286,14 @@ export async function getSamplePacks() {
     console.error('Error getting sample packs:', error)
     throw error
   }
+}
+
+export async function getSamplePacks() {
+  return unstable_cache(
+    async () => fetchSamplePacks(),
+    ['admin-sample-packs-v1'],
+    { tags: ['admin-packs'] }
+  )()
 }
 
 export async function saveSamplePack(pack: any) {
@@ -274,7 +318,10 @@ export async function saveSamplePack(pack: any) {
     }
 
     if (result.error) throw result.error
+    safeRevalidateTag('admin-packs')
+    safeRevalidateTag('admin-stats')
     await clearServerCache('stats')
+    notifyMainSiteRevalidate({ tag: 'packs' })
     return result.data[0]
   } catch (error) {
     console.error('Error saving sample pack:', error)
@@ -291,7 +338,10 @@ export async function deleteSamplePack(id: string) {
       .eq('id', id)
 
     if (error) throw error
+    safeRevalidateTag('admin-packs')
+    safeRevalidateTag('admin-stats')
     await clearServerCache('stats')
+    notifyMainSiteRevalidate({ tag: 'packs' })
     return true
   } catch (error) {
     console.error('Error deleting sample pack:', error)
@@ -302,7 +352,7 @@ export async function deleteSamplePack(id: string) {
 /**
  * 4. Samples CRUD
  */
-export async function getSamples(packId?: string, search?: string) {
+async function fetchSamples(packId?: string, search?: string) {
   try {
     const db = getDB()
     let query = db.from('samples').select('*, sample_packs(name)')
@@ -311,8 +361,8 @@ export async function getSamples(packId?: string, search?: string) {
       query = query.eq('pack_id', packId)
     }
 
-    if (search) {
-      query = query.ilike('name', `%${search}%`)
+    if (search && search.trim()) {
+      query = query.ilike('name', `%${search.trim()}%`)
     }
 
     const { data, error } = await query
@@ -325,6 +375,16 @@ export async function getSamples(packId?: string, search?: string) {
     console.error('Error getting samples:', error)
     throw error
   }
+}
+
+export async function getSamples(packId?: string, search?: string) {
+  const p = packId || 'all'
+  const s = search ? search.trim().toLowerCase() : 'all'
+  return unstable_cache(
+    async () => fetchSamples(p, s),
+    ['admin-samples-list-v1', p, s],
+    { tags: ['admin-samples'] }
+  )()
 }
 
 export async function saveSample(sample: any) {
@@ -355,7 +415,10 @@ export async function saveSample(sample: any) {
     }
 
     if (result.error) throw result.error
+    safeRevalidateTag('admin-samples')
+    safeRevalidateTag('admin-stats')
     await clearServerCache('stats')
+    notifyMainSiteRevalidate({ tag: 'packs' })
     return result.data[0]
   } catch (error) {
     console.error('Error saving sample:', error)
@@ -372,7 +435,10 @@ export async function deleteSample(id: string) {
       .eq('id', id)
 
     if (error) throw error
+    safeRevalidateTag('admin-samples')
+    safeRevalidateTag('admin-stats')
     await clearServerCache('stats')
+    notifyMainSiteRevalidate({ tag: 'packs' })
     return true
   } catch (error) {
     console.error('Error deleting sample:', error)
@@ -383,7 +449,7 @@ export async function deleteSample(id: string) {
 /**
  * 5. Artist KYC & Payouts
  */
-export async function getArtistsKYC() {
+async function fetchArtistsKYC() {
   try {
     const db = getDB()
     // Fetch kyc settings
@@ -421,6 +487,14 @@ export async function getArtistsKYC() {
   }
 }
 
+export async function getArtistsKYC() {
+  return unstable_cache(
+    async () => fetchArtistsKYC(),
+    ['admin-artists-kyc-v1'],
+    { tags: ['admin-kyc'] }
+  )()
+}
+
 export async function updateKYCStatus(userId: string, status: string) {
   try {
     const db = getDB()
@@ -430,6 +504,8 @@ export async function updateKYCStatus(userId: string, status: string) {
       .eq('user_id', userId)
 
     if (error) throw error
+    safeRevalidateTag('admin-kyc')
+    safeRevalidateTag('admin-stats')
     await clearServerCache('stats')
     return true
   } catch (error) {
@@ -438,7 +514,7 @@ export async function updateKYCStatus(userId: string, status: string) {
   }
 }
 
-export async function getArtistPayouts() {
+async function fetchArtistPayouts() {
   try {
     const db = getDB()
     const { data, error } = await db
@@ -473,6 +549,14 @@ export async function getArtistPayouts() {
   }
 }
 
+export async function getArtistPayouts() {
+  return unstable_cache(
+    async () => fetchArtistPayouts(),
+    ['admin-artist-payouts-v1'],
+    { tags: ['admin-kyc'] }
+  )()
+}
+
 export async function triggerArtistPayout(payout: {
   artist_id: string
   amount: number
@@ -495,6 +579,9 @@ export async function triggerArtistPayout(payout: {
       })
 
     if (error) throw error
+    safeRevalidateTag('admin-kyc')
+    safeRevalidateTag('admin-stats')
+    await clearServerCache('stats')
     return true
   } catch (error) {
     console.error('Error triggering artist payout:', error)
@@ -505,7 +592,7 @@ export async function triggerArtistPayout(payout: {
 /**
  * 6. Coupons CRUD
  */
-export async function getCoupons() {
+async function fetchCoupons() {
   try {
     const db = getDB()
     const { data: coupons, error } = await db
@@ -536,6 +623,14 @@ export async function getCoupons() {
   }
 }
 
+export async function getCoupons() {
+  return unstable_cache(
+    async () => fetchCoupons(),
+    ['admin-coupons-list-v1'],
+    { tags: ['admin-coupons'] }
+  )()
+}
+
 export async function saveCoupon(coupon: any) {
   try {
     const db = getDB()
@@ -556,7 +651,9 @@ export async function saveCoupon(coupon: any) {
     }
 
     if (result.error) throw result.error
+    safeRevalidateTag('admin-coupons')
     await clearServerCache('stats')
+    notifyMainSiteRevalidate({ tag: 'coupons' })
     return result.data[0]
   } catch (error) {
     console.error('Error saving coupon:', error)
@@ -573,7 +670,9 @@ export async function deleteCoupon(id: string) {
       .eq('id', id)
 
     if (error) throw error
+    safeRevalidateTag('admin-coupons')
     await clearServerCache('stats')
+    notifyMainSiteRevalidate({ tag: 'coupons' })
     return true
   } catch (error) {
     console.error('Error deleting coupon:', error)
@@ -584,7 +683,7 @@ export async function deleteCoupon(id: string) {
 /**
  * 7. Support Tickets Hub
  */
-export async function getSupportTickets() {
+async function fetchSupportTickets() {
   try {
     const db = getDB()
     const { data: tickets, error } = await db
@@ -620,6 +719,14 @@ export async function getSupportTickets() {
   }
 }
 
+export async function getSupportTickets() {
+  return unstable_cache(
+    async () => fetchSupportTickets(),
+    ['admin-support-tickets-v1'],
+    { tags: ['admin-tickets'] }
+  )()
+}
+
 export async function replyToTicket(ticketId: string, reply: string) {
   try {
     const db = getDB()
@@ -634,6 +741,8 @@ export async function replyToTicket(ticketId: string, reply: string) {
       .eq('id', ticketId)
 
     if (error) throw error
+    safeRevalidateTag('admin-tickets')
+    safeRevalidateTag('admin-stats')
     await clearServerCache('stats')
     return true
   } catch (error) {
@@ -645,7 +754,7 @@ export async function replyToTicket(ticketId: string, reply: string) {
 /**
  * 8. Rankings Engine Details
  */
-export async function getRankedPacks() {
+async function fetchRankedPacks() {
   try {
     const db = getDB()
 
@@ -698,10 +807,18 @@ export async function getRankedPacks() {
   }
 }
 
+export async function getRankedPacks() {
+  return unstable_cache(
+    async () => fetchRankedPacks(),
+    ['admin-ranked-packs-v1'],
+    { tags: ['admin-packs'] }
+  )()
+}
+
 /**
  * 9. Users Management Hub & Detailed Sales
  */
-export async function getAllUsers() {
+async function fetchAllUsers() {
   try {
     const db = getDB()
 
@@ -753,6 +870,14 @@ export async function getAllUsers() {
      throw error
    }
  }
+
+export async function getAllUsers() {
+  return unstable_cache(
+    async () => fetchAllUsers(),
+    ['admin-all-users-v1'],
+    { tags: ['admin-users'] }
+  )()
+}
  
  export async function updateUserRole(userId: string, role: string) {
    try {
@@ -761,6 +886,8 @@ export async function getAllUsers() {
        app_metadata: { role }
      })
      if (error) throw error
+     safeRevalidateTag('admin-users')
+     safeRevalidateTag('admin-stats')
      await clearServerCache('users')
      return true
    } catch (error) {
@@ -777,6 +904,8 @@ export async function getAllUsers() {
        ban_duration: '876600h'
      })
      if (error) throw error
+     safeRevalidateTag('admin-users')
+     safeRevalidateTag('admin-stats')
      await clearServerCache('users')
      return true
   } catch (error) {
@@ -792,6 +921,8 @@ export async function unbanUser(userId: string) {
       ban_duration: 'none'
     })
     if (error) throw error
+    safeRevalidateTag('admin-users')
+    safeRevalidateTag('admin-stats')
     await clearServerCache('users')
     return true
   } catch (error) {
@@ -810,6 +941,8 @@ export async function deleteUser(userId: string) {
     // Delete from auth.users
     const { error } = await db.auth.admin.deleteUser(userId)
     if (error) throw error
+    safeRevalidateTag('admin-users')
+    safeRevalidateTag('admin-stats')
     await clearServerCache('all')
     return true
   } catch (error) {
@@ -818,7 +951,7 @@ export async function deleteUser(userId: string) {
   }
 }
 
-export async function getAllVaultSales() {
+async function fetchAllVaultSales() {
   try {
     const db = getDB()
 
@@ -903,6 +1036,14 @@ export async function getAllVaultSales() {
   }
 }
 
+export async function getAllVaultSales() {
+  return unstable_cache(
+    async () => fetchAllVaultSales(),
+    ['admin-vault-sales-v1'],
+    { tags: ['admin-sales'] }
+  )()
+}
+
 /**
  * 10. Brevo Newsletter Integration Actions
  */
@@ -920,7 +1061,7 @@ function getBrevoHeaders() {
   }
 }
 
-export async function getBrevoSubscribers() {
+async function fetchBrevoSubscribers() {
   try {
     const db = getDB()
 
@@ -989,6 +1130,14 @@ export async function getBrevoSubscribers() {
   }
 }
 
+export async function getBrevoSubscribers() {
+  return unstable_cache(
+    async () => fetchBrevoSubscribers(),
+    ['admin-brevo-subscribers-v1'],
+    { tags: ['admin-newsletter'] }
+  )()
+}
+
 export async function subscribeEmailToBrevo(email: string) {
   try {
     const db = getDB()
@@ -1035,6 +1184,8 @@ export async function subscribeEmailToBrevo(email: string) {
       console.warn('Brevo subscribe sync failed/skipped:', e)
     }
 
+    safeRevalidateTag('admin-newsletter')
+    safeRevalidateTag('admin-users')
     return true
   } catch (error: any) {
     console.error('Error in subscribeEmailToBrevo:', error)
@@ -1070,6 +1221,8 @@ export async function unsubscribeEmailFromBrevo(email: string) {
       console.warn('Brevo unsubscribe sync failed/skipped:', e)
     }
 
+    safeRevalidateTag('admin-newsletter')
+    safeRevalidateTag('admin-users')
     return true
   } catch (error: any) {
     console.error('Error in unsubscribeEmailFromBrevo:', error)
@@ -1252,7 +1405,7 @@ export async function sendBrevoCampaign(campaign: {
 /**
  * 11. Launch Offer Banner Toggle Settings
  */
-export async function getLaunchOfferStatus() {
+async function fetchLaunchOfferStatus() {
   try {
     const db = getDB()
     const { data, error } = await db
@@ -1271,6 +1424,14 @@ export async function getLaunchOfferStatus() {
   }
 }
 
+export async function getLaunchOfferStatus() {
+  return unstable_cache(
+    async () => fetchLaunchOfferStatus(),
+    ['admin-launch-offer-status-v1'],
+    { tags: ['admin-settings'] }
+  )()
+}
+
 export async function toggleLaunchOffer(value: boolean) {
   try {
     const db = getDB()
@@ -1283,6 +1444,8 @@ export async function toggleLaunchOffer(value: boolean) {
       }, { onConflict: 'key' })
 
     if (error) throw error
+    safeRevalidateTag('admin-settings')
+    notifyMainSiteRevalidate({ path: '/' })
     return { success: true }
   } catch (error) {
     console.error('Error toggling launch offer status:', error)
@@ -1293,7 +1456,7 @@ export async function toggleLaunchOffer(value: boolean) {
 /**
  * 12. Flash Sale Promo Toggle Settings
  */
-export async function getFlashSaleStatus() {
+async function fetchFlashSaleStatus() {
   try {
     const db = getDB()
     const { data, error } = await db
@@ -1312,6 +1475,14 @@ export async function getFlashSaleStatus() {
   }
 }
 
+export async function getFlashSaleStatus() {
+  return unstable_cache(
+    async () => fetchFlashSaleStatus(),
+    ['admin-flash-sale-status-v1'],
+    { tags: ['admin-settings'] }
+  )()
+}
+
 export async function toggleFlashSale(value: boolean) {
   try {
     const db = getDB()
@@ -1324,10 +1495,13 @@ export async function toggleFlashSale(value: boolean) {
       }, { onConflict: 'key' })
 
     if (error) throw error
+    safeRevalidateTag('admin-settings')
+    notifyMainSiteRevalidate({ path: '/' })
     return { success: true }
   } catch (error) {
     console.error('Error toggling flash sale status:', error)
     throw error
   }
 }
+
 

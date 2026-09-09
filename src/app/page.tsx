@@ -19,7 +19,8 @@ import {
   getLaunchOfferStatus,
   toggleLaunchOffer,
   getFlashSaleStatus,
-  toggleFlashSale
+  toggleFlashSale,
+  revalidateAdminTag
 } from './actions'
 
 import {
@@ -426,6 +427,10 @@ export default function AdminDashboard() {
         { event: 'INSERT', schema: 'public', table: 'user_vault' },
         async (payload) => {
           playNotificationSound()
+          clientCache.remove('analytics')
+          clientCache.remove('sales')
+          await revalidateAdminTag('admin-sales').catch(() => null)
+          await revalidateAdminTag('admin-stats').catch(() => null)
           const statsData = await getDashboardStats()
           setStats(statsData)
           showToast(`🚨 REALTIME ORDER: A user vaulted a pack for ₹${payload.new.amount || 'N/A'}!`, 'success')
@@ -441,6 +446,10 @@ export default function AdminDashboard() {
         { event: 'INSERT', schema: 'public', table: 'user_accounts' },
         async (payload) => {
           playNotificationSound()
+          clientCache.remove('analytics')
+          clientCache.remove('users')
+          await revalidateAdminTag('admin-users').catch(() => null)
+          await revalidateAdminTag('admin-stats').catch(() => null)
           const statsData = await getDashboardStats()
           setStats(statsData)
           showToast(`👥 REALTIME USER: New user "${payload.new.full_name || 'Anonymous'}" registered!`, 'success')
@@ -456,6 +465,10 @@ export default function AdminDashboard() {
         { event: 'INSERT', schema: 'public', table: 'support_tickets' },
         async (payload) => {
           playNotificationSound()
+          clientCache.remove('analytics')
+          clientCache.remove('tickets')
+          await revalidateAdminTag('admin-tickets').catch(() => null)
+          await revalidateAdminTag('admin-stats').catch(() => null)
           const statsData = await getDashboardStats()
           setStats(statsData)
           showToast(`🎫 REALTIME TICKET: "${payload.new.subject || 'Inquiry'}" has been submitted!`, 'warning')
@@ -616,6 +629,26 @@ export default function AdminDashboard() {
       setDataLoading(true)
     }
 
+    if (shouldBypassCache) {
+      try {
+        const tabToTagMap: Record<string, string> = {
+          analytics: 'admin-stats',
+          packs: 'admin-packs',
+          samples: 'admin-samples',
+          kyc: 'admin-kyc',
+          coupons: 'admin-coupons',
+          tickets: 'admin-tickets',
+          users: 'admin-users',
+          sales: 'admin-sales',
+          newsletter: 'admin-newsletter',
+          settings: 'admin-settings'
+        }
+        await revalidateAdminTag(tabToTagMap[tab] || 'all')
+      } catch (e) {
+        console.warn('Failed to revalidate server cache tag on bypass:', e)
+      }
+    }
+
     try {
       let freshData: any = null
       if (tab === 'analytics') {
@@ -694,13 +727,13 @@ export default function AdminDashboard() {
     }
   }
 
-  const invalidateCacheAndReload = (tab: typeof activeTab) => {
+  const invalidateCacheAndReload = async (tab: typeof activeTab) => {
     clientCache.remove(tab)
-    loadTabContext(tab, true)
+    await loadTabContext(tab, true)
   }
 
-  const handleReload = () => {
-    invalidateCacheAndReload(activeTab)
+  const handleReload = async () => {
+    await invalidateCacheAndReload(activeTab)
   }
 
   // Debounce the samples search to prevent redundant database hits on every keystroke

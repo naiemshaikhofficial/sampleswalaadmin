@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, AlertCircle } from 'lucide-react'
 
 interface ConfirmDialogProps {
   show: boolean
@@ -25,44 +25,47 @@ export function ConfirmDialog({
   if (!show) return null
 
   return (
-    <div className="fixed inset-0 bg-black/92 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-[#121212] border-4 border-black p-6 w-full max-w-md relative text-left shadow-premium">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fadeIn">
+      <div className="bg-[#18181c] border border-white/15 rounded-2xl p-6 w-full max-w-md relative text-left shadow-2xl font-sans">
         {/* Header Banner */}
-        <div className="flex items-center gap-3 border-b-2 border-black pb-4 mb-4">
-          <div className={`w-10 h-10 rounded-none border-2 border-black flex items-center justify-center flex-shrink-0 ${isDanger ? 'bg-studio-red text-white' : 'bg-studio-yellow text-black'
-            }`}>
-            <AlertTriangle className="w-5 h-5" />
+        <div className="flex items-center gap-3 border-b border-white/[0.08] pb-4 mb-4">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+            isDanger ? 'bg-red-500/15 text-red-400 border border-red-500/30' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+          }`}>
+            {isDanger ? <AlertCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
           </div>
           <div>
-            <h4 className={`font-sans font-bold text-sm uppercase tracking-wide leading-none ${isDanger ? 'text-studio-red' : 'text-studio-yellow'
-              }`}>
+            <h4 className="font-bold text-base text-white">
               {title}
             </h4>
-            <span className="text-[9px] uppercase font-mono tracking-widest text-zinc-500 font-bold block mt-1.5">
-              SYSTEM SECURITY SAFEGUARD
+            <span className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 font-semibold block mt-0.5">
+              Action Confirmation Required
             </span>
           </div>
         </div>
 
         {/* Description Text */}
-        <div className="text-zinc-200 font-sans text-xs leading-relaxed mb-6 font-medium normal-case">
+        <div className="text-zinc-300 text-xs leading-relaxed mb-6 font-normal">
           {message}
         </div>
 
         {/* Actions Grid */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 studio-button bg-zinc-800 text-white border-2 border-black font-bold uppercase hover:bg-zinc-700 py-2.5 text-xs cursor-pointer font-sans"
+            className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 font-semibold text-xs rounded-xl transition-all cursor-pointer"
           >
-            CANCEL / BACK
+            Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className={`flex-1 studio-button font-bold uppercase py-2.5 text-xs cursor-pointer font-sans ${isDanger ? 'bg-studio-red text-white hover:bg-studio-red/80' : 'bg-studio-neon text-black hover:bg-studio-neon-hover'
-              }`}
+            className={`flex-1 py-2.5 font-bold text-xs rounded-xl transition-all cursor-pointer ${
+              isDanger 
+                ? 'bg-red-600 hover:bg-red-500 text-white' 
+                : 'bg-[#00FF94] hover:bg-[#00FF94]/90 text-black'
+            }`}
           >
             {confirmText}
           </button>

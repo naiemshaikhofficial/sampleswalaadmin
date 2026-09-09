@@ -1,4 +1,7 @@
+'use client'
+
 import React from 'react'
+import { History, Trash2 } from 'lucide-react'
 
 interface LogEntry {
   id: string
@@ -32,18 +35,21 @@ export function LogsTab({
   }, [auditLogs])
 
   return (
-    <div className="space-y-6 animate-fadeIn font-mono text-xs">
-      <div className="bg-[#121212] p-6 border border-zinc-800 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 animate-fadeIn font-sans text-xs">
+      {/* HEADER BAR */}
+      <div className="bg-[#18181c] p-5 border border-white/10 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-md">
         <div>
-          <h3 className="font-sans font-bold text-xl uppercase tracking-wider text-studio-purple">
-            🛠️ Admin Activity Logs
+          <h3 className="font-sans font-bold text-lg text-white flex items-center gap-2.5">
+            <History className="w-5 h-5 text-purple-400" />
+            Admin Activity Logs
           </h3>
-          <p className="text-zinc-400 mt-1 uppercase text-[10px] font-bold">
-            This shows a list of all recent actions done by administrators (e.g. banning users, deleting items, or approving artist KYCs).
+          <p className="text-zinc-400 mt-1 text-xs">
+            Comprehensive audit trail recording administrative changes, artist approvals, bans, and system operations.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
+            type="button"
             onClick={() => {
               localStorage.removeItem('sw_audit_logs')
               setAuditLogs([
@@ -58,34 +64,35 @@ export function LogsTab({
               ])
               showToast('Audit trail logs wiped!', 'warning')
             }}
-            className="px-3 py-2 bg-studio-red hover:bg-studio-red/80 text-white font-bold uppercase text-[10px] transition-all cursor-pointer rounded"
+            className="studio-button px-3.5 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-semibold text-xs transition-all cursor-pointer rounded-xl flex items-center gap-1.5"
           >
-            🗑️ Clear Log History
+            <Trash2 className="w-3.5 h-3.5" />
+            Clear Log History
           </button>
         </div>
       </div>
 
       {/* AUDIT LOG TABLE */}
-      <div className="border border-zinc-800 bg-black rounded-lg overflow-hidden">
-        <div className="table-responsive">
-          <table className="w-full text-left uppercase font-bold border-collapse">
+      <div className="border border-white/10 bg-[#18181c] rounded-2xl overflow-hidden shadow-md">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left font-sans border-collapse">
             <thead>
-              <tr className="bg-[#121212] border-b border-zinc-800 text-zinc-400">
+              <tr className="bg-white/[0.02] border-b border-white/10 text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
                 <th className="p-4">Date & Time</th>
-                <th className="p-4">Action Done</th>
+                <th className="p-4">Action Type</th>
                 <th className="p-4">Details of Change</th>
-                <th className="p-4">Done By (Admin)</th>
+                <th className="p-4">Admin</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-800 font-mono text-xs">
+            <tbody className="divide-y divide-white/[0.06] text-xs">
               {(() => {
                 const filteredLogs = auditLogs.filter(l => isDateWithinRange(l.timestamp))
 
                 if (filteredLogs.length === 0) {
                   return (
                     <tr>
-                      <td colSpan={4} className="p-8 text-center text-zinc-500 uppercase font-bold">
-                        No activity logs found matching the filter range.
+                      <td colSpan={4} className="p-10 text-center text-zinc-500 font-medium">
+                        No activity logs found matching the selected filter range.
                       </td>
                     </tr>
                   )
@@ -102,28 +109,28 @@ export function LogsTab({
                     {paginatedLogs.map((l) => (
                       <tr
                         key={l.id}
-                        className="hover:bg-[#121212] bg-[#0c0c0c] transition-colors"
+                        className="hover:bg-white/[0.03] transition-colors"
                       >
-                        <td className="p-4 text-zinc-500 font-mono text-[10px] font-medium min-w-[140px]">
+                        <td className="p-4 text-zinc-400 font-mono text-[11px] whitespace-nowrap">
                           {l.timestamp}
                         </td>
                         <td className="p-4">
-                          <span className={`inline-block font-sans font-black text-[9px] px-2 py-0.5 border border-black shadow-sm rounded ${
+                          <span className={`inline-block font-mono text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${
                             l.type === 'danger'
-                              ? 'bg-studio-red text-white'
+                              ? 'bg-red-500/15 text-red-400 border border-red-500/30'
                               : l.type === 'warning'
-                                ? 'bg-studio-yellow text-black'
+                                ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                                 : l.type === 'success'
-                                  ? 'bg-studio-neon text-black'
-                                  : 'bg-studio-pink text-black'
+                                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                                  : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
                           }`}>
                             {l.action}
                           </span>
                         </td>
-                        <td className="p-4 text-zinc-200 normal-case font-medium max-w-md leading-relaxed">
+                        <td className="p-4 text-zinc-200 font-medium max-w-md leading-relaxed">
                           {l.target}
                         </td>
-                        <td className="p-4 text-zinc-400 font-mono text-[10px]">
+                        <td className="p-4 text-zinc-400 font-mono text-[11px] select-all">
                           {l.admin}
                         </td>
                       </tr>
@@ -132,18 +139,18 @@ export function LogsTab({
                     {/* Pagination Bar inside table body row */}
                     {totalPages > 1 && (
                       <tr>
-                        <td colSpan={4} className="p-4 bg-[#121212] border-t border-zinc-800">
-                          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[10px] uppercase font-bold">
-                            <div className="text-zinc-500">
-                              SHOWING {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredLogs.length)} OF {filteredLogs.length} AUDIT LOGS
+                        <td colSpan={4} className="p-4 bg-[#141418] border-t border-white/10">
+                          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[11px]">
+                            <div className="text-zinc-400">
+                              Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredLogs.length)} of {filteredLogs.length} logs
                             </div>
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1.5">
                               <button
                                 disabled={currentPage === 1}
                                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                className="px-3 py-1.5 border border-zinc-800 bg-black text-white hover:bg-studio-purple hover:text-white font-bold uppercase transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer rounded"
+                                className="px-3 py-1.5 border border-white/10 bg-white/5 text-white hover:bg-white/10 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer rounded-lg"
                               >
-                                PREV
+                                Previous
                               </button>
                               
                               {Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -151,16 +158,16 @@ export function LogsTab({
                                 .map((p, idx, arr) => {
                                   const elements = []
                                   if (idx > 0 && p - arr[idx - 1] > 1) {
-                                    elements.push(<span key={`dot-${p}`} className="text-zinc-700 px-1">...</span>)
+                                    elements.push(<span key={`dot-${p}`} className="text-zinc-600 px-1">...</span>)
                                   }
                                   elements.push(
                                     <button
                                       key={p}
                                       onClick={() => setCurrentPage(p)}
-                                      className={`w-7 h-7 border border-zinc-800 font-bold uppercase transition-all cursor-pointer rounded ${
+                                      className={`w-7 h-7 font-bold transition-all cursor-pointer rounded-lg border ${
                                         currentPage === p 
-                                          ? 'bg-studio-purple text-white border-studio-purple' 
-                                          : 'bg-black text-white hover:bg-zinc-800'
+                                          ? 'bg-blue-600 text-white border-blue-500 shadow-sm' 
+                                          : 'bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10'
                                       }`}
                                     >
                                       {p}
@@ -172,9 +179,9 @@ export function LogsTab({
                               <button
                                 disabled={currentPage === totalPages}
                                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                className="px-3 py-1.5 border border-zinc-800 bg-black text-white hover:bg-studio-purple hover:text-white font-bold uppercase transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer rounded"
+                                className="px-3 py-1.5 border border-white/10 bg-white/5 text-white hover:bg-white/10 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer rounded-lg"
                               >
-                                NEXT
+                                Next
                               </button>
                             </div>
                           </div>

@@ -249,25 +249,25 @@ export function CommandPalette({
       onClick={() => setShowPalette(false)}
     >
       <div
-        className="bg-[#121212] border-4 border-black p-6 w-full max-w-2xl relative text-left shadow-premium"
+        className="bg-[#18181c] border border-white/15 rounded-2xl p-6 w-full max-w-2xl relative text-left shadow-2xl font-sans"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b-2 border-black pb-4 mb-4 font-mono">
+        <div className="flex items-center justify-between border-b border-white/[0.08] pb-4 mb-4">
           <div className="flex items-center gap-2.5">
-            <Terminal className="w-5 h-5 text-studio-pink" />
+            <Terminal className="w-5 h-5 text-blue-400" />
             <div>
-              <h4 className="font-sans font-bold text-sm uppercase tracking-wide leading-none">
-                UNIVERSAL COMMAND CENTER
+              <h4 className="font-bold text-sm text-white">
+                Command Palette & Quick Search
               </h4>
-              <span className="text-[8px] uppercase tracking-widest text-zinc-500 font-bold block mt-1.5">
-                Search users, packs, orders, or run terminal slash commands
+              <span className="text-[10px] text-zinc-400 font-medium block mt-0.5">
+                Quick jump to users, audio packs, orders, or run admin actions
               </span>
             </div>
           </div>
           <button
             onClick={() => setShowPalette(false)}
-            className="p-1 bg-black border-2 border-black hover:border-studio-pink text-zinc-400 hover:text-white transition-all cursor-pointer text-[10px] font-bold px-2 py-1"
+            className="p-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer text-[10px] font-mono px-2 py-1"
           >
             ESC
           </button>
@@ -281,7 +281,7 @@ export function CommandPalette({
             placeholder="Type / for commands or search anything..."
             value={paletteSearch}
             onChange={e => setPaletteSearch(e.target.value)}
-            className="w-full bg-black border-4 border-black p-4 text-white outline-none focus:border-studio-pink font-mono text-sm placeholder-zinc-700 uppercase"
+            className="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-white outline-none focus:border-blue-500 font-sans text-sm placeholder-zinc-500"
           />
         </div>
 
