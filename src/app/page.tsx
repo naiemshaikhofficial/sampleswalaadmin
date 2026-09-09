@@ -717,7 +717,17 @@ export default function AdminDashboard() {
           console.error("Failed to load support tickets for analytics charts", e)
         }
 
-        freshData = { stats: statsData, salesList: salesData, usersList: usersData, ticketsList: ticketsData }
+        let packsDataList: any[] = []
+        try {
+          const packsRes = await getSamplePacks()
+          packsDataList = packsRes.packs || []
+          setPacks(packsDataList)
+          if (packsRes.categories) setCategories(packsRes.categories)
+        } catch (e) {
+          console.error("Failed to load sample packs for analytics ranking", e)
+        }
+
+        freshData = { stats: statsData, salesList: salesData, usersList: usersData, ticketsList: ticketsData, packsList: packsDataList }
       } else if (tab === 'packs') {
         const result = await getSamplePacks()
         freshData = result
@@ -968,6 +978,8 @@ export default function AdminDashboard() {
               vaultSalesList={vaultSalesList}
               usersList={usersList}
               tickets={tickets}
+              packs={packs}
+              coupons={coupons}
               setActiveTab={setActiveTab}
               themeMode={themeMode}
             />

@@ -1005,6 +1005,9 @@ async function fetchAllVaultSales() {
 
       return {
         id: sale.id,
+        user_id: sale.user_id,
+        item_id: sale.item_id,
+        pack_id: sale.item_id,
         amount: sale.amount || 0,
         is_usd: isUsd,
         currency: isUsd ? 'USD' : 'INR',
@@ -1014,6 +1017,7 @@ async function fetchAllVaultSales() {
         created_at: sale.created_at,
         razorpay_order_id: sale.razorpay_order_id || 'N/A',
         razorpay_payment_id: sale.razorpay_payment_id || 'N/A',
+        payment_method: isUsd ? 'International (Stripe/PayPal)' : 'Razorpay (UPI/Card/NetBanking)',
         pack_name: pack?.name || sale.item_name || 'Sample Pack Purchase',
         buyer_name: account?.full_name || 'Anonymous Buyer',
         buyer_email: authUser?.email || 'N/A',
