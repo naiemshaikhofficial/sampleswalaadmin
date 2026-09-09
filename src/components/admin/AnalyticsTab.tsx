@@ -849,46 +849,13 @@ export function AnalyticsTab({
   }, [customerAnalytics.topSpenders, customerFilter, customerSearch])
 
   return (
-    <div className="space-y-5 animate-fadeIn font-sans text-xs">
+    <div className="space-y-4 animate-fadeIn font-sans text-xs">
 
       {/* ===================================================================== */}
-      {/* 1. COMPACT TOP HEADER                                                 */}
+      {/* YOUTUBE STUDIO STYLE TAB NAVIGATION BAR                               */}
       {/* ===================================================================== */}
-      <div className="bg-[#181818] border border-[#222222] rounded-xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="font-bold text-lg text-white">Channel Analytics</h2>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-white/10 text-white border border-white/20">
-              YOUTUBE STUDIO MODE
-            </span>
-            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#202020] text-zinc-300 border border-[#2c2c2c]">
-              {customerAnalytics.totalRegisteredUsers} USERS · {financialData.totalOrdersCount} VAULT ORDERS
-            </span>
-          </div>
-          <p className="text-zinc-400 text-xs mt-1">
-            Real-time multi-tab performance analytics for sample packs, store traffic, conversions, and customers.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-auto font-mono text-xs">
-          {filterStartDate || filterEndDate ? (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 border border-white/20 text-white rounded-lg text-[11px]">
-              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-              <span>Filtered: {filterStartDate || 'Start'} → {filterEndDate || 'Now'}</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#202020] border border-[#2c2c2c] text-zinc-300 rounded-lg text-[11px]">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              <span>Lifetime Store Data</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ===================================================================== */}
-      {/* 2. YOUTUBE STUDIO TAB NAVIGATION BAR                                  */}
-      {/* ===================================================================== */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-[#222222] scrollbar-none">
+      <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 border-b border-[#222222] scrollbar-none">
+        <div className="flex items-center gap-1.5">
         <button
           type="button"
           onClick={() => setSubTab('overview')}
@@ -966,18 +933,26 @@ export function AnalyticsTab({
           </span>
         </button>
 
-        <button
-          type="button"
-          onClick={() => setSubTab('revenue')}
-          className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-            subTab === 'revenue'
-              ? 'bg-white text-black shadow-sm'
-              : 'text-zinc-400 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <CreditCard className="w-3.5 h-3.5" />
-          <span>Revenue & Gateways</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => setSubTab('revenue')}
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              subTab === 'revenue'
+                ? 'bg-white text-black shadow-sm'
+                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <CreditCard className="w-3.5 h-3.5" />
+            <span>Revenue & Gateways</span>
+          </button>
+        </div>
+
+        {(filterStartDate || filterEndDate) && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/10 border border-white/20 text-white rounded-lg text-[10px] font-mono flex-shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+            <span>{filterStartDate || 'Start'} → {filterEndDate || 'Now'}</span>
+          </div>
+        )}
       </div>
 
       {/* ===================================================================== */}
