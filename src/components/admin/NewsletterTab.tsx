@@ -359,88 +359,137 @@ export function NewsletterTab({
         </div>
       </div>
 
-      {/* LIST TABLE OF NEWSLETTER SUBSCRIBERS */}
-      <div className="border border-[#222222] bg-[#181818] rounded-xl overflow-hidden shadow-sm font-sans text-xs">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left font-sans border-collapse">
-            <thead>
-              <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
-                <th className="p-4">Member ID</th>
-                <th className="p-4">Email Address</th>
-                <th className="p-4 text-center">Subscription Status</th>
-                <th className="p-4 text-center">Creation Date</th>
-                <th className="p-4 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#222222] font-sans text-xs">
-              {(() => {
-                const filtered = subscribersList.filter(s => {
-                  const searchLower = newsletterSearch.toLowerCase()
-                  return (s.email || '').toLowerCase().includes(searchLower)
-                })
+      {/* NEWSLETTER SUBSCRIBERS DISPLAY */}
+      {(() => {
+        const filtered = subscribersList.filter(s => {
+          const searchLower = newsletterSearch.toLowerCase()
+          return (s.email || '').toLowerCase().includes(searchLower)
+        })
 
-                if (filtered.length === 0) {
-                  return (
-                    <tr>
-                      <td colSpan={5} className="p-10 text-center text-zinc-500 font-medium">
-                        No subscribers found in newsletter lists.
-                      </td>
-                    </tr>
-                  )
-                }
+        if (filtered.length === 0) {
+          return (
+            <div className="border border-[#222222] bg-[#181818] rounded-xl p-10 text-center text-zinc-500 font-medium text-xs">
+              No subscribers found in newsletter lists.
+            </div>
+          )
+        }
 
-                return filtered.map((s: any) => (
-                  <tr key={s.id} className="hover:bg-white/[0.03] transition-colors">
-                    <td className="p-4 font-mono font-medium text-zinc-500">
-                      #{s.id}
-                    </td>
-                    <td className="p-4 font-mono text-zinc-100 select-all text-xs">
+        return (
+          <>
+            {/* MOBILE VIEW: SUBSCRIBER CARDS (NO HORIZONTAL SCROLLBAR) */}
+            <div className="md:hidden space-y-2.5">
+              {filtered.map((s: any) => (
+                <div
+                  key={s.id}
+                  className="border border-[#222222] bg-[#181818] rounded-xl p-3.5 space-y-2.5 hover:border-[#333333] transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-xs text-zinc-100 font-medium truncate flex-1 select-all" title={s.email}>
                       {s.email}
-                    </td>
-                    <td className="p-4 text-center">
+                    </span>
+                    <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-full flex-shrink-0 ${
+                      s.subscribed ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/15 text-red-400 border border-red-500/30'
+                    }`}>
+                      {s.subscribed ? 'Active' : 'Unsubscribed'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 pt-1 border-t border-[#222222]">
+                    <span>#{s.id} • {s.created_at ? new Date(s.created_at).toLocaleDateString() : 'N/A'}</span>
+                    <div>
                       {s.subscribed ? (
-                        <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">
-                          Active Subscriber
-                        </span>
+                        <button
+                          type="button"
+                          disabled={actionLoading}
+                          onClick={() => handleNewsletterUnsubscribe(s.email)}
+                          className="px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[10px] font-bold transition-all cursor-pointer disabled:opacity-50"
+                        >
+                          Unsubscribe
+                        </button>
                       ) : (
-                        <span className="bg-red-500/15 text-red-400 border border-red-500/30 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">
-                          Unsubscribed
-                        </span>
+                        <button
+                          type="button"
+                          disabled={actionLoading}
+                          onClick={() => handleNewsletterResubscribe(s.email)}
+                          className="px-2 py-1 rounded-lg bg-[#00FF94]/10 hover:bg-[#00FF94]/20 text-[#00FF94] text-[10px] font-bold transition-all cursor-pointer disabled:opacity-50"
+                        >
+                          Resubscribe
+                        </button>
                       )}
-                    </td>
-                    <td className="p-4 text-center text-zinc-400 font-mono text-xs">
-                      {s.created_at ? new Date(s.created_at).toLocaleDateString() : 'N/A'}
-                    </td>
-                    <td className="p-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        {s.subscribed ? (
-                          <button
-                            type="button"
-                            disabled={actionLoading}
-                            onClick={() => handleNewsletterUnsubscribe(s.email)}
-                            className="px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-medium text-[11px] transition-all cursor-pointer disabled:opacity-50"
-                          >
-                            Unsubscribe
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            disabled={actionLoading}
-                            onClick={() => handleNewsletterResubscribe(s.email)}
-                            className="px-2.5 py-1.5 rounded-lg bg-[#00FF94]/10 hover:bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/20 font-medium text-[11px] transition-all cursor-pointer disabled:opacity-50"
-                          >
-                            Resubscribe
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              })()}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* DESKTOP VIEW: DATA TABLE */}
+            <div className="hidden md:block border border-[#222222] bg-[#181818] rounded-xl overflow-hidden shadow-sm font-sans text-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left font-sans border-collapse min-w-[650px]">
+                  <thead>
+                    <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
+                      <th className="p-4">Member ID</th>
+                      <th className="p-4">Email Address</th>
+                      <th className="p-4 text-center">Subscription Status</th>
+                      <th className="p-4 text-center">Creation Date</th>
+                      <th className="p-4 text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#222222] font-sans text-xs">
+                    {filtered.map((s: any) => (
+                      <tr key={s.id} className="hover:bg-white/[0.03] transition-colors">
+                        <td className="p-4 font-mono font-medium text-zinc-500">
+                          #{s.id}
+                        </td>
+                        <td className="p-4 font-mono text-zinc-100 select-all text-xs">
+                          {s.email}
+                        </td>
+                        <td className="p-4 text-center">
+                          {s.subscribed ? (
+                            <span className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">
+                              Active Subscriber
+                            </span>
+                          ) : (
+                            <span className="bg-red-500/15 text-red-400 border border-red-500/30 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">
+                              Unsubscribed
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-4 text-center text-zinc-400 font-mono text-xs">
+                          {s.created_at ? new Date(s.created_at).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td className="p-4 text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            {s.subscribed ? (
+                              <button
+                                type="button"
+                                disabled={actionLoading}
+                                onClick={() => handleNewsletterUnsubscribe(s.email)}
+                                className="px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-medium text-[11px] transition-all cursor-pointer disabled:opacity-50"
+                              >
+                                Unsubscribe
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={actionLoading}
+                                onClick={() => handleNewsletterResubscribe(s.email)}
+                                className="px-2.5 py-1.5 rounded-lg bg-[#00FF94]/10 hover:bg-[#00FF94]/20 text-[#00FF94] border border-[#00FF94]/20 font-medium text-[11px] transition-all cursor-pointer disabled:opacity-50"
+                              >
+                                Resubscribe
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )
+      })()}
 
       {/* MODAL DRAWER: MANUAL NEWSLETTER EMAIL SUBSCRIBE */}
       {showSubscribeModal && (

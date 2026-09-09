@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { Search, Mail, Phone, MapPin, X, Download } from 'lucide-react'
+import { getShortSampleName } from '@/lib/formatUtils'
 
 interface SalesTabProps {
   vaultSalesList: any[]
@@ -136,33 +137,101 @@ export function SalesTab({
       </div>
 
       {/* SALES DATA GRID */}
-      <div className="border border-[#222222] rounded-xl bg-[#181818] overflow-x-auto shadow-sm">
-        <table className="w-full text-left font-sans border-collapse">
-          <thead>
-            <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[10px] uppercase font-semibold tracking-wider">
-              <th className="p-4">Product Purchased</th>
-              <th className="p-4">Buyer Details</th>
-              <th className="p-4">Shipping / Address</th>
-              <th className="p-4 text-center">Settlement</th>
-              <th className="p-4 text-center">Timestamp</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/[0.04] font-sans text-xs">
-            {filteredSales.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="p-8 text-center text-zinc-500 font-sans">
-                  No sales transactions logged.
-                </td>
-              </tr>
-            ) : (() => {
-              const totalPages = Math.ceil(filteredSales.length / ITEMS_PER_PAGE)
-              const paginatedSales = filteredSales.slice(
-                (currentPage - 1) * ITEMS_PER_PAGE,
-                currentPage * ITEMS_PER_PAGE
-              )
+      {filteredSales.length === 0 ? (
+        <div className="border border-[#222222] rounded-xl bg-[#181818] p-8 text-center text-zinc-500 font-sans text-xs">
+          No sales transactions logged.
+        </div>
+      ) : (() => {
+        const totalPages = Math.ceil(filteredSales.length / ITEMS_PER_PAGE)
+        const paginatedSales = filteredSales.slice(
+          (currentPage - 1) * ITEMS_PER_PAGE,
+          currentPage * ITEMS_PER_PAGE
+        )
 
-              return (
-                <>
+        return (
+          <>
+            {/* MOBILE VIEW: SLEEK ORDER CARDS (NO HORIZONTAL SCROLLBAR) */}
+            <div className="md:hidden space-y-2.5">
+              {paginatedSales.map((s: any) => {
+                const shortTitle = getShortSampleName(s.pack_name)
+                return (
+                  <div
+                    key={s.id}
+                    onClick={() => {
+                      setActiveOrder(s)
+                      setShowOrderModal(true)
+                    }}
+                    className="border border-[#222222] rounded-xl bg-[#181818] p-3.5 space-y-2.5 cursor-pointer hover:border-[#333333] transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-bold text-xs text-zinc-100 truncate leading-snug" title={s.pack_name}>
+                          {shortTitle}
+                        </h4>
+                        <p className="text-[11px] text-zinc-400 mt-0.5 font-medium">{s.buyer_name}</p>
+                      </div>
+                      <span className={`flex-shrink-0 text-[8px] font-bold uppercase rounded px-2 py-0.5 ${
+                        Number(s.amount) === 0
+                          ? 'bg-zinc-800 text-zinc-400'
+                          : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                      }`}>
+                        {Number(s.amount) === 0 ? 'Free' : 'Verified'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] font-mono pt-1 border-t border-[#222222]">
+                      <div className="text-zinc-400 truncate max-w-[170px]">
+                        {s.buyer_email}
+                      </div>
+                      <div className="font-bold text-white text-right">
+                        {s.is_usd ? (
+                          <span className="text-[#00FF94]">${Number(s.original_amount !== undefined ? s.original_amount : s.amount).toFixed(2)}</span>
+                        ) : Number(s.amount) === 0 ? (
+                          <span className="text-zinc-500">₹0</span>
+                        ) : (
+                          `₹${Number(s.amount).toLocaleString()}`
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+
+              {/* Mobile Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between gap-2 p-3 bg-[#181818] border border-[#222222] rounded-xl text-[10px] font-mono">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-zinc-400">Page {currentPage} of {totalPages}</span>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* DESKTOP VIEW: DATA TABLE */}
+            <div className="hidden md:block border border-[#222222] rounded-xl bg-[#181818] overflow-x-auto shadow-sm">
+              <table className="w-full text-left font-sans border-collapse min-w-[720px]">
+                <thead>
+                  <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[10px] uppercase font-semibold tracking-wider">
+                    <th className="p-4">Product Purchased</th>
+                    <th className="p-4">Buyer Details</th>
+                    <th className="p-4">Shipping / Address</th>
+                    <th className="p-4 text-center">Settlement</th>
+                    <th className="p-4 text-center">Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/[0.04] font-sans text-xs">
                   {paginatedSales.map((s: any) => (
                     <tr
                       key={s.id}
@@ -286,12 +355,12 @@ export function SalesTab({
                       </td>
                     </tr>
                   )}
-                </>
-              )
-            })()}
-          </tbody>
-        </table>
-      </div>
+                </tbody>
+              </table>
+            </div>
+          </>
+        )
+      })()}
 
       {/* MODAL DRAWER: DETAILED ORDER DESCRIPTION */}
       {showOrderModal && activeOrder && (

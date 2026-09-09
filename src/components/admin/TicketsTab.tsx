@@ -94,67 +94,112 @@ export function TicketsTab({
         </div>
       </div>
 
-      {/* TICKETS TABLE LIST */}
-      <div className="border border-[#222222] rounded-xl bg-[#181818] overflow-x-auto shadow-sm">
-        <table className="w-full text-left text-xs font-sans border-collapse">
-          <thead>
-            <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[10px] uppercase font-semibold tracking-wider">
-              <th className="p-4">User</th>
-              <th className="p-4">Subject & Category</th>
-              <th className="p-4 text-center">Status</th>
-              <th className="p-4 text-center">Created Date</th>
-              <th className="p-4 text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#222222]">
-            {tickets.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="p-8 text-center text-zinc-500 font-sans">
-                  No support tickets submitted yet.
-                </td>
-              </tr>
-            ) : (
-              tickets.map((ticket: any) => (
-                <tr key={ticket.id} className="hover:bg-white/[0.03] transition-colors">
-                  <td className="p-4">
-                    <p className="text-zinc-100 font-bold text-sm">{ticket.user_name}</p>
-                    <p className="text-[10px] text-zinc-500 leading-none mt-1 lowercase font-mono">{ticket.user_id}</p>
-                  </td>
-                  <td className="p-4">
-                    <p className="text-zinc-100 font-medium text-sm">{ticket.subject}</p>
-                    <span className="inline-block text-[9px] bg-purple-500/10 border border-purple-500/30 text-purple-300 rounded px-2 py-0.5 mt-1 font-mono font-bold">
-                      {ticket.category}
-                    </span>
-                  </td>
-                  <td className="p-4 text-center">
-                    <span className={`inline-block text-[9px] font-bold uppercase px-2.5 py-1 rounded-full ${
-                      ticket.status === 'open' ? 'bg-white/10 border border-white/20 text-white' : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
-                    }`}>
-                      {ticket.status === 'open' ? 'Open Ticket' : 'Resolved'}
-                    </span>
-                  </td>
-                  <td className="p-4 text-center text-zinc-400 font-mono font-medium text-[10px]">
-                    {new Date(ticket.created_at).toLocaleString()}
-                  </td>
-                  <td className="p-4 text-center">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTicket(ticket)
-                        setTicketReply(ticket.admin_reply || '')
-                        setShowTicketModal(true)
-                      }}
-                      className="px-3 py-1.5 border border-white/10 rounded-xl bg-white/5 hover:bg-white/10 text-white font-sans text-xs transition-all cursor-pointer"
-                    >
-                      {ticket.status === 'open' ? 'Quick Reply' : 'View Conversation'}
-                    </button>
-                  </td>
+      {/* TICKETS DISPLAY */}
+      {tickets.length === 0 ? (
+        <div className="border border-[#222222] rounded-xl bg-[#181818] p-8 text-center text-zinc-500 font-sans text-xs">
+          No support tickets submitted yet.
+        </div>
+      ) : (
+        <>
+          {/* MOBILE VIEW: TICKET CARDS (NO HORIZONTAL SCROLLBAR) */}
+          <div className="md:hidden space-y-2.5">
+            {tickets.map((ticket: any) => (
+              <div
+                key={ticket.id}
+                className="border border-[#222222] rounded-xl bg-[#181818] p-3.5 space-y-2.5 hover:border-[#333333] transition-colors"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-bold text-xs text-zinc-100 truncate leading-snug" title={ticket.subject}>
+                      {ticket.subject}
+                    </h4>
+                    <p className="text-[11px] text-zinc-400 mt-0.5 font-medium">{ticket.user_name}</p>
+                  </div>
+                  <span className={`flex-shrink-0 text-[8px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                    ticket.status === 'open' ? 'bg-white/10 border border-white/20 text-white' : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+                  }`}>
+                    {ticket.status === 'open' ? 'Open' : 'Resolved'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-[10px] font-mono pt-1 border-t border-[#222222]">
+                  <span className="text-[9px] bg-purple-500/10 border border-purple-500/30 text-purple-300 rounded px-1.5 py-0.2 font-mono font-bold">
+                    {ticket.category}
+                  </span>
+                  <span className="text-zinc-500">
+                    {new Date(ticket.created_at).toLocaleDateString()}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTicket(ticket)
+                      setTicketReply(ticket.admin_reply || '')
+                      setShowTicketModal(true)
+                    }}
+                    className="px-2.5 py-1 border border-white/10 rounded-lg bg-white/5 hover:bg-white/10 text-white font-sans text-[11px] transition-all cursor-pointer"
+                  >
+                    {ticket.status === 'open' ? 'Reply' : 'View'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* DESKTOP VIEW: DATA TABLE */}
+          <div className="hidden md:block border border-[#222222] rounded-xl bg-[#181818] overflow-x-auto shadow-sm">
+            <table className="w-full text-left text-xs font-sans border-collapse min-w-[650px]">
+              <thead>
+                <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[10px] uppercase font-semibold tracking-wider">
+                  <th className="p-4">User</th>
+                  <th className="p-4">Subject & Category</th>
+                  <th className="p-4 text-center">Status</th>
+                  <th className="p-4 text-center">Created Date</th>
+                  <th className="p-4 text-center">Action</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody className="divide-y divide-[#222222]">
+                {tickets.map((ticket: any) => (
+                  <tr key={ticket.id} className="hover:bg-white/[0.03] transition-colors">
+                    <td className="p-4">
+                      <p className="text-zinc-100 font-bold text-sm">{ticket.user_name}</p>
+                      <p className="text-[10px] text-zinc-500 leading-none mt-1 lowercase font-mono">{ticket.user_id}</p>
+                    </td>
+                    <td className="p-4">
+                      <p className="text-zinc-100 font-medium text-sm">{ticket.subject}</p>
+                      <span className="inline-block text-[9px] bg-purple-500/10 border border-purple-500/30 text-purple-300 rounded px-2 py-0.5 mt-1 font-mono font-bold">
+                        {ticket.category}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center">
+                      <span className={`inline-block text-[9px] font-bold uppercase px-2.5 py-1 rounded-full ${
+                        ticket.status === 'open' ? 'bg-white/10 border border-white/20 text-white' : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+                      }`}>
+                        {ticket.status === 'open' ? 'Open Ticket' : 'Resolved'}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center text-zinc-400 font-mono font-medium text-[10px]">
+                      {new Date(ticket.created_at).toLocaleString()}
+                    </td>
+                    <td className="p-4 text-center">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveTicket(ticket)
+                          setTicketReply(ticket.admin_reply || '')
+                          setShowTicketModal(true)
+                        }}
+                        className="px-3 py-1.5 border border-white/10 rounded-xl bg-white/5 hover:bg-white/10 text-white font-sans text-xs transition-all cursor-pointer"
+                      >
+                        {ticket.status === 'open' ? 'Quick Reply' : 'View Conversation'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       {/* MODAL DRAWER: SUPPORT TICKET DETAILS & CRM CONVERSATION WORKSPACE */}
       {showTicketModal && activeTicket && (

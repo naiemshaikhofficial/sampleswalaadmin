@@ -209,54 +209,151 @@ export function UsersTab({
         </div>
       </div>
 
-      {/* USERS TABLE */}
-      <div className="border border-[#222222] bg-[#181818] rounded-xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left font-sans border-collapse">
-            <thead>
-              <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
-                <th className="p-4">User Profile</th>
-                <th className="p-4">Contact & Location</th>
-                <th className="p-4 text-center">Account Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#222222]">
-              {(() => {
-                const filtered = usersList.filter(u => {
-                  const searchLower = userSearch.toLowerCase()
-                  const matchQuery =
-                    (u.email || '').toLowerCase().includes(searchLower) ||
-                    (u.full_name || '').toLowerCase().includes(searchLower) ||
-                    (u.address || '').toLowerCase().includes(searchLower) ||
-                    (u.phone_number || '').includes(searchLower)
+      {/* USERS DISPLAY */}
+      {(() => {
+        const filtered = usersList.filter(u => {
+          const searchLower = userSearch.toLowerCase()
+          const matchQuery =
+            (u.email || '').toLowerCase().includes(searchLower) ||
+            (u.full_name || '').toLowerCase().includes(searchLower) ||
+            (u.address || '').toLowerCase().includes(searchLower) ||
+            (u.phone_number || '').includes(searchLower)
 
-                  if (!matchQuery) return false
+          if (!matchQuery) return false
 
-                  if (userFilter === 'banned') return u.is_banned
-                  if (userFilter === 'active') return !u.is_banned
-                  if (userFilter === 'subscribed') return u.subscription_status === 'ACTIVE' || u.subscription_tier !== 'NONE'
-                  return true
-                })
+          if (userFilter === 'banned') return u.is_banned
+          if (userFilter === 'active') return !u.is_banned
+          if (userFilter === 'subscribed') return u.subscription_status === 'ACTIVE' || u.subscription_tier !== 'NONE'
+          return true
+        })
 
-                if (filtered.length === 0) {
-                  return (
-                    <tr>
-                      <td colSpan={3} className="p-10 text-center text-zinc-500 font-medium">
-                        No registered users match your filter criteria.
-                      </td>
+        if (filtered.length === 0) {
+          return (
+            <div className="border border-[#222222] bg-[#181818] rounded-xl p-10 text-center text-zinc-500 font-medium text-xs">
+              No registered users match your filter criteria.
+            </div>
+          )
+        }
+
+        // Compute paginated subset
+        const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
+        const paginatedUsers = filtered.slice(
+          (currentPage - 1) * ITEMS_PER_PAGE,
+          currentPage * ITEMS_PER_PAGE
+        )
+
+        return (
+          <>
+            {/* MOBILE VIEW: USER CARDS (NO HORIZONTAL SCROLLBAR) */}
+            <div className="md:hidden space-y-2.5">
+              {paginatedUsers.map((u: any) => (
+                <div
+                  key={u.id}
+                  onClick={() => {
+                    setActiveUser(u)
+                    setShowUserModal(true)
+                  }}
+                  className="border border-[#222222] bg-[#181818] rounded-xl p-3.5 space-y-3 cursor-pointer hover:border-[#333333] transition-colors"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-bold flex items-center justify-center flex-shrink-0 text-xs shadow-sm">
+                        {u.full_name?.charAt(0) || u.email?.charAt(0) || 'U'}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-bold text-xs text-zinc-100 truncate leading-snug">
+                          {u.full_name || 'Anonymous User'}
+                        </h4>
+                        <p className="text-[10px] text-zinc-400 font-mono truncate">
+                          {u.email}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={`flex-shrink-0 text-[8px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                      u.is_banned ? 'bg-red-500/15 text-red-400 border border-red-500/30' : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                    }`}>
+                      {u.is_banned ? 'Banned' : 'Active'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10px] font-mono pt-2 border-t border-[#222222]">
+                    <div className="flex items-center gap-2">
+                      <span className="bg-white/[0.06] text-zinc-300 px-1.5 py-0.5 rounded">
+                        {u.credits ?? 0} CR
+                      </span>
+                      {u.subscription_status === 'ACTIVE' && (
+                        <span className="bg-white/10 text-white px-1.5 py-0.5 rounded font-bold uppercase text-[9px]">
+                          {u.subscription_tier}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                      {u.is_banned ? (
+                        <button
+                          type="button"
+                          disabled={actionLoading}
+                          onClick={() => handleUnbanUser(u.id, u.email)}
+                          className="px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 text-[10px] font-bold cursor-pointer"
+                        >
+                          Unban
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={actionLoading}
+                          onClick={() => handleBanUser(u.id, u.email)}
+                          className="px-2 py-1 rounded-lg bg-red-500/15 text-red-400 text-[10px] font-bold cursor-pointer"
+                        >
+                          Ban
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        disabled={actionLoading}
+                        onClick={() => handleDeleteUser(u.id, u.email)}
+                        className="p-1.5 rounded-lg bg-white/5 text-zinc-400 hover:text-red-400 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Mobile Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between gap-2 p-3 bg-[#181818] border border-[#222222] rounded-xl text-[10px] font-mono">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-zinc-400">Page {currentPage} of {totalPages}</span>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* DESKTOP VIEW: DATA TABLE */}
+            <div className="hidden md:block border border-[#222222] bg-[#181818] rounded-xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left font-sans border-collapse min-w-[650px]">
+                  <thead>
+                    <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
+                      <th className="p-4">User Profile</th>
+                      <th className="p-4">Contact & Location</th>
+                      <th className="p-4 text-center">Account Actions</th>
                     </tr>
-                  )
-                }
-
-                // Compute paginated subset
-                const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
-                const paginatedUsers = filtered.slice(
-                  (currentPage - 1) * ITEMS_PER_PAGE,
-                  currentPage * ITEMS_PER_PAGE
-                )
-
-                return (
-                  <>
+                  </thead>
+                  <tbody className="divide-y divide-[#222222]">
                     {paginatedUsers.map((u: any) => (
                       <tr
                         key={u.id}
@@ -360,66 +457,13 @@ export function UsersTab({
                         </td>
                       </tr>
                     ))}
-
-                    {/* Pagination Controller Row */}
-                    {totalPages > 1 && (
-                      <tr>
-                        <td colSpan={3} className="p-4 bg-[#141414] border-t border-[#222222]">
-                          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[11px]">
-                            <div className="text-zinc-400">
-                              Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} users
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                disabled={currentPage === 1}
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                className="px-3 py-1.5 border border-white/10 rounded-lg bg-white/5 text-white hover:bg-white/10 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
-                              >
-                                Previous
-                              </button>
-                              
-                              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                                .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
-                                .map((p, idx, arr) => {
-                                  const elements = []
-                                  if (idx > 0 && p - arr[idx - 1] > 1) {
-                                    elements.push(<span key={`dot-${p}`} className="text-zinc-500 px-1">...</span>)
-                                  }
-                                  elements.push(
-                                    <button
-                                      key={p}
-                                      onClick={() => setCurrentPage(p)}
-                                      className={`w-7 h-7 rounded-lg border font-bold transition-all cursor-pointer ${
-                                        currentPage === p 
-                                          ? 'bg-blue-600 text-white border-blue-500 shadow-sm' 
-                                          : 'bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10'
-                                      }`}
-                                    >
-                                      {p}
-                                    </button>
-                                  )
-                                  return elements
-                                })}
-
-                              <button
-                                disabled={currentPage === totalPages}
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                className="px-3 py-1.5 border border-white/10 rounded-lg bg-white/5 text-white hover:bg-white/10 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
-                              >
-                                Next
-                              </button>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </>
-                )
-              })()}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )
+      })()}
 
       {/* DETAILED USER PROFILE MODAL DRAWER */}
       {showUserModal && activeUser && (

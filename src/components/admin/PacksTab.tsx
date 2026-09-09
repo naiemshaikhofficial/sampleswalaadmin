@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Edit2, Trash2, Search, X, Check } from 'lucide-react'
 import { saveSamplePack, deleteSamplePack, getLiveExchangeRate } from '@/app/actions'
+import { getShortSampleName } from '@/lib/formatUtils'
 
 interface PacksTabProps {
   packs: any[]
@@ -210,70 +211,75 @@ export function PacksTab({
         </button>
       </div>
 
-      {/* LIST TABLE OF PACKS */}
-      <div className="border border-[#222222] rounded-xl bg-[#181818] overflow-x-auto shadow-sm font-sans text-xs">
-        <table className="w-full text-left font-sans border-collapse">
-          <thead>
-            <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 font-semibold text-[10px] uppercase tracking-wider">
-              <th className="p-4 w-16">Cover</th>
-              <th className="p-4">Pack Details</th>
-              <th className="p-4">Category</th>
-              <th className="p-4 text-right">Price (INR / USD)</th>
-              <th className="p-4 text-center">Credits</th>
-              <th className="p-4 text-center">Rank</th>
-              <th className="p-4 text-center">Featured</th>
-              <th className="p-4 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#222222] font-sans text-xs">
-            {packs
-              .filter(p => p.name.toLowerCase().includes(packSearch.toLowerCase()))
-              .map((pack: any) => {
-                const cat = categories.find(c => c.id === pack.category_id)
-                return (
-                  <tr key={pack.id} className="hover:bg-white/[0.03] transition-colors">
-                    <td className="p-4">
-                      <div className="w-12 h-12 bg-zinc-900 rounded-xl border border-white/10 flex-shrink-0 relative overflow-hidden">
+      {/* PACKS INVENTORY DISPLAY */}
+      {(() => {
+        const filteredPacks = packs.filter(p => p.name.toLowerCase().includes(packSearch.toLowerCase()))
+
+        return (
+          <>
+            {/* MOBILE VIEW: SLEEK PACK CARDS (NO HORIZONTAL SCROLLBAR / SIDE BAR) */}
+            <div className="md:hidden space-y-2.5">
+              {filteredPacks.length === 0 ? (
+                <div className="border border-[#222222] rounded-xl bg-[#181818] p-8 text-center text-zinc-500 font-sans text-xs">
+                  No sample packs found.
+                </div>
+              ) : (
+                filteredPacks.map((pack: any) => {
+                  const cat = categories.find(c => c.id === pack.category_id)
+                  const shortName = getShortSampleName(pack.name)
+
+                  return (
+                    <div
+                      key={pack.id}
+                      className="border border-[#222222] rounded-xl bg-[#181818] p-3 flex items-center gap-3 transition-colors hover:border-[#333333]"
+                    >
+                      {/* Cover Thumbnail */}
+                      <div className="w-12 h-12 bg-zinc-900 rounded-lg border border-white/10 flex-shrink-0 overflow-hidden relative">
                         {pack.cover_url ? (
                           <img src={pack.cover_url} alt="" className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-zinc-500">NO IMG</div>
+                          <div className="w-full h-full flex items-center justify-center text-[8px] font-bold text-zinc-500">NO IMG</div>
                         )}
                       </div>
-                    </td>
-                    <td className="p-4">
-                      <p className="font-sans font-bold text-sm text-zinc-100 leading-tight">{pack.name}</p>
-                      <p className="text-[10px] text-zinc-400 mt-1 lowercase font-mono">{pack.slug}</p>
-                    </td>
-                    <td className="p-4">
-                      <span className="bg-white/[0.06] text-zinc-300 border border-white/10 rounded-md px-2 py-0.5 text-[9px] font-mono font-medium">
-                        {cat?.name || 'No category'}
-                      </span>
-                    </td>
-                    <td className="p-4 text-right font-mono">
-                      <p className="text-white text-xs font-bold">₹{pack.price_inr} <span className="text-[9px] text-zinc-500 line-through">₹{pack.mrp_inr}</span></p>
-                      <p className="text-zinc-400 text-[10px] font-medium mt-0.5">${pack.price_usd}</p>
-                    </td>
-                    <td className="p-4 text-center font-mono text-xs text-white font-medium">
-                      {pack.bundle_credit_cost} CR
-                    </td>
-                    <td className="p-4 text-center font-mono font-bold text-zinc-300">
-                      {pack.display_rank || 0}
-                    </td>
-                    <td className="p-4 text-center">
-                      <span className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase rounded-md ${pack.is_featured ? 'bg-white/10 text-white border border-white/20' : 'bg-[#222222] text-zinc-500'}`}>
-                        {pack.is_featured ? 'Featured' : 'Standard'}
-                      </span>
-                    </td>
-                    <td className="p-4 text-center">
-                      <div className="flex items-center justify-center gap-1.5">
+
+                      {/* Main Info - Shortened Name & Pricing */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="font-bold text-xs text-zinc-100 truncate leading-snug" title={pack.name}>
+                            {shortName}
+                          </h3>
+                          {pack.is_featured && (
+                            <span className="flex-shrink-0 px-1 py-0.2 text-[8px] font-bold uppercase rounded bg-amber-500/10 text-amber-400 border border-amber-500/20" title="Featured Pack">
+                              ★
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-1 font-mono text-[10px]">
+                          <span className="text-white font-bold">₹{pack.price_inr}</span>
+                          <span className="text-zinc-500">${pack.price_usd}</span>
+                          {cat?.name && (
+                            <span className="text-zinc-400 truncate max-w-[90px] border-l border-zinc-800 pl-2">
+                              {cat.name}
+                            </span>
+                          )}
+                          {pack.bundle_credit_cost > 0 && (
+                            <span className="text-zinc-500 border-l border-zinc-800 pl-2">
+                              {pack.bundle_credit_cost} CR
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
                         <button
                           type="button"
                           onClick={() => {
                             setActivePack({ ...pack })
                             setShowPackModal(true)
                           }}
-                          className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 hover:text-white transition-all cursor-pointer"
+                          className="p-2 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-zinc-300 hover:text-white transition-colors cursor-pointer"
                           title="Edit Pack"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
@@ -281,19 +287,103 @@ export function PacksTab({
                         <button
                           type="button"
                           onClick={() => handlePackDelete(pack.id, pack.name)}
-                          className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer"
+                          className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors cursor-pointer"
                           title="Delete Pack"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                    </td>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+
+            {/* DESKTOP VIEW: DATA TABLE (TABLET / DESKTOP ONLY) */}
+            <div className="hidden md:block border border-[#222222] rounded-xl bg-[#181818] overflow-x-auto shadow-sm font-sans text-xs">
+              <table className="w-full text-left font-sans border-collapse min-w-[760px]">
+                <thead>
+                  <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 font-semibold text-[10px] uppercase tracking-wider">
+                    <th className="p-4 w-16">Cover</th>
+                    <th className="p-4">Pack Details</th>
+                    <th className="p-4">Category</th>
+                    <th className="p-4 text-right">Price (INR / USD)</th>
+                    <th className="p-4 text-center">Credits</th>
+                    <th className="p-4 text-center">Rank</th>
+                    <th className="p-4 text-center">Featured</th>
+                    <th className="p-4 text-center">Actions</th>
                   </tr>
-                )
-              })}
-          </tbody>
-        </table>
-      </div>
+                </thead>
+                <tbody className="divide-y divide-[#222222] font-sans text-xs">
+                  {filteredPacks.map((pack: any) => {
+                    const cat = categories.find(c => c.id === pack.category_id)
+                    return (
+                      <tr key={pack.id} className="hover:bg-white/[0.03] transition-colors">
+                        <td className="p-4">
+                          <div className="w-12 h-12 bg-zinc-900 rounded-xl border border-white/10 flex-shrink-0 relative overflow-hidden">
+                            {pack.cover_url ? (
+                              <img src={pack.cover_url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-[9px] font-bold text-zinc-500">NO IMG</div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="p-4 max-w-xs">
+                          <p className="font-sans font-bold text-sm text-zinc-100 leading-snug line-clamp-2" title={pack.name}>{pack.name}</p>
+                          <p className="text-[10px] text-zinc-400 mt-1 lowercase font-mono truncate">{pack.slug}</p>
+                        </td>
+                        <td className="p-4">
+                          <span className="bg-white/[0.06] text-zinc-300 border border-white/10 rounded-md px-2 py-0.5 text-[9px] font-mono font-medium">
+                            {cat?.name || 'No category'}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right font-mono">
+                          <p className="text-white text-xs font-bold">₹{pack.price_inr} <span className="text-[9px] text-zinc-500 line-through">₹{pack.mrp_inr}</span></p>
+                          <p className="text-zinc-400 text-[10px] font-medium mt-0.5">${pack.price_usd}</p>
+                        </td>
+                        <td className="p-4 text-center font-mono text-xs text-white font-medium">
+                          {pack.bundle_credit_cost} CR
+                        </td>
+                        <td className="p-4 text-center font-mono font-bold text-zinc-300">
+                          {pack.display_rank || 0}
+                        </td>
+                        <td className="p-4 text-center">
+                          <span className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase rounded-md ${pack.is_featured ? 'bg-white/10 text-white border border-white/20' : 'bg-[#222222] text-zinc-500'}`}>
+                            {pack.is_featured ? 'Featured' : 'Standard'}
+                          </span>
+                        </td>
+                        <td className="p-4 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setActivePack({ ...pack })
+                                setShowPackModal(true)
+                              }}
+                              className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 hover:text-white transition-all cursor-pointer"
+                              title="Edit Pack"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handlePackDelete(pack.id, pack.name)}
+                              className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer"
+                              title="Delete Pack"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )
+      })()}
 
       {/* MODAL DRAWER: PACK CRUD DETAILS */}
       {showPackModal && activePack && (

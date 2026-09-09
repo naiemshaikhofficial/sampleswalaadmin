@@ -124,84 +124,139 @@ export function CouponsTab({
         </button>
       </div>
 
-      {/* LIST TABLE OF COUPONS */}
-      <div className="border border-[#222222] rounded-xl bg-[#181818] overflow-x-auto shadow-md">
-        <table className="w-full text-left text-xs font-sans border-collapse">
-          <thead>
-            <tr className="bg-[#141414] border-b border-[#222222] text-zinc-400 text-[10px] uppercase font-semibold tracking-wider">
-              <th className="p-4">Coupon Code</th>
-              <th className="p-4 text-center">Discount</th>
-              <th className="p-4 text-center">Uses / Limits</th>
-              <th className="p-4 text-center">Status</th>
-              <th className="p-4 text-center">Expiration Date</th>
-              <th className="p-4 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#202020]">
-            {coupons.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="p-8 text-center text-zinc-500 font-sans">
-                  No coupons created yet.
-                </td>
-              </tr>
-            ) : (
-              coupons.map((coupon: any) => (
-                <tr key={coupon.id} className="hover:bg-white/[0.03] transition-colors">
-                  <td className="p-4 text-white font-bold text-sm tracking-wider">
-                    <div className="font-mono text-zinc-100 font-bold">{coupon.code}</div>
-                    <div className="text-[9px] text-zinc-500 uppercase tracking-wider mt-0.5 font-sans">
-                      {coupon.applicable_items && coupon.applicable_items.length > 0 
-                        ? `${coupon.applicable_items.length} Specific Items` 
-                        : 'All Store Products'}
-                    </div>
-                  </td>
-                  <td className="p-4 text-center">
-                    <span className="font-bold text-sm text-[#00FF94] font-mono">
+      {/* COUPONS DISPLAY */}
+      {coupons.length === 0 ? (
+        <div className="border border-[#222222] rounded-xl bg-[#181818] p-8 text-center text-zinc-500 font-sans text-xs">
+          No coupons created yet.
+        </div>
+      ) : (
+        <>
+          {/* MOBILE VIEW: COUPON CARDS (NO HORIZONTAL SCROLLBAR) */}
+          <div className="md:hidden space-y-2.5">
+            {coupons.map((coupon: any) => (
+              <div
+                key={coupon.id}
+                className="border border-[#222222] rounded-xl bg-[#181818] p-3.5 space-y-2.5 hover:border-[#333333] transition-colors"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-zinc-100 font-bold text-sm">{coupon.code}</span>
+                    <span className="font-bold text-xs text-[#00FF94] font-mono bg-[#00FF94]/10 px-1.5 py-0.5 rounded border border-[#00FF94]/20">
                       {coupon.discount_percent}% OFF
                     </span>
-                  </td>
-                  <td className="p-4 text-center text-zinc-300 font-mono text-[11px]">
-                    {coupon.max_uses ? `${coupon.current_uses || 0} / ${coupon.max_uses}` : 'Unlimited'}
-                  </td>
-                  <td className="p-4 text-center">
-                    <span className={`inline-block text-[9px] font-bold uppercase px-2.5 py-1 rounded-full ${
-                      coupon.is_active ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-zinc-800 text-zinc-500'
-                    }`}>
-                      {coupon.is_active ? 'Active' : 'Disabled'}
-                    </span>
-                  </td>
-                  <td className="p-4 text-center text-zinc-400 font-mono text-[10px]">
+                  </div>
+                  <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                    coupon.is_active ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-zinc-800 text-zinc-500'
+                  }`}>
+                    {coupon.is_active ? 'Active' : 'Disabled'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 pt-1 border-t border-[#222222]">
+                  <div>
+                    Uses: {coupon.max_uses ? `${coupon.current_uses || 0}/${coupon.max_uses}` : 'Unlimited'}
+                  </div>
+                  <div className="text-zinc-500">
                     {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : 'No Expiry'}
-                  </td>
-                  <td className="p-4 text-center">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveCoupon({ ...coupon })
-                          setShowCouponModal(true)
-                        }}
-                        className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 hover:text-white transition-all cursor-pointer"
-                        title="Edit Coupon"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleCouponDelete(coupon.id, coupon.code)}
-                        className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer"
-                        title="Delete Coupon"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </td>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveCoupon({ ...coupon })
+                        setShowCouponModal(true)
+                      }}
+                      className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 hover:text-white transition-all cursor-pointer"
+                      title="Edit Coupon"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleCouponDelete(coupon.id, coupon.code)}
+                      className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer"
+                      title="Delete Coupon"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* DESKTOP VIEW: DATA TABLE */}
+          <div className="hidden md:block border border-[#222222] rounded-xl bg-[#181818] overflow-x-auto shadow-md">
+            <table className="w-full text-left text-xs font-sans border-collapse min-w-[650px]">
+              <thead>
+                <tr className="bg-[#141414] border-b border-[#222222] text-zinc-400 text-[10px] uppercase font-semibold tracking-wider">
+                  <th className="p-4">Coupon Code</th>
+                  <th className="p-4 text-center">Discount</th>
+                  <th className="p-4 text-center">Uses / Limits</th>
+                  <th className="p-4 text-center">Status</th>
+                  <th className="p-4 text-center">Expiration Date</th>
+                  <th className="p-4 text-center">Actions</th>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody className="divide-y divide-[#202020]">
+                {coupons.map((coupon: any) => (
+                  <tr key={coupon.id} className="hover:bg-white/[0.03] transition-colors">
+                    <td className="p-4 text-white font-bold text-sm tracking-wider">
+                      <div className="font-mono text-zinc-100 font-bold">{coupon.code}</div>
+                      <div className="text-[9px] text-zinc-500 uppercase tracking-wider mt-0.5 font-sans">
+                        {coupon.applicable_items && coupon.applicable_items.length > 0 
+                          ? `${coupon.applicable_items.length} Specific Items` 
+                          : 'All Store Products'}
+                      </div>
+                    </td>
+                    <td className="p-4 text-center">
+                      <span className="font-bold text-sm text-[#00FF94] font-mono">
+                        {coupon.discount_percent}% OFF
+                      </span>
+                    </td>
+                    <td className="p-4 text-center text-zinc-300 font-mono text-[11px]">
+                      {coupon.max_uses ? `${coupon.current_uses || 0} / ${coupon.max_uses}` : 'Unlimited'}
+                    </td>
+                    <td className="p-4 text-center">
+                      <span className={`inline-block text-[9px] font-bold uppercase px-2.5 py-1 rounded-full ${
+                        coupon.is_active ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' : 'bg-zinc-800 text-zinc-500'
+                      }`}>
+                        {coupon.is_active ? 'Active' : 'Disabled'}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center text-zinc-400 font-mono text-[10px]">
+                      {coupon.expires_at ? new Date(coupon.expires_at).toLocaleDateString() : 'No Expiry'}
+                    </td>
+                    <td className="p-4 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveCoupon({ ...coupon })
+                            setShowCouponModal(true)
+                          }}
+                          className="p-1.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-zinc-300 hover:text-white transition-all cursor-pointer"
+                          title="Edit Coupon"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCouponDelete(coupon.id, coupon.code)}
+                          className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all cursor-pointer"
+                          title="Delete Coupon"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
 
       {/* MODAL DRAWER: COUPON DETAILS */}
       {showCouponModal && activeCoupon && (

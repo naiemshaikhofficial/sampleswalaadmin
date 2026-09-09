@@ -72,40 +72,95 @@ export function LogsTab({
         </div>
       </div>
 
-      {/* AUDIT LOG TABLE */}
-      <div className="border border-[#222222] bg-[#181818] rounded-xl overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left font-sans border-collapse">
-            <thead>
-              <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
-                <th className="p-4">Date & Time</th>
-                <th className="p-4">Action Type</th>
-                <th className="p-4">Details of Change</th>
-                <th className="p-4">Admin</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#222222] text-xs">
-              {(() => {
-                const filteredLogs = auditLogs.filter(l => isDateWithinRange(l.timestamp))
+      {/* AUDIT LOG DISPLAY */}
+      {(() => {
+        const filteredLogs = auditLogs.filter(l => isDateWithinRange(l.timestamp))
 
-                if (filteredLogs.length === 0) {
-                  return (
-                    <tr>
-                      <td colSpan={4} className="p-10 text-center text-zinc-500 font-medium">
-                        No activity logs found matching the selected filter range.
-                      </td>
+        if (filteredLogs.length === 0) {
+          return (
+            <div className="border border-[#222222] bg-[#181818] rounded-xl p-10 text-center text-zinc-500 font-medium text-xs">
+              No activity logs found matching the selected filter range.
+            </div>
+          )
+        }
+
+        const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE)
+        const paginatedLogs = filteredLogs.slice(
+          (currentPage - 1) * ITEMS_PER_PAGE,
+          currentPage * ITEMS_PER_PAGE
+        )
+
+        return (
+          <>
+            {/* MOBILE VIEW: AUDIT LOG CARDS (NO HORIZONTAL SCROLLBAR) */}
+            <div className="md:hidden space-y-2.5">
+              {paginatedLogs.map((l) => (
+                <div
+                  key={l.id}
+                  className="border border-[#222222] bg-[#181818] rounded-xl p-3.5 space-y-2 hover:border-[#333333] transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className={`inline-block font-mono text-[9px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                      l.type === 'danger'
+                        ? 'bg-red-500/15 text-red-400 border border-red-500/30'
+                        : l.type === 'warning'
+                          ? 'bg-white/10 text-white border border-white/20'
+                          : l.type === 'success'
+                            ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                            : 'bg-white/5 text-zinc-300 border border-white/15'
+                    }`}>
+                      {l.action}
+                    </span>
+                    <span className="text-zinc-500 font-mono text-[10px]">
+                      {l.timestamp}
+                    </span>
+                  </div>
+
+                  <p className="text-zinc-200 font-medium text-xs leading-relaxed line-clamp-2">
+                    {l.target}
+                  </p>
+
+                  <div className="text-[10px] text-zinc-500 font-mono pt-1 border-t border-[#222222]">
+                    Admin: <span className="text-zinc-300">{l.admin}</span>
+                  </div>
+                </div>
+              ))}
+
+              {/* Mobile Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between gap-2 p-3 bg-[#181818] border border-[#222222] rounded-xl text-[10px] font-mono">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-zinc-400">Page {currentPage} of {totalPages}</span>
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-30 disabled:pointer-events-none"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* DESKTOP VIEW: DATA TABLE */}
+            <div className="hidden md:block border border-[#222222] bg-[#181818] rounded-xl overflow-hidden shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left font-sans border-collapse min-w-[600px]">
+                  <thead>
+                    <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
+                      <th className="p-4">Date & Time</th>
+                      <th className="p-4">Action Type</th>
+                      <th className="p-4">Details of Change</th>
+                      <th className="p-4">Admin</th>
                     </tr>
-                  )
-                }
-
-                const totalPages = Math.ceil(filteredLogs.length / ITEMS_PER_PAGE)
-                const paginatedLogs = filteredLogs.slice(
-                  (currentPage - 1) * ITEMS_PER_PAGE,
-                  currentPage * ITEMS_PER_PAGE
-                )
-
-                return (
-                  <>
+                  </thead>
+                  <tbody className="divide-y divide-[#222222] text-xs">
                     {paginatedLogs.map((l) => (
                       <tr
                         key={l.id}
@@ -188,13 +243,13 @@ export function LogsTab({
                         </td>
                       </tr>
                     )}
-                  </>
-                )
-              })()}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )
+      })()}
     </div>
   )
 }

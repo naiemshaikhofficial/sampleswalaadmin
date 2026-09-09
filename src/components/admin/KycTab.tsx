@@ -106,87 +106,152 @@ export function KycTab({
             </span>
           </div>
 
-          <div className="border border-[#222222] bg-[#181818] rounded-xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left font-sans border-collapse">
-                <thead>
-                  <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
-                    <th className="p-4">Artist</th>
-                    <th className="p-4">PAN / Aadhaar</th>
-                    <th className="p-4">KYC State</th>
-                    <th className="p-4 text-center">Document</th>
-                    <th className="p-4 text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#222222] text-xs">
-                  {artists.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="p-10 text-center text-zinc-500 font-medium">
-                        No artist KYC submissions pending review.
-                      </td>
-                    </tr>
-                  ) : (
-                    artists.map((artist: any) => (
-                      <tr key={artist.user_id} className="hover:bg-white/[0.03] transition-colors">
-                        <td className="p-4">
-                          <p className="text-white font-bold text-sm">{artist.full_name || 'Anonymous'}</p>
-                          <p className="text-[10px] text-zinc-500 font-mono mt-0.5 select-all">{artist.user_id}</p>
-                        </td>
-                        <td className="p-4 font-mono text-zinc-300">
-                          <p className="text-xs">PAN: <span className="text-white font-semibold">{artist.pan_number || 'N/A'}</span></p>
-                          <p className="text-[11px] text-zinc-400 mt-0.5">UIDAI: {artist.aadhaar_number || 'N/A'}</p>
-                        </td>
-                        <td className="p-4">
-                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${
-                            artist.verification_status === 'approved' 
-                              ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
-                              : artist.verification_status === 'rejected' 
-                              ? 'bg-red-500/15 text-red-400 border border-red-500/30' 
-                              : 'bg-white/10 text-zinc-200 border border-white/20'
-                          }`}>
-                            {artist.verification_status === 'approved' && <ShieldCheck className="w-3 h-3" />}
-                            {artist.verification_status === 'rejected' && <AlertCircle className="w-3 h-3" />}
-                            {artist.verification_status === 'pending' && <Clock className="w-3 h-3" />}
-                            {artist.verification_status}
-                          </span>
-                        </td>
-                        <td className="p-4 text-center">
-                          {artist.kyc_document_id ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setActiveArtist(artist)
-                                setShowKycModal(true)
-                              }}
-                              className="px-3 py-1.5 bg-[#202020] hover:bg-[#282828] border border-[#2c2c2c] rounded-lg text-zinc-200 hover:text-white transition-all inline-flex items-center gap-1.5 font-medium text-xs cursor-pointer"
-                            >
-                              <Eye className="w-3.5 h-3.5" /> Preview File
-                            </button>
-                          ) : (
-                            <span className="text-zinc-600 font-mono text-xs">No File</span>
-                          )}
-                        </td>
-                        <td className="p-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setPayoutArtist(artist)
-                                setShowPayoutModal(true)
-                              }}
-                              className="px-3 py-1.5 rounded-lg bg-[#00FF94]/15 hover:bg-[#00FF94]/25 text-[#00FF94] border border-[#00FF94]/30 font-bold text-xs transition-all cursor-pointer"
-                            >
-                              ₹ Payout
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+          {/* ARTISTS KYC DISPLAY */}
+          {artists.length === 0 ? (
+            <div className="border border-[#222222] bg-[#181818] rounded-xl p-10 text-center text-zinc-500 font-medium text-xs">
+              No artist KYC submissions pending review.
             </div>
-          </div>
+          ) : (
+            <>
+              {/* MOBILE VIEW: ARTIST CARDS (NO HORIZONTAL SCROLLBAR) */}
+              <div className="md:hidden space-y-2.5">
+                {artists.map((artist: any) => (
+                  <div
+                    key={artist.user_id}
+                    className="border border-[#222222] bg-[#181818] rounded-xl p-3.5 space-y-2.5 hover:border-[#333333] transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-bold text-xs text-zinc-100 truncate leading-snug">
+                          {artist.full_name || 'Anonymous Artist'}
+                        </h4>
+                        <p className="text-[10px] text-zinc-500 font-mono truncate select-all mt-0.5">
+                          {artist.user_id}
+                        </p>
+                      </div>
+                      <span className={`inline-flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded-full uppercase flex-shrink-0 ${
+                        artist.verification_status === 'approved' 
+                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
+                          : artist.verification_status === 'rejected' 
+                          ? 'bg-red-500/15 text-red-400 border border-red-500/30' 
+                          : 'bg-white/10 text-zinc-200 border border-white/20'
+                      }`}>
+                        {artist.verification_status === 'approved' && <ShieldCheck className="w-3 h-3" />}
+                        {artist.verification_status === 'rejected' && <AlertCircle className="w-3 h-3" />}
+                        {artist.verification_status === 'pending' && <Clock className="w-3 h-3" />}
+                        {artist.verification_status}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400">
+                      <span>PAN: <strong className="text-zinc-200">{artist.pan_number || 'N/A'}</strong></span>
+                      <span>UIDAI: <strong className="text-zinc-200">{artist.aadhaar_number || 'N/A'}</strong></span>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#222222]">
+                      {artist.kyc_document_id && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveArtist(artist)
+                            setShowKycModal(true)
+                          }}
+                          className="px-2.5 py-1 bg-[#202020] hover:bg-[#282828] border border-[#2c2c2c] rounded-lg text-zinc-200 text-xs transition-all inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5" /> Preview File
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPayoutArtist(artist)
+                          setShowPayoutModal(true)
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-[#00FF94]/15 hover:bg-[#00FF94]/25 text-[#00FF94] border border-[#00FF94]/30 font-bold text-xs transition-all cursor-pointer"
+                      >
+                        ₹ Payout
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* DESKTOP VIEW: DATA TABLE */}
+              <div className="hidden md:block border border-[#222222] bg-[#181818] rounded-xl overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left font-sans border-collapse min-w-[650px]">
+                    <thead>
+                      <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
+                        <th className="p-4">Artist</th>
+                        <th className="p-4">PAN / Aadhaar</th>
+                        <th className="p-4">KYC State</th>
+                        <th className="p-4 text-center">Document</th>
+                        <th className="p-4 text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#222222] text-xs">
+                      {artists.map((artist: any) => (
+                        <tr key={artist.user_id} className="hover:bg-white/[0.03] transition-colors">
+                          <td className="p-4">
+                            <p className="text-white font-bold text-sm">{artist.full_name || 'Anonymous'}</p>
+                            <p className="text-[10px] text-zinc-500 font-mono mt-0.5 select-all">{artist.user_id}</p>
+                          </td>
+                          <td className="p-4 font-mono text-zinc-300">
+                            <p className="text-xs">PAN: <span className="text-white font-semibold">{artist.pan_number || 'N/A'}</span></p>
+                            <p className="text-[11px] text-zinc-400 mt-0.5">UIDAI: {artist.aadhaar_number || 'N/A'}</p>
+                          </td>
+                          <td className="p-4">
+                            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${
+                              artist.verification_status === 'approved' 
+                                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
+                                : artist.verification_status === 'rejected' 
+                                ? 'bg-red-500/15 text-red-400 border border-red-500/30' 
+                                : 'bg-white/10 text-zinc-200 border border-white/20'
+                            }`}>
+                              {artist.verification_status === 'approved' && <ShieldCheck className="w-3 h-3" />}
+                              {artist.verification_status === 'rejected' && <AlertCircle className="w-3 h-3" />}
+                              {artist.verification_status === 'pending' && <Clock className="w-3 h-3" />}
+                              {artist.verification_status}
+                            </span>
+                          </td>
+                          <td className="p-4 text-center">
+                            {artist.kyc_document_id ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveArtist(artist)
+                                  setShowKycModal(true)
+                                }}
+                                className="px-3 py-1.5 bg-[#202020] hover:bg-[#282828] border border-[#2c2c2c] rounded-lg text-zinc-200 hover:text-white transition-all inline-flex items-center gap-1.5 font-medium text-xs cursor-pointer"
+                              >
+                                <Eye className="w-3.5 h-3.5" /> Preview File
+                              </button>
+                            ) : (
+                              <span className="text-zinc-600 font-mono text-xs">No File</span>
+                            )}
+                          </td>
+                          <td className="p-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setPayoutArtist(artist)
+                                  setShowPayoutModal(true)
+                                }}
+                                className="px-3 py-1.5 rounded-lg bg-[#00FF94]/15 hover:bg-[#00FF94]/25 text-[#00FF94] border border-[#00FF94]/30 font-bold text-xs transition-all cursor-pointer"
+                              >
+                                ₹ Payout
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* 2. RECENT PAYOUTS (1/3 width) */}
