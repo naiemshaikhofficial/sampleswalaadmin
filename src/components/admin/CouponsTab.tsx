@@ -95,7 +95,7 @@ export function CouponsTab({
 
    return (
     <div className="space-y-6 animate-fadeIn font-mono text-xs">
-      <div className="bg-[#18181c] p-4 sm:p-5 border border-white/10 rounded-2xl shadow-md flex justify-between items-center">
+      <div className="bg-[#181818] p-4 sm:p-5 border border-[#222222] rounded-xl shadow-md flex justify-between items-center">
         <div>
           <h3 className="font-sans font-bold text-lg text-white">
             Promo & Discount Coupons
@@ -118,17 +118,17 @@ export function CouponsTab({
             })
             setShowCouponModal(true)
           }}
-          className="studio-button bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2.5 rounded-xl transition-all flex items-center gap-2 shadow-md cursor-pointer font-sans"
+          className="bg-white hover:bg-zinc-200 text-black font-semibold text-xs px-4 py-2.5 rounded-lg transition-all flex items-center gap-2 shadow-sm cursor-pointer font-sans"
         >
           <Plus className="w-4 h-4" /> Create Coupon
         </button>
       </div>
 
       {/* LIST TABLE OF COUPONS */}
-      <div className="border border-white/10 rounded-2xl bg-[#18181c] overflow-x-auto shadow-md">
+      <div className="border border-[#222222] rounded-xl bg-[#181818] overflow-x-auto shadow-md">
         <table className="w-full text-left text-xs font-sans border-collapse">
           <thead>
-            <tr className="bg-[#141418] border-b border-white/10 text-zinc-400 text-[10px] uppercase font-semibold tracking-wider">
+            <tr className="bg-[#141414] border-b border-[#222222] text-zinc-400 text-[10px] uppercase font-semibold tracking-wider">
               <th className="p-4">Coupon Code</th>
               <th className="p-4 text-center">Discount</th>
               <th className="p-4 text-center">Uses / Limits</th>
@@ -137,7 +137,7 @@ export function CouponsTab({
               <th className="p-4 text-center">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.04]">
+          <tbody className="divide-y divide-[#202020]">
             {coupons.length === 0 ? (
               <tr>
                 <td colSpan={6} className="p-8 text-center text-zinc-500 font-sans">
@@ -148,7 +148,7 @@ export function CouponsTab({
               coupons.map((coupon: any) => (
                 <tr key={coupon.id} className="hover:bg-white/[0.03] transition-colors">
                   <td className="p-4 text-white font-bold text-sm tracking-wider">
-                    <div className="font-mono text-blue-400">{coupon.code}</div>
+                    <div className="font-mono text-zinc-100 font-bold">{coupon.code}</div>
                     <div className="text-[9px] text-zinc-500 uppercase tracking-wider mt-0.5 font-sans">
                       {coupon.applicable_items && coupon.applicable_items.length > 0 
                         ? `${coupon.applicable_items.length} Specific Items` 
@@ -208,18 +208,18 @@ export function CouponsTab({
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
           <form
             onSubmit={handleCouponSave}
-            className="w-full max-w-md border border-white/15 bg-[#18181c] rounded-2xl p-6 sm:p-7 shadow-2xl relative font-sans text-xs"
+            className="w-full max-w-md border border-[#282828] bg-[#181818] rounded-xl p-6 sm:p-7 shadow-2xl relative font-sans text-xs"
           >
             <button
               type="button"
               onClick={() => setShowCouponModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 bg-[#202020] hover:bg-[#252525] border border-[#2c2c2c] rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <h3 className="font-sans font-bold text-lg text-white mb-6 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+              <span className="w-2.5 h-2.5 rounded-full bg-white" />
               {activeCoupon.id ? 'Edit Coupon' : 'Create Discount Coupon'}
             </h3>
 
@@ -232,7 +232,7 @@ export function CouponsTab({
                   value={activeCoupon.code}
                   onChange={e => setActiveCoupon((prev: any) => ({ ...prev, code: e.target.value.toUpperCase() }))}
                   placeholder="e.g. FESTIVAL30"
-                  className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-bold uppercase text-sm tracking-widest"
+                  className="w-full bg-[#121212] border border-[#252525] rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-bold uppercase text-sm tracking-widest"
                 />
               </div>
 
@@ -245,7 +245,7 @@ export function CouponsTab({
                   required
                   value={activeCoupon.discount_percent}
                   onChange={e => setActiveCoupon((prev: any) => ({ ...prev, discount_percent: Number(e.target.value) }))}
-                  className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-bold text-sm"
+                  className="w-full bg-[#121212] border border-[#252525] rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-bold text-sm"
                 />
               </div>
 
@@ -258,7 +258,7 @@ export function CouponsTab({
                     placeholder="Infinite"
                     value={activeCoupon.max_uses || ''}
                     onChange={e => setActiveCoupon((prev: any) => ({ ...prev, max_uses: e.target.value ? Number(e.target.value) : null }))}
-                    className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-medium text-xs"
+                    className="w-full bg-[#121212] border border-[#252525] rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-medium text-xs"
                   />
                 </div>
                 <div>
@@ -269,7 +269,7 @@ export function CouponsTab({
                     placeholder="Infinite"
                     value={activeCoupon.limit_per_user || ''}
                     onChange={e => setActiveCoupon((prev: any) => ({ ...prev, limit_per_user: e.target.value ? Number(e.target.value) : null }))}
-                    className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-medium text-xs"
+                    className="w-full bg-[#121212] border border-[#252525] rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-medium text-xs"
                   />
                 </div>
               </div>
@@ -280,24 +280,24 @@ export function CouponsTab({
                   <button
                     type="button"
                     onClick={() => setActiveCoupon((prev: any) => ({ ...prev, applicable_items: null }))}
-                    className={`flex-grow p-2 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${!activeCoupon.applicable_items ? 'bg-blue-600 text-white' : 'bg-white/5 border border-white/10 text-zinc-400 hover:text-white'}`}
+                    className={`flex-grow p-2 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${!activeCoupon.applicable_items ? 'bg-white text-black font-bold' : 'bg-[#141414] border border-[#222222] text-zinc-400 hover:text-white'}`}
                   >
                     All Products
                   </button>
                   <button
                     type="button"
                     onClick={() => setActiveCoupon((prev: any) => ({ ...prev, applicable_items: prev.applicable_items || [] }))}
-                    className={`flex-grow p-2 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${activeCoupon.applicable_items ? 'bg-blue-600 text-white' : 'bg-white/5 border border-white/10 text-zinc-400 hover:text-white'}`}
+                    className={`flex-grow p-2 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${activeCoupon.applicable_items ? 'bg-white text-black font-bold' : 'bg-[#141414] border border-[#222222] text-zinc-400 hover:text-white'}`}
                   >
                     Specific Products
                   </button>
                 </div>
 
                 {activeCoupon.applicable_items && (
-                  <div className="border border-white/10 bg-[#141418] rounded-xl p-3 max-h-40 overflow-y-auto space-y-3 font-mono text-[9px]">
+                  <div className="border border-[#222222] bg-[#141414] rounded-xl p-3 max-h-40 overflow-y-auto space-y-3 font-mono text-[9px]">
                     {packs.length > 0 && (
                       <div className="space-y-1.5">
-                        <p className="text-[9px] text-blue-400 font-bold uppercase tracking-wider">Sample Packs</p>
+                        <p className="text-[9px] text-zinc-300 font-bold uppercase tracking-wider">Sample Packs</p>
                         {packs.map(pack => {
                           const isChecked = activeCoupon.applicable_items?.includes(pack.id)
                           return (
@@ -312,7 +312,7 @@ export function CouponsTab({
                                     : current.filter((id: string) => id !== pack.id)
                                   setActiveCoupon((prev: any) => ({ ...prev, applicable_items: next }))
                                 }}
-                                className="accent-blue-500"
+                                className="accent-white"
                               />
                               {pack.name}
                             </label>
@@ -322,8 +322,8 @@ export function CouponsTab({
                     )}
 
                     {presets.length > 0 && (
-                      <div className="space-y-1.5 pt-2 border-t border-white/5">
-                        <p className="text-[9px] text-purple-400 font-bold uppercase tracking-wider">Presets</p>
+                      <div className="space-y-1.5 pt-2 border-t border-[#202020]">
+                        <p className="text-[9px] text-zinc-300 font-bold uppercase tracking-wider">Presets</p>
                         {presets.map(preset => {
                           const isChecked = activeCoupon.applicable_items?.includes(preset.id)
                           return (
@@ -338,7 +338,7 @@ export function CouponsTab({
                                     : current.filter((id: string) => id !== preset.id)
                                   setActiveCoupon((prev: any) => ({ ...prev, applicable_items: next }))
                                 }}
-                                className="accent-purple-500"
+                                className="accent-white"
                               />
                               {preset.name}
                             </label>
@@ -356,11 +356,11 @@ export function CouponsTab({
                   type="datetime-local"
                   value={activeCoupon.expires_at ? activeCoupon.expires_at.slice(0, 16) : ''}
                   onChange={e => setActiveCoupon((prev: any) => ({ ...prev, expires_at: e.target.value ? new Date(e.target.value).toISOString() : '' }))}
-                  className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-medium"
+                  className="w-full bg-[#121212] border border-[#252525] rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-medium"
                 />
               </div>
 
-              <label className="border border-white/10 bg-[#141418] rounded-xl p-3 flex items-center gap-2 cursor-pointer font-bold text-xs">
+              <label className="border border-[#222222] bg-[#141414] rounded-xl p-3 flex items-center gap-2 cursor-pointer font-bold text-xs">
                 <input
                   type="checkbox"
                   checked={activeCoupon.is_active}
@@ -373,7 +373,7 @@ export function CouponsTab({
               <button
                 type="submit"
                 disabled={saveLoading}
-                className="w-full mt-4 bg-white hover:bg-zinc-200 text-black font-bold py-3 rounded-lg cursor-pointer transition-all shadow-sm"
+                className="w-full mt-4 bg-white hover:bg-zinc-200 text-black font-bold py-3 rounded-lg cursor-pointer transition-all shadow-sm flex items-center justify-center gap-2"
               >
                 {saveLoading ? 'Saving...' : (
                   <>

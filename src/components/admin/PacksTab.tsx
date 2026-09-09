@@ -168,15 +168,15 @@ export function PacksTab({
 
   return (
     <div className="space-y-6 animate-fadeIn font-mono">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-[#18181c] p-4 sm:p-5 border border-white/10 rounded-2xl shadow-md">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-[#181818] p-4 sm:p-5 border border-[#222222] rounded-xl shadow-sm">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-3 w-4 h-4 text-zinc-500" />
+          <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-zinc-400" />
           <input
             type="text"
             value={packSearch}
             onChange={e => setPackSearch(e.target.value)}
             placeholder="Search packs by title..."
-            className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 pl-10 text-white text-xs outline-none focus:border-white/25 transition-all font-mono"
+            className="w-full bg-[#121212] border border-[#262626] rounded-lg p-2 pl-10 text-white text-xs outline-none focus:border-white transition-all font-mono"
           />
         </div>
 
@@ -204,17 +204,17 @@ export function PacksTab({
             })
             setShowPackModal(true)
           }}
-          className="studio-button bg-[#00FF94] hover:bg-[#00FF94]/90 text-black font-bold border-none shadow-md px-4 py-2.5 rounded-xl transition-all flex items-center gap-2"
+          className="bg-white hover:bg-zinc-200 text-black font-bold border-none shadow-sm px-4 py-2 rounded-lg transition-all flex items-center gap-2 cursor-pointer"
         >
           <Plus className="w-4 h-4 text-black" /> Add New Pack
         </button>
       </div>
 
       {/* LIST TABLE OF PACKS */}
-      <div className="border border-white/10 rounded-2xl bg-[#18181c] overflow-x-auto shadow-md font-sans text-xs">
+      <div className="border border-[#222222] rounded-xl bg-[#181818] overflow-x-auto shadow-sm font-sans text-xs">
         <table className="w-full text-left font-sans border-collapse">
           <thead>
-            <tr className="bg-[#141418] border-b border-white/10 text-zinc-400 font-semibold text-[10px] uppercase tracking-wider">
+            <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 font-semibold text-[10px] uppercase tracking-wider">
               <th className="p-4 w-16">Cover</th>
               <th className="p-4">Pack Details</th>
               <th className="p-4">Category</th>
@@ -225,7 +225,7 @@ export function PacksTab({
               <th className="p-4 text-center">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.04] font-sans text-xs">
+          <tbody className="divide-y divide-[#222222] font-sans text-xs">
             {packs
               .filter(p => p.name.toLowerCase().includes(packSearch.toLowerCase()))
               .map((pack: any) => {
@@ -257,7 +257,7 @@ export function PacksTab({
                     <td className="p-4 text-center font-mono text-xs text-white font-medium">
                       {pack.bundle_credit_cost} CR
                     </td>
-                    <td className="p-4 text-center font-mono font-bold text-blue-400">
+                    <td className="p-4 text-center font-mono font-bold text-zinc-300">
                       {pack.display_rank || 0}
                     </td>
                     <td className="p-4 text-center">
@@ -300,18 +300,18 @@ export function PacksTab({
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
           <form
             onSubmit={handlePackSave}
-            className="w-full max-w-2xl border border-white/15 bg-[#18181c] rounded-2xl p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto font-mono text-xs"
+            className="w-full max-w-2xl border border-[#2a2a2a] bg-[#181818] rounded-xl p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto font-mono text-xs"
           >
             <button
               type="button"
               onClick={() => setShowPackModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 bg-[#222222] hover:bg-[#2a2a2a] border border-[#333333] rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <h3 className="font-sans font-bold text-lg text-white mb-6 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#FFE600]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-white" />
               {activePack.id ? 'Edit Sample Pack' : 'Create Sample Pack'}
             </h3>
 
@@ -324,7 +324,7 @@ export function PacksTab({
                   value={activePack.name}
                   onChange={e => handlePackNameChange(e.target.value)}
                   placeholder="e.g. Sitar Masters Volume 1"
-                  className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-bold"
+                  className="w-full bg-[#121212] border border-[#252525] rounded-xl p-2.5 text-white outline-none focus:border-zinc-500 font-bold"
                 />
               </div>
 
@@ -336,7 +336,7 @@ export function PacksTab({
                   value={activePack.slug}
                   onChange={e => setActivePack((prev: any) => ({ ...prev, slug: e.target.value }))}
                   placeholder="sitar-masters-vol-1"
-                  className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-bold lowercase"
+                  className="w-full bg-[#121212] border border-[#252525] rounded-xl p-2.5 text-white outline-none focus:border-zinc-500 font-bold lowercase"
                 />
               </div>
 
@@ -347,7 +347,7 @@ export function PacksTab({
                   onChange={e => setActivePack((prev: any) => ({ ...prev, description: e.target.value }))}
                   placeholder="Provide details about samples counts, recording styles..."
                   rows={3}
-                  className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-medium"
+                  className="w-full bg-[#121212] border border-[#252525] rounded-xl p-2.5 text-white outline-none focus:border-zinc-500 font-medium"
                 />
               </div>
 
@@ -365,7 +365,7 @@ export function PacksTab({
                   required
                   value={activePack.price_inr}
                   onChange={e => setActivePack((prev: any) => ({ ...prev, price_inr: Number(e.target.value) }))}
-                  className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-bold"
+                  className="w-full bg-[#121212] border border-[#252525] rounded-xl p-2.5 text-white outline-none focus:border-zinc-500 font-bold"
                 />
               </div>
 
@@ -375,7 +375,7 @@ export function PacksTab({
                   type="number"
                   value={activePack.mrp_inr || ''}
                   onChange={e => setActivePack((prev: any) => ({ ...prev, mrp_inr: Number(e.target.value) }))}
-                  className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-bold"
+                  className="w-full bg-[#121212] border border-[#252525] rounded-xl p-2.5 text-white outline-none focus:border-zinc-500 font-bold"
                 />
               </div>
 
@@ -394,7 +394,7 @@ export function PacksTab({
                   required
                   value={activePack.price_usd}
                   onChange={e => setActivePack((prev: any) => ({ ...prev, price_usd: Number(e.target.value) }))}
-                  className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-bold"
+                  className="w-full bg-[#121212] border border-[#252525] rounded-xl p-2.5 text-white outline-none focus:border-zinc-500 font-bold"
                 />
               </div>
 
@@ -404,12 +404,12 @@ export function PacksTab({
                   type="text"
                   value={activePack.full_pack_download_url || ''}
                   onChange={e => setActivePack((prev: any) => ({ ...prev, full_pack_download_url: e.target.value }))}
-                  className="w-full bg-[#141418] border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-bold"
+                  className="w-full bg-[#121212] border border-[#252525] rounded-xl p-2.5 text-white outline-none focus:border-zinc-500 font-bold"
                 />
               </div>
 
               {/* DEMO AUDIO PREVIEW DRAG & DROP ZONE & DYNAMIC PARSER */}
-              <div className="md:col-span-2 border border-dashed border-white/15 bg-white/[0.02] rounded-xl p-5 relative flex flex-col items-center justify-center min-h-32 transition-all hover:bg-white/[0.04]">
+              <div className="md:col-span-2 border border-dashed border-[#252525] bg-[#121212] rounded-xl p-5 relative flex flex-col items-center justify-center min-h-32 transition-all hover:border-[#353535]">
                 <input
                   type="file"
                   accept="audio/*"
@@ -422,16 +422,16 @@ export function PacksTab({
                 
                 {analyzingAudio ? (
                   <div className="flex flex-col items-center space-y-3 z-20">
-                    <div className="w-10 h-10 rounded-full border-2 border-zinc-800 border-t-blue-500 animate-spin flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-full border-2 border-zinc-800 border-t-white animate-spin flex items-center justify-center">
                       <span className="text-[9px] font-bold text-white">{uploadProgress}%</span>
                     </div>
-                    <span className="text-[10px] font-bold text-blue-400 animate-pulse">Computing audio waveform peaks...</span>
+                    <span className="text-[10px] font-bold text-zinc-200 animate-pulse">Computing audio waveform peaks...</span>
                   </div>
                 ) : waveformPeaks.length > 0 ? (
                   <div className="w-full space-y-2.5 text-center z-20">
                     <span className="text-[10px] font-bold text-[#00FF94]">Audio Waveform Generated</span>
                     
-                    <div className="h-10 flex items-end justify-center gap-0.5 bg-black/50 p-2 rounded-lg border border-white/10">
+                    <div className="h-10 flex items-end justify-center gap-0.5 bg-black/50 p-2 rounded-lg border border-[#252525]">
                       {waveformPeaks.map((peak, idx) => (
                         <div
                           key={idx}
@@ -454,7 +454,7 @@ export function PacksTab({
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                <label className="border border-white/10 bg-[#141418] rounded-xl p-3 flex items-center gap-2 cursor-pointer font-bold text-[10px]">
+                <label className="border border-[#252525] bg-[#121212] rounded-xl p-3 flex items-center gap-2 cursor-pointer font-bold text-[10px]">
                   <input
                     type="checkbox"
                     checked={activePack.is_featured}
@@ -464,7 +464,7 @@ export function PacksTab({
                   Featured Product
                 </label>
 
-                <label className="border border-white/10 bg-[#141418] rounded-xl p-3 flex items-center gap-2 cursor-pointer font-bold text-[10px]">
+                <label className="border border-[#252525] bg-[#121212] rounded-xl p-3 flex items-center gap-2 cursor-pointer font-bold text-[10px]">
                   <input
                     type="checkbox"
                     checked={activePack.is_bundle_only}
@@ -478,19 +478,19 @@ export function PacksTab({
               <div className="grid grid-cols-4 gap-2 md:col-span-2">
                 <div>
                   <label className="block text-[8px] text-zinc-500 mb-1">MELODIES</label>
-                  <input type="number" value={activePack.melody_count || 0} onChange={e => setActivePack((prev: any) => ({ ...prev, melody_count: Number(e.target.value) }))} className="w-full bg-[#141418] border border-white/10 rounded-lg p-1.5 text-center font-bold" />
+                  <input type="number" value={activePack.melody_count || 0} onChange={e => setActivePack((prev: any) => ({ ...prev, melody_count: Number(e.target.value) }))} className="w-full bg-[#121212] border border-[#252525] rounded-lg p-1.5 text-center font-bold" />
                 </div>
                 <div>
                   <label className="block text-[8px] text-zinc-500 mb-1">LOOPS</label>
-                  <input type="number" value={activePack.loop_count || 0} onChange={e => setActivePack((prev: any) => ({ ...prev, loop_count: Number(e.target.value) }))} className="w-full bg-[#141418] border border-white/10 rounded-lg p-1.5 text-center font-bold" />
+                  <input type="number" value={activePack.loop_count || 0} onChange={e => setActivePack((prev: any) => ({ ...prev, loop_count: Number(e.target.value) }))} className="w-full bg-[#121212] border border-[#252525] rounded-lg p-1.5 text-center font-bold" />
                 </div>
                 <div>
                   <label className="block text-[8px] text-zinc-500 mb-1">ONE-SHOTS</label>
-                  <input type="number" value={activePack.one_shot_count || 0} onChange={e => setActivePack((prev: any) => ({ ...prev, one_shot_count: Number(e.target.value) }))} className="w-full bg-[#141418] border border-white/10 rounded-lg p-1.5 text-center font-bold" />
+                  <input type="number" value={activePack.one_shot_count || 0} onChange={e => setActivePack((prev: any) => ({ ...prev, one_shot_count: Number(e.target.value) }))} className="w-full bg-[#121212] border border-[#252525] rounded-lg p-1.5 text-center font-bold" />
                 </div>
                 <div>
                   <label className="block text-[8px] text-zinc-500 mb-1">PRESETS</label>
-                  <input type="number" value={activePack.preset_count || 0} onChange={e => setActivePack((prev: any) => ({ ...prev, preset_count: Number(e.target.value) }))} className="w-full bg-[#141418] border border-white/10 rounded-lg p-1.5 text-center font-bold" />
+                  <input type="number" value={activePack.preset_count || 0} onChange={e => setActivePack((prev: any) => ({ ...prev, preset_count: Number(e.target.value) }))} className="w-full bg-[#121212] border border-[#252525] rounded-lg p-1.5 text-center font-bold" />
                 </div>
               </div>
             </div>

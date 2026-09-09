@@ -275,8 +275,8 @@ export function NewsletterTab({
       {/* STATS HEADER GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
         {/* 1. TOTAL SUBSCRIBERS */}
-        <div className="bg-[#18181c] border border-white/10 rounded-2xl p-5 flex items-center gap-4 shadow-md hover:border-white/20 transition-all">
-          <div className="w-12 h-12 bg-blue-500/15 border border-blue-500/30 rounded-xl flex items-center justify-center text-blue-400">
+        <div className="bg-[#181818] border border-[#222222] rounded-xl p-5 flex items-center gap-4 shadow-sm hover:border-[#333333] transition-all">
+          <div className="w-12 h-12 bg-white/10 border border-white/15 rounded-xl flex items-center justify-center text-white">
             <Mail className="w-6 h-6" />
           </div>
           <div>
@@ -288,8 +288,8 @@ export function NewsletterTab({
         </div>
 
         {/* 2. ACTIVE CONTACTS */}
-        <div className="bg-[#18181c] border border-white/10 rounded-2xl p-5 flex items-center gap-4 shadow-md hover:border-white/20 transition-all">
-          <div className="w-12 h-12 bg-[#00FF94]/15 border border-[#00FF94]/30 rounded-xl flex items-center justify-center text-[#00FF94]">
+        <div className="bg-[#181818] border border-[#222222] rounded-xl p-5 flex items-center gap-4 shadow-sm hover:border-[#333333] transition-all">
+          <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-400">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
@@ -301,8 +301,8 @@ export function NewsletterTab({
         </div>
 
         {/* 3. BLACKLISTED CONTACTS */}
-        <div className="bg-[#18181c] border border-white/10 rounded-2xl p-5 flex items-center gap-4 shadow-md hover:border-white/20 transition-all">
-          <div className="w-12 h-12 bg-red-500/15 border border-red-500/30 rounded-xl flex items-center justify-center text-red-400">
+        <div className="bg-[#181818] border border-[#222222] rounded-xl p-5 flex items-center gap-4 shadow-sm hover:border-[#333333] transition-all">
+          <div className="w-12 h-12 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-center text-red-400">
             <Ban className="w-6 h-6" />
           </div>
           <div>
@@ -315,7 +315,7 @@ export function NewsletterTab({
       </div>
 
       {/* ACTION COMMAND BAR */}
-      <div className="bg-[#18181c] p-4 sm:p-5 border border-white/10 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-md">
+      <div className="bg-[#181818] p-4 sm:p-5 border border-[#222222] rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
         <div className="flex-1 relative font-sans">
           <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
           <input
@@ -323,7 +323,7 @@ export function NewsletterTab({
             placeholder="Search contacts by email..."
             value={newsletterSearch}
             onChange={e => setNewsletterSearch(e.target.value)}
-            className="pl-9 pr-4 py-2 w-full max-w-md bg-black/40 border border-white/10 rounded-xl text-white placeholder-zinc-500 outline-none focus:border-blue-500 text-xs transition-colors"
+            className="pl-9 pr-4 py-2 w-full max-w-md bg-[#121212] border border-[#262626] rounded-lg text-white placeholder-zinc-500 outline-none focus:border-white text-xs transition-colors"
           />
         </div>
 
@@ -360,11 +360,11 @@ export function NewsletterTab({
       </div>
 
       {/* LIST TABLE OF NEWSLETTER SUBSCRIBERS */}
-      <div className="border border-white/10 bg-[#18181c] rounded-2xl overflow-hidden shadow-md font-sans text-xs">
+      <div className="border border-[#222222] bg-[#181818] rounded-xl overflow-hidden shadow-sm font-sans text-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left font-sans border-collapse">
             <thead>
-              <tr className="bg-white/[0.02] border-b border-white/10 text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
+              <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
                 <th className="p-4">Member ID</th>
                 <th className="p-4">Email Address</th>
                 <th className="p-4 text-center">Subscription Status</th>
@@ -372,7 +372,7 @@ export function NewsletterTab({
                 <th className="p-4 text-center">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.06] font-sans text-xs">
+            <tbody className="divide-y divide-[#222222] font-sans text-xs">
               {(() => {
                 const filtered = subscribersList.filter(s => {
                   const searchLower = newsletterSearch.toLowerCase()
@@ -447,12 +447,12 @@ export function NewsletterTab({
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
           <form
             onSubmit={handleNewsletterSubscribe}
-            className="w-full max-w-md border border-white/15 bg-[#18181c] rounded-2xl p-6 sm:p-7 shadow-2xl relative font-sans text-xs animate-scaleIn"
+            className="w-full max-w-md border border-[#2a2a2a] bg-[#181818] rounded-xl p-6 sm:p-7 shadow-2xl relative font-sans text-xs animate-scaleIn"
           >
             <button
               type="button"
               onClick={() => setShowSubscribeModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 bg-[#222222] hover:bg-[#2a2a2a] border border-[#333333] rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>

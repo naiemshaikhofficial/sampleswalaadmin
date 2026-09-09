@@ -105,7 +105,7 @@ export function SalesTab({
 
   return (
     <div className="space-y-6 animate-fadeIn font-mono text-xs">
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-[#18181c] p-4 sm:p-5 border border-white/10 rounded-2xl shadow-md">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-[#181818] p-4 sm:p-5 border border-[#222222] rounded-xl shadow-sm">
         <div>
           <h3 className="font-sans font-bold text-lg text-white">
             Orders & Sales Receipts
@@ -118,28 +118,28 @@ export function SalesTab({
           <button
             type="button"
             onClick={handleExportCSV}
-            className="studio-button bg-white/[0.08] hover:bg-white/[0.15] text-white border border-white/15 px-3.5 py-2.5 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer font-sans font-bold"
+            className="bg-[#202020] hover:bg-[#282828] text-white border border-[#2e2e2e] px-3.5 py-2 rounded-lg text-xs flex items-center gap-1.5 transition-all cursor-pointer font-sans font-semibold"
           >
-            <Download className="w-3.5 h-3.5" /> Export CSV
+            <Download className="w-3.5 h-3.5 text-zinc-300" /> Export CSV
           </button>
           <div className="relative font-sans">
-            <Search className="absolute left-3 top-3 w-4 h-4 text-zinc-500" />
+            <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
             <input
               type="text"
               placeholder="Search orders by product, buyer, email..."
               value={salesSearch}
               onChange={e => setSalesSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-[#141418] border border-white/10 rounded-xl text-white text-xs outline-none focus:border-white/25 w-64 md:w-80 font-mono"
+              className="pl-9 pr-4 py-2 bg-[#121212] border border-[#262626] rounded-lg text-white text-xs outline-none focus:border-white w-64 md:w-80 font-mono transition-colors"
             />
           </div>
         </div>
       </div>
 
       {/* SALES DATA GRID */}
-      <div className="border border-white/10 rounded-2xl bg-[#18181c] overflow-x-auto shadow-md">
+      <div className="border border-[#222222] rounded-xl bg-[#181818] overflow-x-auto shadow-sm">
         <table className="w-full text-left font-sans border-collapse">
           <thead>
-            <tr className="bg-[#141418] border-b border-white/10 text-zinc-400 text-[10px] uppercase font-semibold tracking-wider">
+            <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[10px] uppercase font-semibold tracking-wider">
               <th className="p-4">Product Purchased</th>
               <th className="p-4">Buyer Details</th>
               <th className="p-4">Shipping / Address</th>
@@ -188,7 +188,7 @@ export function SalesTab({
                       <td className="p-4">
                         <p className="font-sans font-bold text-sm tracking-wide text-zinc-100 leading-none">{s.buyer_name}</p>
                         <p className="text-[10px] text-zinc-400 lowercase font-mono mt-1.5 flex items-center gap-1 font-medium">
-                          <Mail className="w-3.5 h-3.5 text-blue-400" /> {s.buyer_email}
+                          <Mail className="w-3.5 h-3.5 text-zinc-400" /> {s.buyer_email}
                         </p>
                         <p className="text-[10px] text-zinc-400 font-mono mt-1.5 flex items-center gap-1 font-medium">
                           <Phone className="w-3.5 h-3.5 text-zinc-500" /> {s.buyer_phone}
@@ -196,12 +196,12 @@ export function SalesTab({
                       </td>
                       <td className="p-4 text-zinc-400 font-medium max-w-xs text-[10px] leading-normal font-mono">
                         <div className="flex items-start gap-1.5">
-                          <MapPin className="w-3.5 h-3.5 text-blue-400 flex-shrink-0 mt-0.5" />
+                          <MapPin className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0 mt-0.5" />
                           <span>{s.buyer_address || 'No physical delivery address provided.'}</span>
                         </div>
                       </td>
                       <td className="p-4 text-center">
-                        <div className="inline-block bg-[#141418] border border-white/10 rounded-xl p-2.5 font-mono text-left font-medium min-w-[120px]">
+                        <div className="inline-block bg-[#141414] border border-[#222222] rounded-lg p-2.5 font-mono text-left font-medium min-w-[120px]">
                           <p className="text-[9px] text-zinc-500 font-sans uppercase font-bold tracking-wider">Total Paid:</p>
                           {s.is_usd ? (
                             <div className="mt-0.5">
@@ -233,7 +233,7 @@ export function SalesTab({
                   {/* Pagination Controller Row */}
                   {totalPages > 1 && (
                     <tr>
-                      <td colSpan={5} className="p-4 bg-[#141418] border-t border-white/10">
+                      <td colSpan={5} className="p-4 bg-[#141414] border-t border-[#222222]">
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[10px]">
                           <div className="text-zinc-400">
                             Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredSales.length)} of {filteredSales.length} transactions
@@ -242,7 +242,7 @@ export function SalesTab({
                             <button
                               disabled={currentPage === 1}
                               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                              className="px-3 py-1.5 border border-white/10 rounded-lg bg-white/5 text-white hover:bg-white/10 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                              className="px-3 py-1.5 border border-[#252525] rounded-lg bg-[#202020] text-white hover:bg-[#252525] transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                             >
                               Previous
                             </button>
@@ -296,23 +296,23 @@ export function SalesTab({
       {/* MODAL DRAWER: DETAILED ORDER DESCRIPTION */}
       {showOrderModal && activeOrder && (
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="w-full max-w-xl border border-white/15 bg-[#18181c] rounded-2xl p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto font-sans text-xs">
+          <div className="w-full max-w-xl border border-[#2a2a2a] bg-[#181818] rounded-xl p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto font-sans text-xs">
             <button
               type="button"
               onClick={() => setShowOrderModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 bg-[#222222] hover:bg-[#2a2a2a] border border-[#333333] rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <h3 className="font-sans font-bold text-lg text-white mb-6 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#00FF94]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-white" />
               Order Transaction Receipt
             </h3>
 
             {/* ORDER TRANSACTION METADATA */}
-            <div className="bg-[#141418] border border-white/10 rounded-xl p-4 space-y-3 mb-6 text-zinc-300 font-sans">
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+            <div className="bg-[#121212] border border-[#222222] rounded-lg p-4 space-y-3 mb-6 text-zinc-300 font-sans">
+              <div className="flex justify-between border-b border-[#222222] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Order ID</span>
                 <span className="text-white font-mono font-bold">{activeOrder.id}</span>
               </div>

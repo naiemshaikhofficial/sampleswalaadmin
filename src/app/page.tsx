@@ -104,14 +104,52 @@ export default function AdminDashboard() {
   const CACHE_DURATION_MS = 60 * 1000 // 60 seconds threshold for background revalidation
 
 
-  // Monochrome Accent Presets (Strictly No Orange)
-  const [accent, setAccent] = useState<'white' | 'zinc' | 'noir' | 'platinum'>('white')
+  // Collapsible Sidebar State (Persisted in localStorage)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false)
 
-  const accentDetails = {
+  // Dynamic Theme Accent Presets (User Controlled - Strictly No Orange)
+  type AccentKey = 'white' | 'platinum' | 'zinc' | 'emerald' | 'cyan' | 'purple' | 'noir'
+  const [accent, setAccent] = useState<AccentKey>('white')
+
+  const accentDetails: Record<AccentKey, { label: string; hex: string; borderClass: string }> = {
     white: { label: 'Pure White', hex: '#FFFFFF', borderClass: 'shadow-[0_0_14px_rgba(255,255,255,0.25)]' },
+    platinum: { label: 'Platinum', hex: '#E4E4E7', borderClass: 'shadow-[0_0_14px_rgba(228,228,231,0.2)]' },
     zinc: { label: 'Slate Zinc', hex: '#A1A1AA', borderClass: 'shadow-[0_0_14px_rgba(161,161,170,0.15)]' },
-    noir: { label: 'Deep Noir', hex: '#27272A', borderClass: 'shadow-[0_0_14px_rgba(39,39,42,0.35)]' },
-    platinum: { label: 'Platinum Minimal', hex: '#E4E4E7', borderClass: 'shadow-[0_0_14px_rgba(228,228,231,0.2)]' },
+    emerald: { label: 'Mint Emerald', hex: '#34D399', borderClass: 'shadow-[0_0_14px_rgba(52,211,153,0.25)]' },
+    cyan: { label: 'Ice Cyan', hex: '#38BDF8', borderClass: 'shadow-[0_0_14px_rgba(56,189,248,0.25)]' },
+    purple: { label: 'Synth Violet', hex: '#A855F7', borderClass: 'shadow-[0_0_14px_rgba(168,85,247,0.25)]' },
+    noir: { label: 'Stealth Noir', hex: '#3F3F46', borderClass: 'shadow-[0_0_14px_rgba(63,63,70,0.35)]' },
+  }
+
+  // Restore collapsed & accent state from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedCollapsed = localStorage.getItem('admin_sidebar_collapsed')
+      if (savedCollapsed === 'true') {
+        setSidebarCollapsed(true)
+      }
+      const savedAccent = localStorage.getItem('admin_theme_accent') as AccentKey
+      if (savedAccent && accentDetails[savedAccent]) {
+        setAccent(savedAccent)
+      }
+    }
+  }, [])
+
+  const handleSetSidebarCollapsed = (val: boolean | ((prev: boolean) => boolean)) => {
+    setSidebarCollapsed(prev => {
+      const nextVal = typeof val === 'function' ? val(prev) : val
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('admin_sidebar_collapsed', String(nextVal))
+      }
+      return nextVal
+    })
+  }
+
+  const handleSetAccent = (newAccent: AccentKey) => {
+    setAccent(newAccent)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('admin_theme_accent', newAccent)
+    }
   }
 
   // Audit Logs
@@ -846,7 +884,10 @@ export default function AdminDashboard() {
     <div
       className="h-screen flex flex-col md:flex-row bg-[#121212] text-white overflow-hidden"
       style={{
-        ['--color-studio-pink' as any]: accentDetails[accent].hex,
+        ['--theme-accent' as any]: accentDetails[accent]?.hex || '#ffffff',
+        ['--theme-accent-text' as any]: accentDetails[accent]?.hex || '#ffffff',
+        ['--theme-accent-border' as any]: accentDetails[accent]?.hex || '#ffffff',
+        ['--color-studio-pink' as any]: accentDetails[accent]?.hex || '#ffffff',
       }}
     >
       {/* Hidden audio element for preview players */}
@@ -870,22 +911,24 @@ export default function AdminDashboard() {
         />
       )}
 
-      {/* SIDEBAR NAVIGATION BAR */}
+      {/* SIDEBAR NAVIGATION BAR (SEAMLESS & COLLAPSIBLE) */}
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
+        isCollapsed={sidebarCollapsed}
+        setIsCollapsed={handleSetSidebarCollapsed}
         accent={accent}
-        setAccent={setAccent}
+        setAccent={handleSetAccent}
         accentDetails={accentDetails}
         user={user}
         onLogout={handleLogout}
         showToast={showToast}
       />
 
-      {/* MAIN VIEWPORT BODY */}
-      <main className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto">
+      {/* MAIN VIEWPORT BODY (SEAMLESS CONTINUATION OF WORKSPACE) */}
+      <main className="flex-1 flex flex-col min-w-0 h-full overflow-y-auto bg-[#121212]">
         {/* MOBILE HEADER BAR */}
         <MobileHeader
           activeTab={activeTab}
@@ -902,6 +945,8 @@ export default function AdminDashboard() {
           onMenuOpen={() => setMobileMenuOpen(true)}
           onPaletteOpen={() => setShowPalette(true)}
           onReload={handleReload}
+          isCollapsed={sidebarCollapsed}
+          onToggleSidebar={() => handleSetSidebarCollapsed(p => !p)}
         />
 
         {/* CONTAINER CONTENT */}

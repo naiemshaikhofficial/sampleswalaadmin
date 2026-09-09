@@ -24,16 +24,18 @@ interface HeaderBarsProps {
   onMenuOpen: () => void
   onPaletteOpen: () => void
   onReload: () => void
+  isCollapsed?: boolean
+  onToggleSidebar?: () => void
 }
 
 export function MobileHeader({ activeTab, dataLoading, onMenuOpen, onPaletteOpen, onReload }: HeaderBarsProps) {
   return (
-    <header className="flex md:hidden items-center justify-between bg-[#121212]/95 backdrop-blur-md border-b border-[#202020] px-3.5 py-2.5 flex-shrink-0 z-20 sticky top-0">
+    <header className="flex md:hidden items-center justify-between bg-[#121212]/95 backdrop-blur-md px-3.5 py-2.5 flex-shrink-0 z-20 sticky top-0">
       <div className="flex items-center gap-2.5">
         <button
           type="button"
           onClick={onMenuOpen}
-          className="p-2 text-zinc-400 hover:text-white bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors border border-[#2a2a2a] cursor-pointer"
+          className="p-2 text-zinc-400 hover:text-white bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors cursor-pointer"
           title="Open Menu"
         >
           <Menu className="w-4.5 h-4.5" />
@@ -50,7 +52,7 @@ export function MobileHeader({ activeTab, dataLoading, onMenuOpen, onPaletteOpen
         <button
           type="button"
           onClick={onPaletteOpen}
-          className="p-2 text-zinc-400 hover:text-white bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors border border-[#2a2a2a] cursor-pointer"
+          className="p-2 text-zinc-400 hover:text-white bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors cursor-pointer"
           title="Search / Commands"
         >
           <Search className="w-4 h-4" />
@@ -58,7 +60,7 @@ export function MobileHeader({ activeTab, dataLoading, onMenuOpen, onPaletteOpen
         <button
           type="button"
           onClick={onReload}
-          className="p-2 text-zinc-400 hover:text-white bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors border border-[#2a2a2a] cursor-pointer"
+          className="p-2 text-zinc-400 hover:text-white bg-[#181818] hover:bg-[#202020] rounded-lg transition-colors cursor-pointer"
           title="Reload Data"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${dataLoading ? 'animate-spin text-white' : ''}`} />
@@ -70,7 +72,7 @@ export function MobileHeader({ activeTab, dataLoading, onMenuOpen, onPaletteOpen
 
 export function DesktopHeader({ activeTab, dataLoading, onPaletteOpen, onReload }: HeaderBarsProps) {
   return (
-    <header className="hidden md:flex border-b border-[#202020] bg-[#121212]/95 backdrop-blur-md px-6 py-3.5 items-center justify-between flex-shrink-0 z-10 sticky top-0">
+    <header className="hidden md:flex bg-[#121212]/95 backdrop-blur-md px-6 py-3.5 items-center justify-between flex-shrink-0 z-10 sticky top-0">
       <div className="flex items-center gap-3">
         <span className="text-base font-bold tracking-tight text-white font-sans">
           {tabLabels[activeTab]?.desktop}
@@ -81,23 +83,23 @@ export function DesktopHeader({ activeTab, dataLoading, onPaletteOpen, onReload 
         <button
           type="button"
           onClick={onPaletteOpen}
-          className="flex items-center gap-2 px-3 py-1.5 border border-[#2a2a2a] rounded-lg bg-[#181818] text-zinc-400 hover:text-white hover:bg-[#222222] hover:border-[#383838] transition-all font-mono text-[10px] cursor-pointer shadow-sm"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#181818] text-zinc-400 hover:text-white hover:bg-[#222222] transition-all font-mono text-[10px] cursor-pointer shadow-sm"
           title="Open Command Palette & Entity Search"
         >
           <Search className="w-3.5 h-3.5 text-zinc-400" />
           <span>SEARCH / COMMANDS</span>
-          <kbd className="bg-[#121212] px-1.5 py-0.5 border border-[#2a2a2a] rounded text-[8px] font-mono font-medium text-zinc-300">Ctrl+K</kbd>
+          <kbd className="bg-[#121212] px-1.5 py-0.5 rounded text-[8px] font-mono font-medium text-zinc-300">Ctrl+K</kbd>
         </button>
 
         {dataLoading && (
-          <div className="flex items-center gap-1.5 text-[10px] font-mono font-semibold text-zinc-200 bg-white/10 px-2 py-1 rounded border border-white/15">
+          <div className="flex items-center gap-1.5 text-[10px] font-mono font-semibold text-zinc-200 bg-white/10 px-2 py-1 rounded">
             <RefreshCw className="w-3 h-3 animate-spin text-white" /> Fetching DB...
           </div>
         )}
         <button
           type="button"
           onClick={onReload}
-          className="p-2 border border-[#2a2a2a] rounded-lg bg-[#181818] hover:bg-[#222222] text-zinc-400 hover:text-white hover:border-[#383838] transition-all cursor-pointer shadow-sm"
+          className="p-2 rounded-lg bg-[#181818] hover:bg-[#222222] text-zinc-400 hover:text-white transition-all cursor-pointer shadow-sm"
           title="Refresh database collections"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${dataLoading ? 'animate-spin text-white' : ''}`} />

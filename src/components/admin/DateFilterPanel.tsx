@@ -49,7 +49,7 @@ export function DateFilterPanel({
   }
 
   return (
-    <div className="bg-[#0a0a0d] border border-white/[0.08] rounded-xl p-2.5 sm:p-3 font-mono text-xs shadow-sm">
+    <div className="bg-[#181818] border border-[#222222] rounded-xl p-2.5 sm:p-3 font-mono text-xs shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2.5">
         {/* Presets Row */}
         <div className="flex items-center gap-1.5 min-w-0 max-w-full overflow-x-auto no-scrollbar py-0.5">
@@ -58,7 +58,7 @@ export function DateFilterPanel({
             <span className="hidden sm:inline font-sans text-[11px] font-semibold text-zinc-400">Period:</span>
           </div>
 
-          <div className="inline-flex items-center bg-black/40 p-0.5 rounded-lg border border-white/[0.08] gap-0.5 flex-shrink-0">
+          <div className="inline-flex items-center bg-[#121212] p-0.5 rounded-lg border border-[#222222] gap-0.5 flex-shrink-0">
             {presets.map(p => {
               const isSelected = !filterStartDate && !filterEndDate && p.key === 'all'
               return (
@@ -68,8 +68,8 @@ export function DateFilterPanel({
                   onClick={() => setQuickRange(p.key)}
                   className={`px-2.5 py-1 text-[10px] font-medium rounded-md transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-white/[0.12] text-white shadow-sm border border-white/[0.15]'
-                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.04] border border-transparent'
+                      ? 'bg-[#252525] text-white shadow-sm border border-[#333333]'
+                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-[#1c1c1c] border border-transparent'
                   }`}
                 >
                   {p.label}
@@ -103,8 +103,8 @@ export function DateFilterPanel({
             onClick={() => setShowDateFilter(!showDateFilter)}
             className={`flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-medium rounded-lg border transition-all cursor-pointer ${
               showDateFilter
-                ? 'bg-white/[0.12] text-white border-white/[0.2]'
-                : 'bg-white/[0.04] text-zinc-400 hover:text-white border-white/[0.08] hover:border-white/[0.15]'
+                ? 'bg-[#252525] text-white border-[#333333]'
+                : 'bg-[#141414] text-zinc-400 hover:text-white border-[#222222] hover:border-[#303030]'
             }`}
           >
             <SlidersHorizontal className="w-3 h-3 text-zinc-400" />
@@ -116,7 +116,7 @@ export function DateFilterPanel({
 
       {/* Collapsible Drawer for Custom Date/Time */}
       {showDateFilter && (
-        <div className="mt-2.5 pt-2.5 border-t border-white/[0.08] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5 items-end">
+        <div className="mt-2.5 pt-2.5 border-t border-[#222222] grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5 items-end">
           <div>
             <label className="block text-[9px] uppercase tracking-wider text-zinc-400 font-semibold mb-1 font-sans">
               Start Date
@@ -125,7 +125,7 @@ export function DateFilterPanel({
               type="date"
               value={filterStartDate}
               onChange={e => setFilterStartDate(e.target.value)}
-              className="w-full bg-black/50 border border-white/[0.08] text-zinc-200 text-xs px-2.5 py-1.5 rounded-lg focus:border-white/[0.2] focus:outline-none transition-colors"
+              className="w-full bg-[#121212] border border-[#252525] text-zinc-200 text-xs px-2.5 py-1.5 rounded-lg focus:border-zinc-500 focus:outline-none transition-colors"
             />
           </div>
 
@@ -137,7 +137,7 @@ export function DateFilterPanel({
               type="time"
               value={filterStartTime}
               onChange={e => setFilterStartTime(e.target.value)}
-              className="w-full bg-black/50 border border-white/[0.08] text-zinc-200 text-xs px-2.5 py-1.5 rounded-lg focus:border-white/[0.2] focus:outline-none transition-colors"
+              className="w-full bg-[#121212] border border-[#252525] text-zinc-200 text-xs px-2.5 py-1.5 rounded-lg focus:border-zinc-500 focus:outline-none transition-colors"
             />
           </div>
 
@@ -149,7 +149,7 @@ export function DateFilterPanel({
               type="date"
               value={filterEndDate}
               onChange={e => setFilterEndDate(e.target.value)}
-              className="w-full bg-black/50 border border-white/[0.08] text-zinc-200 text-xs px-2.5 py-1.5 rounded-lg focus:border-white/[0.2] focus:outline-none transition-colors"
+              className="w-full bg-[#121212] border border-[#252525] text-zinc-200 text-xs px-2.5 py-1.5 rounded-lg focus:border-zinc-500 focus:outline-none transition-colors"
             />
           </div>
 
@@ -161,14 +161,14 @@ export function DateFilterPanel({
               type="time"
               value={filterEndTime}
               onChange={e => setFilterEndTime(e.target.value)}
-              className="w-full bg-black/50 border border-white/[0.08] text-zinc-200 text-xs px-2.5 py-1.5 rounded-lg focus:border-white/[0.2] focus:outline-none transition-colors"
+              className="w-full bg-[#121212] border border-[#252525] text-zinc-200 text-xs px-2.5 py-1.5 rounded-lg focus:border-zinc-500 focus:outline-none transition-colors"
             />
           </div>
 
           <button
             type="button"
             onClick={handleReset}
-            className="flex items-center justify-center gap-1.5 w-full h-[32px] bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.15] text-zinc-300 hover:text-white text-[10px] font-semibold rounded-lg transition-colors cursor-pointer shadow-sm"
+            className="flex items-center justify-center gap-1.5 w-full h-[32px] bg-[#141414] hover:bg-[#202020] border border-[#222222] hover:border-[#303030] text-zinc-300 hover:text-white text-[10px] font-semibold rounded-lg transition-colors cursor-pointer shadow-sm"
           >
             <RotateCcw className="w-3 h-3" />
             <span>Reset</span>

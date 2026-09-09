@@ -92,7 +92,7 @@ export function KycTab({
 
         {/* 1. ARTIST LIST (2/3 width) */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-[#18181c] p-4 sm:p-5 border border-white/10 rounded-2xl flex justify-between items-center shadow-md">
+          <div className="bg-[#181818] p-4 sm:p-5 border border-[#222222] rounded-xl flex justify-between items-center shadow-sm">
             <div>
               <h3 className="font-sans font-bold text-lg text-white">
                 Artist KYC Verification
@@ -101,16 +101,16 @@ export function KycTab({
                 Review legal identity documents, PAN / Aadhaar records, and approve artist publishing rights.
               </p>
             </div>
-            <span className="text-[11px] font-mono bg-white/5 border border-white/10 text-zinc-300 px-3 py-1 rounded-full">
+            <span className="text-[11px] font-mono bg-white/5 text-zinc-300 px-3 py-1 rounded-full">
               {artists.length} Artists
             </span>
           </div>
 
-          <div className="border border-white/10 bg-[#18181c] rounded-2xl overflow-hidden shadow-md">
+          <div className="border border-[#222222] bg-[#181818] rounded-xl overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left font-sans border-collapse">
                 <thead>
-                  <tr className="bg-white/[0.02] border-b border-white/10 text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
+                  <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
                     <th className="p-4">Artist</th>
                     <th className="p-4">PAN / Aadhaar</th>
                     <th className="p-4">KYC State</th>
@@ -118,7 +118,7 @@ export function KycTab({
                     <th className="p-4 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/[0.06] text-xs">
+                <tbody className="divide-y divide-[#222222] text-xs">
                   {artists.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="p-10 text-center text-zinc-500 font-medium">
@@ -158,7 +158,7 @@ export function KycTab({
                                 setActiveArtist(artist)
                                 setShowKycModal(true)
                               }}
-                              className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-blue-400 hover:text-white transition-all inline-flex items-center gap-1.5 font-medium text-xs cursor-pointer"
+                              className="px-3 py-1.5 bg-[#202020] hover:bg-[#282828] border border-[#2c2c2c] rounded-lg text-zinc-200 hover:text-white transition-all inline-flex items-center gap-1.5 font-medium text-xs cursor-pointer"
                             >
                               <Eye className="w-3.5 h-3.5" /> Preview File
                             </button>
@@ -191,7 +191,7 @@ export function KycTab({
 
         {/* 2. RECENT PAYOUTS (1/3 width) */}
         <div className="space-y-4">
-          <div className="bg-[#18181c] p-4 sm:p-5 border border-white/10 rounded-2xl shadow-md">
+          <div className="bg-[#181818] p-4 sm:p-5 border border-[#222222] rounded-xl shadow-sm">
             <h3 className="font-sans font-bold text-lg text-white">
               Payout Records
             </h3>
@@ -200,7 +200,7 @@ export function KycTab({
             </p>
           </div>
 
-          <div className="border border-white/10 bg-[#18181c] rounded-2xl p-4 space-y-3.5 max-h-[500px] overflow-y-auto shadow-md">
+          <div className="border border-[#222222] bg-[#181818] rounded-xl p-4 space-y-3.5 max-h-[500px] overflow-y-auto shadow-sm">
             {payouts.length === 0 ? (
               <div className="text-center py-10 text-zinc-500 font-medium">
                 No payouts registered yet.
@@ -228,11 +228,11 @@ export function KycTab({
       {/* MODAL DRAWER: KYC REVIEW & DOCUMENT DETAILS */}
       {showKycModal && activeArtist && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
-          <div className="w-full max-w-xl border border-white/15 bg-[#18181c] rounded-2xl p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto font-sans text-xs">
+          <div className="w-full max-w-xl border border-[#2a2a2a] bg-[#181818] rounded-xl p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto font-sans text-xs">
             <button
               type="button"
               onClick={() => setShowKycModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 bg-[#222222] hover:bg-[#2a2a2a] border border-[#333333] rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -243,24 +243,24 @@ export function KycTab({
             </h3>
 
             {/* ARTIST METADATA */}
-            <div className="bg-[#141418] border border-white/10 rounded-xl p-4 space-y-3 mb-6 font-sans">
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+            <div className="bg-[#121212] border border-[#252525] rounded-xl p-4 space-y-3 mb-6 font-sans">
+              <div className="flex justify-between border-b border-[#202020] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Legal Name</span>
                 <span className="text-white font-bold">{activeArtist.legal_name || 'N/A'}</span>
               </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+              <div className="flex justify-between border-b border-[#202020] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Bank Name</span>
                 <span className="text-white font-medium">{activeArtist.bank_name || 'N/A'}</span>
               </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+              <div className="flex justify-between border-b border-[#202020] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Account Holder</span>
                 <span className="text-white font-medium">{activeArtist.account_holder_name || 'N/A'}</span>
               </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+              <div className="flex justify-between border-b border-[#202020] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Account Number</span>
                 <span className="text-zinc-100 font-mono font-bold select-all">{activeArtist.account_number || 'N/A'}</span>
               </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+              <div className="flex justify-between border-b border-[#202020] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">IFSC Code</span>
                 <span className="text-white font-mono font-bold select-all">{activeArtist.ifsc_code || 'N/A'}</span>
               </div>
@@ -331,12 +331,12 @@ export function KycTab({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
           <form
             onSubmit={handlePayoutTrigger}
-            className="w-full max-w-md border border-white/15 bg-[#18181c] rounded-2xl p-6 sm:p-7 shadow-2xl relative font-sans text-xs"
+            className="w-full max-w-md border border-[#2a2a2a] bg-[#181818] rounded-xl p-6 sm:p-7 shadow-2xl relative font-sans text-xs"
           >
             <button
               type="button"
               onClick={() => setShowPayoutModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 bg-[#222222] hover:bg-[#2a2a2a] border border-[#333333] rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>

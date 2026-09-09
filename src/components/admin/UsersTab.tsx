@@ -168,7 +168,7 @@ export function UsersTab({
   return (
     <div className="space-y-6 animate-fadeIn font-sans text-xs">
       {/* HEADER CONTROLS BAR */}
-      <div className="bg-[#18181c] p-4 sm:p-5 border border-white/10 rounded-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-md">
+      <div className="bg-[#181818] p-4 sm:p-5 border border-[#222222] rounded-xl flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-sm">
         <div>
           <h3 className="font-sans font-bold text-lg text-white">
             Users & Registrations
@@ -181,9 +181,9 @@ export function UsersTab({
           <button
             type="button"
             onClick={handleExportCSV}
-            className="studio-button bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-semibold px-3.5 py-2 rounded-xl flex items-center gap-2 cursor-pointer transition-all"
+            className="bg-[#202020] hover:bg-[#282828] text-white border border-[#2e2e2e] text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center gap-2 cursor-pointer transition-all"
           >
-            <Download className="w-3.5 h-3.5 text-blue-400" />
+            <Download className="w-3.5 h-3.5 text-zinc-300" />
             Export CSV
           </button>
           <div className="relative flex-1 sm:w-64">
@@ -193,13 +193,13 @@ export function UsersTab({
               placeholder="Search by name, email, phone..."
               value={userSearch}
               onChange={e => setUserSearch(e.target.value)}
-              className="w-full pl-9 pr-3.5 py-2 bg-black/40 border border-white/10 rounded-xl text-white placeholder-zinc-500 outline-none focus:border-blue-500 text-xs transition-colors"
+              className="w-full pl-9 pr-3.5 py-2 bg-[#121212] border border-[#262626] rounded-lg text-white placeholder-zinc-500 outline-none focus:border-white text-xs transition-colors"
             />
           </div>
           <select
             value={userFilter}
             onChange={e => setUserFilter(e.target.value as any)}
-            className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-blue-500 text-xs cursor-pointer transition-colors"
+            className="bg-[#121212] border border-[#262626] rounded-lg px-3 py-2 text-white outline-none focus:border-white text-xs cursor-pointer transition-colors"
           >
             <option value="all">All Users</option>
             <option value="active">Active Only</option>
@@ -210,17 +210,17 @@ export function UsersTab({
       </div>
 
       {/* USERS TABLE */}
-      <div className="border border-white/10 bg-[#18181c] rounded-2xl overflow-hidden shadow-md">
+      <div className="border border-[#222222] bg-[#181818] rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left font-sans border-collapse">
             <thead>
-              <tr className="bg-white/[0.02] border-b border-white/10 text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
+              <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
                 <th className="p-4">User Profile</th>
                 <th className="p-4">Contact & Location</th>
                 <th className="p-4 text-center">Account Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.06]">
+            <tbody className="divide-y divide-[#222222]">
               {(() => {
                 const filtered = usersList.filter(u => {
                   const searchLower = userSearch.toLowerCase()
@@ -278,7 +278,7 @@ export function UsersTab({
                                   {u.full_name || 'Anonymous User'}
                                 </p>
                                 {u.provider === 'google' ? (
-                                  <span className="bg-blue-500/15 text-blue-400 border border-blue-500/30 text-[9px] font-bold px-1.5 py-0.5 rounded">
+                                  <span className="bg-white/10 text-white border border-white/20 text-[9px] font-bold px-1.5 py-0.5 rounded">
                                     Google SSO
                                   </span>
                                 ) : (
@@ -310,7 +310,7 @@ export function UsersTab({
                             <span>{u.phone_number || 'No phone number'}</span>
                           </div>
                           <div className="text-[11px] text-zinc-400 mt-1.5 flex items-start gap-1.5 max-w-sm">
-                            <MapPin className="w-3.5 h-3.5 text-blue-400 flex-shrink-0 mt-0.5" />
+                            <MapPin className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0 mt-0.5" />
                             <span className="line-clamp-2 leading-relaxed">{u.address || 'No physical address provided'}</span>
                           </div>
                         </td>
@@ -364,7 +364,7 @@ export function UsersTab({
                     {/* Pagination Controller Row */}
                     {totalPages > 1 && (
                       <tr>
-                        <td colSpan={3} className="p-4 bg-[#141418] border-t border-white/10">
+                        <td colSpan={3} className="p-4 bg-[#141414] border-t border-[#222222]">
                           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[11px]">
                             <div className="text-zinc-400">
                               Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} users
@@ -424,27 +424,27 @@ export function UsersTab({
       {/* DETAILED USER PROFILE MODAL DRAWER */}
       {showUserModal && activeUser && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 font-sans text-xs">
-          <div className="bg-[#18181c] border border-white/15 rounded-2xl p-6 sm:p-7 w-full max-w-lg relative text-left shadow-2xl">
+          <div className="bg-[#181818] border border-[#2a2a2a] rounded-xl p-6 sm:p-7 w-full max-w-lg relative text-left shadow-2xl">
             <button
               type="button"
               onClick={() => setShowUserModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="absolute top-4 right-4 p-1.5 bg-[#222222] hover:bg-[#2a2a2a] border border-[#333333] rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
 
             <h3 className="font-sans font-bold text-lg text-white mb-6 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+              <span className="w-2.5 h-2.5 rounded-full bg-white" />
               User Profile & Details
             </h3>
 
             {/* USER PROFILE METADATA */}
-            <div className="bg-[#141418] border border-white/10 rounded-xl p-4 space-y-3 mb-6 text-zinc-300 font-sans">
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+            <div className="bg-[#121212] border border-[#222222] rounded-lg p-4 space-y-3 mb-6 text-zinc-300 font-sans">
+              <div className="flex justify-between border-b border-[#222222] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">User ID</span>
                 <span className="text-white font-mono font-bold select-all">{activeUser.id}</span>
               </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+              <div className="flex justify-between border-b border-[#222222] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Full Name</span>
                 <span className="text-white font-bold text-sm">{activeUser.full_name || 'Anonymous'}</span>
               </div>

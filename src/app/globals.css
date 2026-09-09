@@ -7,14 +7,21 @@
     
     /* ProducerToy Theme Palette (Monochrome White/Black/Slate - STRICTLY ZERO ORANGE) */
     --epic-bg: #121212;
-    --epic-card: #202020;
-    --epic-card-hover: #2a2a2a;
-    --epic-border: #2a2a2a;
-    --epic-border-hover: #383838;
+    --epic-card: #181818;
+    --epic-card-hover: #202020;
+    --epic-border: #222222;
+    --epic-border-hover: #2e2e2e;
     --epic-accent: #ffffff;
     --epic-accent-hover: #e4e4e7;
     --epic-text: #ffffff;
     --epic-muted: #a0a0a0;
+
+    /* Dynamic User-Controlled Accent Variables */
+    --theme-accent: #ffffff;
+    --theme-accent-rgb: 255, 255, 255;
+    --theme-accent-bg: rgba(255, 255, 255, 0.08);
+    --theme-accent-border: rgba(255, 255, 255, 0.2);
+    --theme-accent-text: #ffffff;
   }
 
   html {

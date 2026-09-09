@@ -83,7 +83,7 @@ export function TicketsTab({
 
   return (
     <div className="space-y-6 animate-fadeIn font-mono text-xs">
-      <div className="bg-[#18181c] p-4 sm:p-5 border border-white/10 rounded-2xl shadow-md flex items-center justify-between">
+      <div className="bg-[#181818] p-4 sm:p-5 border border-[#222222] rounded-xl shadow-sm flex items-center justify-between">
         <div>
           <h3 className="font-sans font-bold text-lg text-white">
             Customer Support Tickets
@@ -95,10 +95,10 @@ export function TicketsTab({
       </div>
 
       {/* TICKETS TABLE LIST */}
-      <div className="border border-white/10 rounded-2xl bg-[#18181c] overflow-x-auto shadow-md">
+      <div className="border border-[#222222] rounded-xl bg-[#181818] overflow-x-auto shadow-sm">
         <table className="w-full text-left text-xs font-sans border-collapse">
           <thead>
-            <tr className="bg-[#141418] border-b border-white/10 text-zinc-400 text-[10px] uppercase font-semibold tracking-wider">
+            <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[10px] uppercase font-semibold tracking-wider">
               <th className="p-4">User</th>
               <th className="p-4">Subject & Category</th>
               <th className="p-4 text-center">Status</th>
@@ -106,7 +106,7 @@ export function TicketsTab({
               <th className="p-4 text-center">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.04]">
+          <tbody className="divide-y divide-[#222222]">
             {tickets.length === 0 ? (
               <tr>
                 <td colSpan={5} className="p-8 text-center text-zinc-500 font-sans">
@@ -161,30 +161,30 @@ export function TicketsTab({
         <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
           <form
             onSubmit={handleTicketReply}
-            className="w-full max-w-4xl border border-white/15 bg-[#18181c] rounded-2xl p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto font-sans text-xs flex flex-col md:flex-row gap-6"
+            className="w-full max-w-4xl border border-[#2a2a2a] bg-[#181818] rounded-xl p-6 sm:p-7 shadow-2xl relative max-h-[90vh] overflow-y-auto font-sans text-xs flex flex-col md:flex-row gap-6"
           >
             <button
               type="button"
               onClick={() => setShowTicketModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer z-30"
+              className="absolute top-4 right-4 p-1.5 bg-[#222222] hover:bg-[#2a2a2a] border border-[#333333] rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer z-30"
             >
               <X className="w-4 h-4" />
             </button>
 
             {/* LEFT COLUMN: INTERACTIVE LIVE CONVERSATION FLOW */}
             <div className="flex-1 flex flex-col space-y-4">
-              <h3 className="font-sans font-bold text-lg text-white border-b border-white/10 pb-3 flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
+              <h3 className="font-sans font-bold text-lg text-white border-b border-[#242424] pb-3 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-white" />
                 Support Conversation Thread
               </h3>
 
               {/* CHAT MESSAGES THREAD COMPONENT */}
-              <div className="bg-[#141418] border border-white/10 rounded-xl p-4 space-y-4 max-h-[42vh] overflow-y-auto min-h-60 flex flex-col justify-end">
+              <div className="bg-[#121212] border border-[#222222] rounded-xl p-4 space-y-4 max-h-[42vh] overflow-y-auto min-h-60 flex flex-col justify-end">
                 {/* 1. CUSTOMER CHAT BUBBLE (LEFT) */}
                 <div className="flex flex-col items-start max-w-[85%] self-start space-y-1">
                   <span className="text-[8px] text-zinc-500 font-bold uppercase">{activeTicket.user_name} ({new Date(activeTicket.created_at).toLocaleDateString()})</span>
-                  <div className="bg-white/[0.05] border border-white/10 text-zinc-100 p-3.5 rounded-2xl rounded-tl-sm text-xs font-sans leading-relaxed select-all">
-                    <p className="font-bold text-purple-400 uppercase text-[9px] tracking-wider mb-1">Subject: {activeTicket.subject}</p>
+                  <div className="bg-[#1c1c1c] border border-[#262626] text-zinc-100 p-3.5 rounded-2xl rounded-tl-sm text-xs font-sans leading-relaxed select-all">
+                    <p className="font-bold text-zinc-300 uppercase text-[9px] tracking-wider mb-1">Subject: {activeTicket.subject}</p>
                     {activeTicket.message}
                   </div>
                 </div>
@@ -211,7 +211,7 @@ export function TicketsTab({
                       onChange={e => setTicketReply(e.target.value)}
                       rows={3}
                       placeholder="Type your official resolution response... Clicking submit will email the customer and resolve the ticket..."
-                      className="w-full bg-[#141418] border border-white/10 rounded-xl p-3 text-white outline-none focus:border-white/25 font-medium text-xs leading-relaxed"
+                      className="w-full bg-[#121212] border border-[#252525] rounded-xl p-3 text-white outline-none focus:border-zinc-500 font-medium text-xs leading-relaxed"
                     />
                   </div>
 
@@ -235,8 +235,8 @@ export function TicketsTab({
             </div>
 
             {/* RIGHT COLUMN: ENTERPRISE CRM META & CONTROLS */}
-            <div className="w-full md:w-72 bg-[#141418] border border-white/10 rounded-xl p-4 flex flex-col space-y-4">
-              <h4 className="font-sans font-bold text-xs uppercase tracking-wider text-zinc-400 border-b border-white/10 pb-2">
+            <div className="w-full md:w-72 bg-[#121212] border border-[#222222] rounded-xl p-4 flex flex-col space-y-4">
+              <h4 className="font-sans font-bold text-xs uppercase tracking-wider text-zinc-400 border-b border-[#242424] pb-2">
                 Ticket Details
               </h4>
 
