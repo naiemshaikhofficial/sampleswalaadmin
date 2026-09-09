@@ -119,10 +119,10 @@ export function LogsTab({
                             l.type === 'danger'
                               ? 'bg-red-500/15 text-red-400 border border-red-500/30'
                               : l.type === 'warning'
-                                ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                                ? 'bg-white/10 text-white border border-white/20'
                                 : l.type === 'success'
                                   ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
-                                  : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                                  : 'bg-white/5 text-zinc-300 border border-white/15'
                           }`}>
                             {l.action}
                           </span>

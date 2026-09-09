@@ -341,7 +341,7 @@ export function SalesTab({
                {activeOrder.coupon && (
                 <div className="flex justify-between border-b border-white/[0.06] pb-2">
                   <span className="text-zinc-500 font-bold uppercase text-[10px]">Coupon Applied</span>
-                  <span className="text-amber-400 font-bold uppercase text-[10px]">
+                  <span className="text-zinc-200 font-bold uppercase text-[10px]">
                     {activeOrder.coupon.code} ({activeOrder.coupon.discount_percent}% OFF)
                   </span>
                 </div>

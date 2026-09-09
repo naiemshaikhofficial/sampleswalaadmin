@@ -317,7 +317,7 @@ export function AnalyticsTab({
         <div className="bg-[#18181c] border border-white/10 rounded-2xl shadow-md p-3 sm:p-3.5 flex flex-col justify-between hover:border-white/[0.15] transition-all shadow-sm group">
           <div className="flex items-center justify-between text-zinc-500">
             <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">Paid Ratio</span>
-            <div className="p-1 rounded bg-amber-500/10 text-amber-400">
+            <div className="p-1 rounded bg-white/10 text-white">
               <Sparkles className="w-3.5 h-3.5" />
             </div>
           </div>
@@ -349,13 +349,13 @@ export function AnalyticsTab({
         </div>
       </div>
 
-      {/* ⚠️ STORE ALERTS & PENDING TASKS (If any open tickets or pending KYCs) */}
+      {/* STORE ALERTS & PENDING TASKS (If any open tickets or pending KYCs) */}
       {(stats.openTickets > 0 || stats.pendingKYCs > 0) && (
-        <div className="bg-amber-950/20 border border-amber-500/30 rounded-xl p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="bg-[#1c1c1c] border border-[#2e2e2e] rounded-xl p-3 sm:p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5">
-            <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 animate-pulse" />
+            <AlertCircle className="w-4 h-4 text-zinc-300 flex-shrink-0" />
             <div>
-              <span className="font-sans font-semibold text-amber-200">
+              <span className="font-sans font-semibold text-white">
                 Action Required:
               </span>{' '}
               <span className="text-zinc-300">
@@ -370,7 +370,7 @@ export function AnalyticsTab({
               <button
                 type="button"
                 onClick={() => setActiveTab('tickets')}
-                className="px-2.5 py-1 text-[11px] font-medium bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 rounded-lg transition-all cursor-pointer flex items-center gap-1"
+                className="px-2.5 py-1 text-[11px] font-medium bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg transition-all cursor-pointer flex items-center gap-1"
               >
                 View Tickets <ArrowRight className="w-3 h-3" />
               </button>
@@ -379,7 +379,7 @@ export function AnalyticsTab({
               <button
                 type="button"
                 onClick={() => setActiveTab('kyc')}
-                className="px-2.5 py-1 text-[11px] font-medium bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/40 text-blue-200 rounded-lg transition-all cursor-pointer flex items-center gap-1"
+                className="px-2.5 py-1 text-[11px] font-medium bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-lg transition-all cursor-pointer flex items-center gap-1"
               >
                 Review KYCs <ArrowRight className="w-3 h-3" />
               </button>
@@ -746,7 +746,7 @@ export function AnalyticsTab({
                 <span className="text-[10px] font-sans font-semibold uppercase tracking-wider text-zinc-400">
                   Total Revenue
                 </span>
-                <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                <div className="p-1.5 rounded-lg bg-white/10 border border-white/20 text-white">
                   <DollarSign className="w-3.5 h-3.5" />
                 </div>
               </div>

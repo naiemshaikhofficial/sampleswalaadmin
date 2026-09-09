@@ -296,7 +296,7 @@ export function UsersTab({
                                   {u.credits ?? 0} Credits
                                 </span>
                                 {u.subscription_status === 'ACTIVE' && (
-                                  <span className="text-[10px] bg-amber-500/15 border border-amber-500/30 text-amber-300 px-2 py-0.5 rounded font-bold uppercase">
+                                  <span className="text-[10px] bg-white/10 border border-white/20 text-zinc-200 px-2 py-0.5 rounded font-bold uppercase">
                                     {u.subscription_tier}
                                   </span>
                                 )}
@@ -468,18 +468,18 @@ export function UsersTab({
               </div>
               <div className="flex justify-between border-b border-white/[0.06] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Subscription Tier</span>
-                <span className="text-amber-400 font-bold uppercase">{activeUser.subscription_tier || 'NONE'} ({activeUser.subscription_status || 'INACTIVE'})</span>
+                <span className="text-zinc-200 font-bold uppercase">{activeUser.subscription_tier || 'NONE'} ({activeUser.subscription_status || 'INACTIVE'})</span>
               </div>
               <div className="flex justify-between border-b border-white/[0.06] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Auth Provider</span>
                 <span className="text-white font-bold uppercase flex items-center gap-1.5">
                   {activeUser.provider === 'google' ? (
                     <>
-                      <span className="w-2 h-2 rounded-full bg-blue-500" /> Google SSO
+                      <span className="w-2 h-2 rounded-full bg-white" /> Google SSO
                     </>
                   ) : (
                     <>
-                      <span className="w-2 h-2 rounded-full bg-amber-400" /> Email & Password
+                      <span className="w-2 h-2 rounded-full bg-zinc-400" /> Email & Password
                     </>
                   )}
                 </span>
@@ -529,7 +529,7 @@ export function UsersTab({
                     type="button"
                     disabled={actionLoading}
                     onClick={() => handleUnbanUser(activeUser.id, activeUser.email)}
-                    className="flex-1 studio-button bg-[#00FF94] hover:bg-[#00FF94]/90 text-black font-bold uppercase py-2.5 text-xs rounded-xl cursor-pointer disabled:opacity-50"
+                    className="flex-1 bg-white hover:bg-zinc-200 text-black font-bold uppercase py-2.5 text-xs rounded-lg cursor-pointer disabled:opacity-50 transition-all"
                   >
                     Activate & Unban
                   </button>
@@ -538,7 +538,7 @@ export function UsersTab({
                     type="button"
                     disabled={actionLoading}
                     onClick={() => handleBanUser(activeUser.id, activeUser.email)}
-                    className="flex-1 studio-button bg-amber-600 hover:bg-amber-500 text-white font-bold uppercase py-2.5 text-xs rounded-xl cursor-pointer disabled:opacity-50"
+                    className="flex-1 bg-[#252525] hover:bg-[#303030] text-zinc-200 border border-[#383838] font-bold uppercase py-2.5 text-xs rounded-lg cursor-pointer disabled:opacity-50 transition-all"
                   >
                     Ban Account
                   </button>
@@ -548,7 +548,7 @@ export function UsersTab({
                   type="button"
                   disabled={actionLoading}
                   onClick={() => handleDeleteUser(activeUser.id, activeUser.email)}
-                  className="flex-1 studio-button bg-red-600 hover:bg-red-500 text-white font-bold uppercase py-2.5 text-xs rounded-xl cursor-pointer disabled:opacity-50"
+                  className="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold uppercase py-2.5 text-xs rounded-lg cursor-pointer disabled:opacity-50 transition-all"
                 >
                   Delete Account
                 </button>

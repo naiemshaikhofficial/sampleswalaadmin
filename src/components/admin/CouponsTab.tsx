@@ -365,7 +365,7 @@ export function CouponsTab({
                   type="checkbox"
                   checked={activeCoupon.is_active}
                   onChange={e => setActiveCoupon((prev: any) => ({ ...prev, is_active: e.target.checked }))}
-                  className="accent-blue-500"
+                  className="accent-white"
                 />
                 Enabled for Checkout
               </label>
@@ -373,11 +373,11 @@ export function CouponsTab({
               <button
                 type="submit"
                 disabled={saveLoading}
-                className="studio-button w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl cursor-pointer"
+                className="w-full mt-4 bg-white hover:bg-zinc-200 text-black font-bold py-3 rounded-lg cursor-pointer transition-all shadow-sm"
               >
                 {saveLoading ? 'Saving...' : (
                   <>
-                    <Check className="w-4 h-4" /> Save Coupon
+                    <Check className="w-4 h-4 text-black" /> Save Coupon
                   </>
                 )}
               </button>

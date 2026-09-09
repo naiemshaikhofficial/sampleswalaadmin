@@ -458,7 +458,7 @@ export function NewsletterTab({
             </button>
 
             <h3 className="font-sans font-bold text-lg text-white mb-2 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+              <span className="w-2.5 h-2.5 rounded-full bg-white" />
               Add Subscriber
             </h3>
 
@@ -475,7 +475,7 @@ export function NewsletterTab({
                   value={newsletterEmailInput}
                   onChange={e => setNewsletterEmailInput(e.target.value)}
                   placeholder="e.g. producer@gmail.com"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-2.5 text-white outline-none focus:border-amber-400 text-xs"
+                  className="w-full bg-[#121212] border border-[#2a2a2a] rounded-lg p-2.5 text-white outline-none focus:border-white text-xs transition-colors"
                 />
               </div>
 
@@ -483,14 +483,14 @@ export function NewsletterTab({
                 <button
                   type="button"
                   onClick={() => setShowSubscribeModal(false)}
-                  className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 font-semibold text-xs rounded-xl transition-all cursor-pointer"
+                  className="flex-1 py-2.5 bg-[#202020] hover:bg-[#282828] text-zinc-300 border border-[#333333] font-semibold text-xs rounded-lg transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={actionLoading}
-                  className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs rounded-xl transition-all disabled:opacity-50 cursor-pointer"
+                  className="flex-1 py-2.5 bg-white hover:bg-zinc-200 text-black font-bold text-xs rounded-lg transition-all disabled:opacity-50 cursor-pointer shadow-sm"
                 >
                   {actionLoading ? 'Processing...' : 'Subscribe Email'}
                 </button>

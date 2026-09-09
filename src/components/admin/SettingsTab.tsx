@@ -42,9 +42,9 @@ export function SettingsTab({
   return (
     <div className="space-y-6 animate-fadeIn font-sans text-xs">
       {/* HEADER CARD */}
-      <div className="bg-[#18181c] p-5 sm:p-6 border border-white/10 rounded-2xl shadow-md">
+      <div className="bg-[#181818] p-5 sm:p-6 border border-[#2a2a2a] rounded-xl shadow-md">
         <h3 className="font-sans font-bold text-lg text-white flex items-center gap-2.5">
-          <Sliders className="w-5 h-5 text-blue-400" />
+          <Sliders className="w-5 h-5 text-white" />
           Site Configuration & Controls
         </h3>
         <p className="text-zinc-400 text-xs mt-1">
@@ -53,10 +53,10 @@ export function SettingsTab({
       </div>
 
       {/* STAFF RBAC CONTROLS CARD */}
-      <div className="border border-white/10 bg-[#18181c] p-6 rounded-2xl shadow-md font-sans">
-        <div className="max-w-xl pb-4 border-b border-white/[0.06] mb-6">
+      <div className="border border-[#2a2a2a] bg-[#181818] p-6 rounded-xl shadow-md font-sans">
+        <div className="max-w-xl pb-4 border-b border-[#2a2a2a] mb-6">
           <h4 className="text-base font-bold text-white flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-amber-400" />
+            <ShieldAlert className="w-4 h-4 text-zinc-300" />
             Staff Authorization & Role Clearance
           </h4>
           <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
@@ -76,14 +76,14 @@ export function SettingsTab({
               onClick={() => handleRoleChange(r.id)}
               className={`p-4 border text-left flex flex-col justify-between transition-all rounded-xl cursor-pointer ${
                 role === r.id
-                  ? 'bg-blue-600/15 border-blue-500/50 text-white shadow-sm'
-                  : 'bg-black/30 border-white/10 text-zinc-400 hover:text-zinc-200 hover:border-white/20'
+                  ? 'bg-white/10 border-white text-white shadow-sm'
+                  : 'bg-[#141414] border-[#2a2a2a] text-zinc-400 hover:text-zinc-200 hover:border-[#383838]'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-white">{r.id}</span>
                 {role === r.id && (
-                  <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
                 )}
               </div>
               <span className="text-[11px] leading-relaxed text-zinc-400 mt-2 block">
@@ -95,15 +95,15 @@ export function SettingsTab({
       </div>
 
       {/* Announcement Banner Card */}
-      <div className="border border-white/10 bg-[#18181c] p-6 rounded-2xl shadow-md font-sans">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/[0.06]">
+      <div className="border border-[#2a2a2a] bg-[#181818] p-6 rounded-xl shadow-md font-sans">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#2a2a2a]">
           <div className="max-w-xl">
             <h4 className="text-base font-bold text-white flex items-center gap-2">
-              <Megaphone className="w-4 h-4 text-orange-400" />
+              <Megaphone className="w-4 h-4 text-zinc-300" />
               Launch Offer Announcement Banner
             </h4>
             <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
-              Controls the visibility of the top header announcement strip displaying the <span className="text-orange-400 font-semibold">₹499 Launch Offer</span> across the main website.
+              Controls the visibility of the top header announcement strip displaying the <span className="text-white font-semibold">₹499 Launch Offer</span> across the main website.
             </p>
           </div>
 
@@ -114,30 +114,30 @@ export function SettingsTab({
               onClick={handleToggleLaunchOffer}
               disabled={bannerPending}
               className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300 focus:outline-none disabled:opacity-50 cursor-pointer ${
-                bannerEnabled ? 'bg-[#00FF94]' : 'bg-white/10'
+                bannerEnabled ? 'bg-white' : 'bg-[#282828]'
               }`}
             >
               <span className="sr-only">Toggle banner</span>
               <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 shadow-md ${
+                className={`inline-block h-5 w-5 transform rounded-full bg-[#121212] transition-transform duration-300 shadow-md ${
                   bannerEnabled ? 'translate-x-6' : 'translate-x-1'
                 } flex items-center justify-center`}
               >
-                {bannerPending && <RefreshCw size={11} className="animate-spin text-zinc-900" />}
+                {bannerPending && <RefreshCw size={11} className="animate-spin text-white" />}
               </span>
             </button>
-            <span className={`text-xs font-semibold min-w-14 ${bannerEnabled ? 'text-[#00FF94]' : 'text-zinc-500'}`}>
+            <span className={`text-xs font-semibold min-w-14 ${bannerEnabled ? 'text-white' : 'text-zinc-500'}`}>
               {bannerEnabled ? 'Active' : 'Hidden'}
             </span>
           </div>
         </div>
 
-        <div className="mt-5 bg-black/40 border border-white/[0.06] p-3.5 rounded-xl">
+        <div className="mt-5 bg-[#121212] border border-[#2a2a2a] p-3.5 rounded-xl">
           <div className="flex items-center gap-2 font-mono text-[11px]">
             <span className="text-zinc-500">Database Key:</span>
             <span className="text-zinc-200 font-semibold">show_launch_offer</span>
             <span className="text-zinc-600">→</span>
-            <span className={bannerEnabled ? 'text-[#00FF94] font-bold' : 'text-zinc-500 font-bold'}>
+            <span className={bannerEnabled ? 'text-white font-bold' : 'text-zinc-500 font-bold'}>
               {String(bannerEnabled)}
             </span>
           </div>
@@ -145,15 +145,15 @@ export function SettingsTab({
       </div>
 
       {/* Flash Sale Settings Card */}
-      <div className="border border-white/10 bg-[#18181c] p-6 rounded-2xl shadow-md font-sans">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-white/[0.06]">
+      <div className="border border-[#2a2a2a] bg-[#181818] p-6 rounded-xl shadow-md font-sans">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#2a2a2a]">
           <div className="max-w-xl">
             <h4 className="text-base font-bold text-white flex items-center gap-2">
-              <Zap className="w-4 h-4 text-yellow-400" />
+              <Zap className="w-4 h-4 text-zinc-300" />
               Flash Sale Sidebar Promotion Box
             </h4>
             <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
-              Controls the visibility of the <span className="text-yellow-400 font-semibold">Flash Sale Card</span> showcasing curated discount offers in the browse filter sidebar.
+              Controls the visibility of the <span className="text-white font-semibold">Flash Sale Card</span> showcasing curated discount offers in the browse filter sidebar.
             </p>
           </div>
 
@@ -164,30 +164,30 @@ export function SettingsTab({
               onClick={handleToggleFlashSale}
               disabled={flashSalePending}
               className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-300 focus:outline-none disabled:opacity-50 cursor-pointer ${
-                flashSaleEnabled ? 'bg-[#00FF94]' : 'bg-white/10'
+                flashSaleEnabled ? 'bg-white' : 'bg-[#282828]'
               }`}
             >
               <span className="sr-only">Toggle flash sale</span>
               <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 shadow-md ${
+                className={`inline-block h-5 w-5 transform rounded-full bg-[#121212] transition-transform duration-300 shadow-md ${
                   flashSaleEnabled ? 'translate-x-6' : 'translate-x-1'
                 } flex items-center justify-center`}
               >
-                {flashSalePending && <RefreshCw size={11} className="animate-spin text-zinc-900" />}
+                {flashSalePending && <RefreshCw size={11} className="animate-spin text-white" />}
               </span>
             </button>
-            <span className={`text-xs font-semibold min-w-14 ${flashSaleEnabled ? 'text-[#00FF94]' : 'text-zinc-500'}`}>
+            <span className={`text-xs font-semibold min-w-14 ${flashSaleEnabled ? 'text-white' : 'text-zinc-500'}`}>
               {flashSaleEnabled ? 'Active' : 'Hidden'}
             </span>
           </div>
         </div>
 
-        <div className="mt-5 bg-black/40 border border-white/[0.06] p-3.5 rounded-xl">
+        <div className="mt-5 bg-[#121212] border border-[#2a2a2a] p-3.5 rounded-xl">
           <div className="flex items-center gap-2 font-mono text-[11px]">
             <span className="text-zinc-500">Database Key:</span>
             <span className="text-zinc-200 font-semibold">show_flash_sale</span>
             <span className="text-zinc-600">→</span>
-            <span className={flashSaleEnabled ? 'text-[#00FF94] font-bold' : 'text-zinc-500 font-bold'}>
+            <span className={flashSaleEnabled ? 'text-white font-bold' : 'text-zinc-500 font-bold'}>
               {String(flashSaleEnabled)}
             </span>
           </div>

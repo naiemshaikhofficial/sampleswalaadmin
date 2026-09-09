@@ -1,328 +1,280 @@
 @import "tailwindcss";
 
-@theme {
-  --color-studio-yellow: #FFE600;
-  --color-studio-yellow-hover: #FFF066;
-  --color-studio-pink: #0074e4; /* Swapped to Epic Games Accent Blue */
-  --color-studio-blue: #0074e4; /* Swapped to Epic Games Accent Blue */
-  --color-studio-orange: #FF5C00;
-  --color-studio-purple: #BF00FF;
-  --color-studio-neon: #00FF94; /* Neon Green */
-  --color-studio-red: #FF3131; /* Vibrant Neon Red */
-  --color-studio-grey: #1e1e1e;
-  --color-studio-charcoal: #0a0a0a;
-
-  /* Glass UI */
-  --color-glass-white: rgba(255, 255, 255, 0.03);
-  --color-glass-border: rgba(255, 255, 255, 0.1);
-  --color-glass-glow: rgba(0, 116, 228, 0.15);
-
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  --font-luckiest-guy: var(--font-luckiest-guy);
-  --font-kalam: var(--font-kalam);
-  --font-permanent-marker: var(--font-permanent-marker);
-
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-
-  --shadow-premium: 0px 8px 30px rgba(0, 0, 0, 0.55);
-  --shadow-neon-pink: 0 0 15px rgba(0, 116, 228, 0.35);
-  --shadow-neon-blue: 0 0 15px rgba(0, 116, 228, 0.35);
-}
-
-@utility graffiti-text {
-  text-shadow: 4px 4px 0px black, 8px 8px 0px var(--color-studio-pink);
-}
-
-:root {
-  --background: 0 0% 7%;
-  --foreground: 0 0% 100%;
-}
-
-html,
-body {
-  overflow-x: clip;
-}
-
-body {
-  background-color: #121212 !important;
-  color: white;
-  user-select: text;
-  font-family: var(--font-mono);
-  animation: fadeIn 0.4s ease-in-out;
-  min-height: 100vh;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
+@layer base {
+  :root {
+    color-scheme: dark;
+    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    
+    /* ProducerToy Theme Palette (Monochrome White/Black/Slate - STRICTLY ZERO ORANGE) */
+    --epic-bg: #121212;
+    --epic-card: #202020;
+    --epic-card-hover: #2a2a2a;
+    --epic-border: #2a2a2a;
+    --epic-border-hover: #383838;
+    --epic-accent: #ffffff;
+    --epic-accent-hover: #e4e4e7;
+    --epic-text: #ffffff;
+    --epic-muted: #a0a0a0;
   }
-  to {
-    opacity: 1;
+
+  html {
+    color-scheme: dark;
+    background-color: #121212;
+    color: #ffffff;
+  }
+
+  body {
+    color-scheme: dark;
+    background-color: #121212;
+    color: #ffffff;
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  /* Disable Image Drag & Drop and Selection Across Entire Site */
+  img, svg, picture {
+    -webkit-user-drag: none !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+  }
+
+  /* Next.js Fill Image Containment Safeguard */
+  img[data-nimg="fill"] {
+    max-width: 100% !important;
+    max-height: 100% !important;
+  }
+
+  /* Allow standard text selection in input fields */
+  input, textarea {
+    user-select: text !important;
+    -webkit-user-select: text !important;
   }
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+::selection {
+  background-color: #ffffff;
+  color: #000000;
 }
 
-::-webkit-scrollbar-track {
-  background: #000;
+::-moz-selection {
+  background-color: #ffffff;
+  color: #000000;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 2.5px;
+*:focus {
+  outline: none;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-studio-pink);
+/* ==============================================================================
+   PRODUCERTOY EPIC STORE UI TOKENS (MONOCHROME BLACK & WHITE - NO ORANGE)
+   ============================================================================== */
+
+.epic-card {
+  background-color: #202020;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* Modern Studio Panel & Components Matching SamplesWala2 */
-.studio-panel {
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: #18181c;
-  backdrop-filter: blur(20px);
-  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.6);
-  border-radius: 16px;
+.epic-card:hover {
+  background-color: #2a2a2a;
+  border-color: #383838;
 }
 
-.studio-button {
-  padding: 0.65rem 1.25rem;
-  background-color: #0074e4;
-  color: white;
+.epic-badge {
+  background-color: #2a2a2a;
+  color: #ffffff;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 11px;
-  border-radius: 10px;
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0px 4px 12px rgba(0, 116, 228, 0.25);
-  cursor: pointer;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.studio-button:hover {
-  background-color: #0082f8;
-  transform: translateY(-1px);
-  box-shadow: 0px 6px 18px rgba(0, 116, 228, 0.4);
-  border-color: rgba(255, 255, 255, 0.25);
-}
-
-.studio-button:active {
-  transform: translateY(1px);
-  box-shadow: 0px 2px 6px rgba(0, 116, 228, 0.2);
-}
-
-.comic-text {
-  text-shadow: none;
-}
-
-.neon-border, .pink-border, .blue-border, .yellow-border, .orange-border {
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5) !important;
-  border-radius: 12px !important;
-}
-
-.comic-panel {
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  background: #18181c !important;
-  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.6) !important;
-  border-radius: 16px !important;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
-}
-
-.comic-panel:hover {
-  border-color: rgba(255, 255, 255, 0.2) !important;
-  box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.8), 0 0 15px rgba(0, 116, 228, 0.15) !important;
-  transform: translateY(-2px) !important;
-}
-
-.comic-panel::before {
-  display: none !important;
-}
-
-/* Redefined to Clean Studio Action Button */
-.comic-button {
-  position: relative;
-  padding: 0.65rem 1.25rem;
+.epic-btn {
   background-color: #ffffff;
   color: #000000;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-size: 11px;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  border-radius: 10px !important;
-  box-shadow: 0px 4px 14px rgba(0, 0, 0, 0.4) !important;
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  font-size: 0.8125rem;
 }
 
-.comic-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0px 6px 18px rgba(255, 255, 255, 0.2) !important;
-  background-color: #f0f0f0 !important;
+.epic-btn:hover {
+  background-color: #e4e4e7;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.2);
 }
 
-.comic-button:active {
-  transform: translateY(1px);
-  box-shadow: none !important;
+.epic-btn:active {
+  transform: scale(0.98);
 }
 
-.animate-rainbow {
-  animation: rainbow 3s linear infinite;
+.epic-dark-btn {
+  background-color: #202020;
+  color: #ffffff;
+  border: 1px solid #333333;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
 }
 
-@keyframes rainbow {
-  0% { color: #ff0000; text-shadow: 2px 2px 0px #000; }
-  17% { color: #ff8800; text-shadow: 2px 2px 0px #000; }
-  33% { color: #ffff00; text-shadow: 2px 2px 0px #000; }
-  50% { color: #00ff00; text-shadow: 2px 2px 0px #000; }
-  67% { color: #0000ff; text-shadow: 2px 2px 0px #000; }
-  83% { color: #8800ff; text-shadow: 2px 2px 0px #000; }
-  100% { color: #ff0000; text-shadow: 2px 2px 0px #000; }
+.epic-dark-btn:hover {
+  background-color: #2a2a2a;
+  border-color: #444444;
 }
 
-/* Responsive Table Wrappers */
-.table-responsive {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+.epic-dark-btn:active {
+  transform: scale(0.98);
 }
 
-/* ======================================================== */
-/* BRUTALIST TO PREMIUM STUDIO THEME MAPPING & OVERRIDES    */
-/* ======================================================== */
-
-.border-4.border-black {
-  border-width: 1px !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  border-radius: 16px !important;
-  background-color: #18181c !important;
-  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.5) !important;
+/* Standardized Shared Button Tokens (Pure Monochrome) */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #000000;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 14px rgba(255, 255, 255, 0.15);
+  cursor: pointer;
 }
 
-.border-3.border-black {
-  border-width: 1px !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  border-radius: 12px !important;
-  background-color: #18181c !important;
+.btn-primary:hover {
+  background-color: #e4e4e7;
+  box-shadow: 0 6px 18px rgba(255, 255, 255, 0.25);
 }
 
-.border-2.border-black {
-  border-width: 1px !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
-  border-radius: 10px !important;
+.btn-primary:active {
+  transform: scale(0.98);
 }
 
-.border-b-4.border-black {
-  border-bottom-width: 1px !important;
-  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  background-color: #202020;
+  border: 1px solid #303030;
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  cursor: pointer;
 }
 
-.border-t-4.border-black {
-  border-top-width: 1px !important;
-  border-top-color: rgba(255, 255, 255, 0.08) !important;
+.btn-secondary:hover {
+  background-color: #2a2a2a;
+  border-color: #555555;
 }
 
-.border-r-4.border-black {
-  border-right-width: 1px !important;
-  border-right-color: rgba(255, 255, 255, 0.08) !important;
+.btn-secondary:active {
+  transform: scale(0.98);
 }
 
-/* Override blocky shadows to high-end soft studio drop shadows */
-[class*="shadow-["] {
-  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.55) !important;
+.btn-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 6px;
+  background-color: #202020;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e4e4e7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+  cursor: pointer;
 }
 
-/* Modern inputs, selects, textareas overrides */
-input, select, textarea {
-  border-radius: 10px !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  background-color: #141418 !important;
-  color: white !important;
-  padding: 0.65rem 0.85rem !important;
-  font-family: var(--font-mono) !important;
-  font-size: 11px !important;
-  font-weight: 500 !important;
-  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+.btn-icon:hover {
+  background-color: #303030;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
-input:focus, select:focus, textarea:focus {
-  outline: none !important;
-  border-color: #0074e4 !important;
-  box-shadow: 0 0 12px rgba(0, 116, 228, 0.3) !important;
-  background-color: #1a1a20 !important;
+.btn-icon:active {
+  transform: scale(0.95);
 }
 
-/* Dialog backdrop blur */
-.fixed.inset-0.bg-black\/92,
-.fixed.inset-0.bg-black\/80 {
-  background-color: rgba(10, 10, 12, 0.85) !important;
-  backdrop-filter: blur(12px) !important;
+/* Custom ProducerToy Epic Games Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
 }
 
-/* Table styling optimization */
-table {
-  border-collapse: separate !important;
-  border-spacing: 0 !important;
-  width: 100% !important;
-  font-family: var(--font-mono) !important;
+::-webkit-scrollbar-track {
+  background: #121212;
 }
 
-thead {
-  background-color: #141418 !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 4px;
 }
 
-thead th {
-  color: #a1a1aa !important;
-  font-weight: 700 !important;
-  text-transform: uppercase !important;
-  font-size: 10px !important;
-  padding: 0.85rem 1rem !important;
-  letter-spacing: 0.05em !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+::-webkit-scrollbar-thumb:hover {
+  background: #ffffff;
 }
 
-tbody tr {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
-  transition: background-color 0.2s ease;
+/* Universal Autofill Overrides */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0 1000px #202020 inset !important;
+  box-shadow: 0 0 0 1000px #202020 inset !important;
+  transition: background-color 5000000s ease-in-out 0s !important;
+  caret-color: #ffffff !important;
+  color: #ffffff !important;
 }
 
-tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.03) !important;
+/* Fade animation for instant click & load feel */
+@keyframes fadeInFast {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-tbody td {
-  padding: 0.85rem 1rem !important;
-  color: #d4d4d8 !important;
-  font-size: 11px !important;
-  vertical-align: middle !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
-}
-
-/* Title badges overrides */
-.absolute.-top-5.left-6 {
-  top: -12px !important;
-  border-radius: 8px !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  padding: 0.25rem 0.75rem !important;
-  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.5) !important;
+.animate-fade-in {
+  animation: fadeInFast 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

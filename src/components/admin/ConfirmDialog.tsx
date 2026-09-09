@@ -26,11 +26,11 @@ export function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-[#18181c] border border-white/15 rounded-2xl p-6 w-full max-w-md relative text-left shadow-2xl font-sans">
+      <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-6 w-full max-w-md relative text-left shadow-2xl font-sans">
         {/* Header Banner */}
-        <div className="flex items-center gap-3 border-b border-white/[0.08] pb-4 mb-4">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-            isDanger ? 'bg-red-500/15 text-red-400 border border-red-500/30' : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+        <div className="flex items-center gap-3 border-b border-[#2a2a2a] pb-4 mb-4">
+          <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+            isDanger ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-white/10 text-white border border-white/15'
           }`}>
             {isDanger ? <AlertCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
           </div>
@@ -38,7 +38,7 @@ export function ConfirmDialog({
             <h4 className="font-bold text-base text-white">
               {title}
             </h4>
-            <span className="text-[10px] uppercase font-mono tracking-wider text-zinc-500 font-semibold block mt-0.5">
+            <span className="text-[10px] uppercase font-mono tracking-wider text-zinc-400 font-semibold block mt-0.5">
               Action Confirmation Required
             </span>
           </div>
@@ -54,17 +54,17 @@ export function ConfirmDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10 font-semibold text-xs rounded-xl transition-all cursor-pointer"
+            className="flex-1 py-2.5 bg-[#222222] hover:bg-[#282828] text-zinc-300 border border-[#333333] font-semibold text-xs rounded-lg transition-all cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className={`flex-1 py-2.5 font-bold text-xs rounded-xl transition-all cursor-pointer ${
+            className={`flex-1 py-2.5 font-bold text-xs rounded-lg transition-all cursor-pointer ${
               isDanger 
                 ? 'bg-red-600 hover:bg-red-500 text-white' 
-                : 'bg-[#00FF94] hover:bg-[#00FF94]/90 text-black'
+                : 'bg-white hover:bg-zinc-200 text-black'
             }`}
           >
             {confirmText}

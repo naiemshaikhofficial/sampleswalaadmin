@@ -128,7 +128,7 @@ export function TicketsTab({
                   </td>
                   <td className="p-4 text-center">
                     <span className={`inline-block text-[9px] font-bold uppercase px-2.5 py-1 rounded-full ${
-                      ticket.status === 'open' ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 animate-pulse' : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
+                      ticket.status === 'open' ? 'bg-white/10 border border-white/20 text-white' : 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400'
                     }`}>
                       {ticket.status === 'open' ? 'Open Ticket' : 'Resolved'}
                     </span>
@@ -218,7 +218,7 @@ export function TicketsTab({
                   <button
                     type="submit"
                     disabled={saveLoading}
-                    className="studio-button w-full bg-purple-600 hover:bg-purple-500 text-white font-bold uppercase py-2.5 text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
+                    className="w-full bg-white hover:bg-zinc-200 text-black font-bold uppercase py-2.5 text-xs rounded-lg flex items-center justify-center gap-1.5 cursor-pointer shadow-sm transition-all"
                   >
                     {saveLoading ? 'Submitting...' : (
                       <>

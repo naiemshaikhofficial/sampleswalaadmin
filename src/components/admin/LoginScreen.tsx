@@ -44,8 +44,8 @@ export function LoginScreen({
       <div className="w-full max-w-md">
         {session && !isAdmin ? (
           /* ACCESS DENIED CARD */
-          <div className="border border-white/10 bg-[#18181c] rounded-2xl p-8 shadow-2xl relative text-center">
-            <div className="w-14 h-14 bg-red-500/15 border border-red-500/30 rounded-2xl flex items-center justify-center mx-auto mb-5 text-red-400">
+          <div className="border border-[#2a2a2a] bg-[#181818] rounded-xl p-8 shadow-2xl relative text-center">
+            <div className="w-14 h-14 bg-red-500/10 border border-red-500/20 rounded-xl flex items-center justify-center mx-auto mb-5 text-red-400">
               <AlertTriangle className="w-7 h-7" />
             </div>
 
@@ -57,24 +57,24 @@ export function LoginScreen({
             <button
               type="button"
               onClick={onLogout}
-              className="studio-button w-full bg-white/10 hover:bg-white/15 text-white border border-white/15 font-semibold py-3 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
+              className="w-full bg-[#222222] hover:bg-[#282828] text-white border border-[#333333] font-semibold py-3 rounded-lg text-xs flex items-center justify-center gap-2 cursor-pointer transition-all"
             >
               <LogOut className="w-4 h-4" /> Sign Out & Return
             </button>
           </div>
         ) : (
           /* LOGIN CARD */
-          <form onSubmit={handleSubmit} className="border border-white/10 bg-[#18181c] rounded-2xl p-7 sm:p-8 shadow-2xl relative">
+          <form onSubmit={handleSubmit} className="border border-[#2a2a2a] bg-[#181818] rounded-xl p-7 sm:p-8 shadow-2xl relative">
             <div className="text-center mb-7 flex flex-col items-center justify-center">
               <a href="https://sampleswala.vercel.app" target="_blank" rel="noopener noreferrer" className="block cursor-pointer hover:opacity-85 transition-opacity">
                 <img
                   src="/Logo.png"
                   alt="SamplesWala Logo"
-                  className="w-16 h-16 object-contain mb-3 rounded-xl p-2 bg-white/5 border border-white/10"
+                  className="w-16 h-16 object-contain mb-3 rounded-xl p-2 bg-[#121212] border border-[#2a2a2a]"
                 />
               </a>
               <h1 className="font-bold text-2xl tracking-tight text-white">
-                Samples<span className="text-blue-500">Wala</span> Admin
+                Samples<span className="text-zinc-400">Wala</span> Admin
               </h1>
               <p className="text-xs text-zinc-400 font-mono mt-1">Producer Studio Management Console</p>
             </div>
@@ -88,7 +88,7 @@ export function LoginScreen({
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="admin@sampleswala.com"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2a2a2a] rounded-lg p-3 text-white text-xs outline-none focus:border-white transition-colors placeholder-zinc-500"
                 />
               </div>
 
@@ -100,12 +100,12 @@ export function LoginScreen({
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-blue-500 transition-colors"
+                  className="w-full bg-[#121212] border border-[#2a2a2a] rounded-lg p-3 text-white text-xs outline-none focus:border-white transition-colors placeholder-zinc-500"
                 />
               </div>
 
               {/* Cloudflare Turnstile CAPTCHA component */}
-              <div className="flex justify-center py-2 bg-black/30 border border-white/10 rounded-xl p-2">
+              <div className="flex justify-center py-2 bg-[#121212] border border-[#2a2a2a] rounded-lg p-2">
                 <Turnstile
                   siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
                   onSuccess={token => onTurnstileToken(token)}
@@ -120,10 +120,10 @@ export function LoginScreen({
               <button
                 type="submit"
                 disabled={loginLoading}
-                className="studio-button w-full mt-2 font-bold py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+                className="w-full mt-2 font-bold py-3.5 bg-white hover:bg-zinc-200 text-black rounded-lg text-xs flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50 shadow-sm"
               >
                 {loginLoading ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCw className="w-4 h-4 animate-spin text-black" />
                 ) : (
                   <>
                     <Lock className="w-4 h-4" /> Sign In to Console
@@ -132,15 +132,15 @@ export function LoginScreen({
               </button>
 
               <div className="flex items-center gap-3 py-1">
-                <div className="flex-1 h-px bg-white/10" />
+                <div className="flex-1 h-px bg-[#2a2a2a]" />
                 <span className="text-[11px] text-zinc-500 font-medium">or continue with</span>
-                <div className="flex-1 h-px bg-white/10" />
+                <div className="flex-1 h-px bg-[#2a2a2a]" />
               </div>
 
               <button
                 type="button"
                 onClick={onGoogleLogin}
-                className="studio-button w-full bg-white/5 hover:bg-white/10 text-white border border-white/10 font-semibold py-3 rounded-xl flex items-center justify-center gap-2.5 text-xs cursor-pointer transition-all"
+                className="w-full bg-[#202020] hover:bg-[#282828] text-white border border-[#333333] font-semibold py-3 rounded-lg flex items-center justify-center gap-2.5 text-xs cursor-pointer transition-all"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />

@@ -65,15 +65,15 @@ export function CommandPalette({
         return (
           <div className="space-y-1.5 font-mono">
             <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold block mb-1">
-              📟 SYSTEM SLASH COMMANDS
+              SYSTEM SLASH COMMANDS
             </span>
             {filteredCmds.map(c => (
               <div
                 key={c.path}
                 onClick={c.action}
-                className="bg-[#181818] hover:bg-studio-pink/10 border-2 border-black hover:border-studio-pink p-2.5 flex items-center justify-between cursor-pointer transition-all"
+                className="bg-[#161616] hover:bg-[#222222] border border-[#2a2a2a] hover:border-[#3d3d3d] p-2.5 rounded-lg flex items-center justify-between cursor-pointer transition-all"
               >
-                <span className="text-studio-pink font-bold">{c.path}</span>
+                <span className="text-white font-bold">{c.path}</span>
                 <span className="text-zinc-400 text-[10px] uppercase font-bold">{c.label}</span>
               </div>
             ))}
@@ -114,7 +114,7 @@ export function CommandPalette({
 
       if (totalMatches === 0) {
         return (
-          <div className="p-8 text-center border-2 border-black bg-black text-zinc-500 font-mono font-bold uppercase text-[10px]">
+          <div className="p-8 text-center border border-[#2a2a2a] bg-[#141414] rounded-lg text-zinc-400 font-mono font-bold uppercase text-[10px]">
             No matching entities found in database.
           </div>
         )
@@ -126,7 +126,7 @@ export function CommandPalette({
           {matchedUsers.length > 0 && (
             <div className="space-y-1.5 font-mono">
               <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold block">
-                👥 USERS ({matchedUsers.length})
+                USERS ({matchedUsers.length})
               </span>
               {matchedUsers.map(u => (
                 <div
@@ -136,10 +136,10 @@ export function CommandPalette({
                     setPaletteSelection({ type: 'user', data: u });
                     setShowPalette(false);
                   }}
-                  className="bg-[#151515] hover:bg-studio-pink/10 border-2 border-black hover:border-studio-pink p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
+                  className="bg-[#161616] hover:bg-[#222222] border border-[#2a2a2a] hover:border-[#3d3d3d] p-2.5 rounded-lg flex items-center justify-between cursor-pointer transition-all text-[11px]"
                 >
                   <div className="font-sans font-bold text-zinc-100 normal-case">{u.full_name}</div>
-                  <div className="font-mono text-zinc-500 text-[10px] lowercase">{u.email}</div>
+                  <div className="font-mono text-zinc-400 text-[10px] lowercase">{u.email}</div>
                 </div>
               ))}
             </div>
@@ -149,7 +149,7 @@ export function CommandPalette({
           {matchedPacks.length > 0 && (
             <div className="space-y-1.5 font-mono">
               <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold block">
-                📦 SAMPLE PACKS ({matchedPacks.length})
+                SAMPLE PACKS ({matchedPacks.length})
               </span>
               {matchedPacks.map(p => (
                 <div
@@ -159,10 +159,10 @@ export function CommandPalette({
                     setPaletteSelection({ type: 'pack', data: p });
                     setShowPalette(false);
                   }}
-                  className="bg-[#151515] hover:bg-studio-yellow/10 border-2 border-black hover:border-studio-yellow p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
+                  className="bg-[#161616] hover:bg-[#222222] border border-[#2a2a2a] hover:border-[#3d3d3d] p-2.5 rounded-lg flex items-center justify-between cursor-pointer transition-all text-[11px]"
                 >
                   <div className="font-sans font-bold text-zinc-100 normal-case">{p.name}</div>
-                  <div className="font-mono text-studio-yellow text-[10px]">₹{p.price_inr}</div>
+                  <div className="font-mono text-zinc-200 text-[10px] font-bold">₹{p.price_inr}</div>
                 </div>
               ))}
             </div>
@@ -172,7 +172,7 @@ export function CommandPalette({
           {matchedOrders.length > 0 && (
             <div className="space-y-1.5 font-mono">
               <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold block">
-                💰 SALES & ORDERS ({matchedOrders.length})
+                SALES & ORDERS ({matchedOrders.length})
               </span>
               {matchedOrders.map(o => (
                 <div
@@ -182,10 +182,10 @@ export function CommandPalette({
                     setPaletteSelection({ type: 'order', data: o });
                     setShowPalette(false);
                   }}
-                  className="bg-[#151515] hover:bg-studio-neon/10 border-2 border-black hover:border-studio-neon p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
+                  className="bg-[#161616] hover:bg-[#222222] border border-[#2a2a2a] hover:border-[#3d3d3d] p-2.5 rounded-lg flex items-center justify-between cursor-pointer transition-all text-[11px]"
                 >
                   <div className="font-sans font-bold text-zinc-100 normal-case">{o.pack_name}</div>
-                  <div className="font-mono text-studio-neon text-[10px] font-bold">₹{o.amount}</div>
+                  <div className="font-mono text-zinc-200 text-[10px] font-bold">₹{o.amount}</div>
                 </div>
               ))}
             </div>
@@ -195,7 +195,7 @@ export function CommandPalette({
           {matchedTickets.length > 0 && (
             <div className="space-y-1.5 font-mono">
               <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold block">
-                🎫 SUPPORT TICKETS ({matchedTickets.length})
+                SUPPORT TICKETS ({matchedTickets.length})
               </span>
               {matchedTickets.map(t => (
                 <div
@@ -205,10 +205,10 @@ export function CommandPalette({
                     setPaletteSelection({ type: 'ticket', data: t });
                     setShowPalette(false);
                   }}
-                  className="bg-[#151515] hover:bg-studio-purple/10 border-2 border-black hover:border-studio-purple p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
+                  className="bg-[#161616] hover:bg-[#222222] border border-[#2a2a2a] hover:border-[#3d3d3d] p-2.5 rounded-lg flex items-center justify-between cursor-pointer transition-all text-[11px]"
                 >
                   <div className="font-sans font-bold text-zinc-100 normal-case">{t.subject}</div>
-                  <div className="font-mono text-studio-purple text-[10px] uppercase font-bold">{t.status}</div>
+                  <div className="font-mono text-zinc-400 text-[10px] uppercase font-bold">{t.status}</div>
                 </div>
               ))}
             </div>
@@ -218,7 +218,7 @@ export function CommandPalette({
           {matchedCoupons.length > 0 && (
             <div className="space-y-1.5 font-mono">
               <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold block">
-                🎟️ COUPONS ({matchedCoupons.length})
+                COUPONS ({matchedCoupons.length})
               </span>
               {matchedCoupons.map(c => (
                 <div
@@ -228,10 +228,10 @@ export function CommandPalette({
                     setPaletteSelection({ type: 'coupon', data: c });
                     setShowPalette(false);
                   }}
-                  className="bg-[#151515] hover:bg-studio-blue/10 border-2 border-black hover:border-studio-blue p-2 flex items-center justify-between cursor-pointer transition-all text-[11px]"
+                  className="bg-[#161616] hover:bg-[#222222] border border-[#2a2a2a] hover:border-[#3d3d3d] p-2.5 rounded-lg flex items-center justify-between cursor-pointer transition-all text-[11px]"
                 >
                   <div className="font-mono font-bold text-zinc-100">{c.code}</div>
-                  <div className="font-mono text-studio-blue text-[10px] font-bold">{c.discount_percent}% OFF</div>
+                  <div className="font-mono text-zinc-300 text-[10px] font-bold">{c.discount_percent}% OFF</div>
                 </div>
               ))}
             </div>
@@ -245,17 +245,17 @@ export function CommandPalette({
 
   return (
     <div
-      className="fixed inset-0 bg-black/90 backdrop-blur-md z-[120] flex items-start justify-center p-4 pt-[10vh] animate-fadeIn"
+      className="fixed inset-0 bg-black/80 backdrop-blur-md z-[120] flex items-start justify-center p-4 pt-[10vh] animate-fadeIn"
       onClick={() => setShowPalette(false)}
     >
       <div
-        className="bg-[#18181c] border border-white/15 rounded-2xl p-6 w-full max-w-2xl relative text-left shadow-2xl font-sans"
+        className="bg-[#181818] border border-[#2a2a2a] rounded-xl p-5 w-full max-w-2xl relative text-left shadow-2xl font-sans"
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-white/[0.08] pb-4 mb-4">
+        <div className="flex items-center justify-between border-b border-[#2a2a2a] pb-3 mb-3">
           <div className="flex items-center gap-2.5">
-            <Terminal className="w-5 h-5 text-blue-400" />
+            <Terminal className="w-5 h-5 text-white" />
             <div>
               <h4 className="font-bold text-sm text-white">
                 Command Palette & Quick Search
@@ -267,21 +267,21 @@ export function CommandPalette({
           </div>
           <button
             onClick={() => setShowPalette(false)}
-            className="p-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer text-[10px] font-mono px-2 py-1"
+            className="p-1 bg-[#202020] hover:bg-[#2a2a2a] border border-[#333333] rounded text-zinc-400 hover:text-white transition-all cursor-pointer text-[10px] font-mono px-2 py-0.5"
           >
             ESC
           </button>
         </div>
 
         {/* Input Box */}
-        <div className="relative mb-4">
+        <div className="relative mb-3">
           <input
             autoFocus
             type="text"
             placeholder="Type / for commands or search anything..."
             value={paletteSearch}
             onChange={e => setPaletteSearch(e.target.value)}
-            className="w-full bg-black/40 border border-white/10 rounded-xl p-3.5 text-white outline-none focus:border-blue-500 font-sans text-sm placeholder-zinc-500"
+            className="w-full bg-[#121212] border border-[#2a2a2a] rounded-lg p-3 text-white outline-none focus:border-white font-sans text-sm placeholder-zinc-500 transition-colors"
           />
         </div>
 
@@ -291,9 +291,9 @@ export function CommandPalette({
         </div>
 
         {/* Hint Footer */}
-        <div className="border-t border-zinc-900 pt-3 mt-4 text-[9px] text-zinc-600 font-mono flex items-center justify-between leading-none">
+        <div className="border-t border-[#222222] pt-3 mt-3 text-[9px] text-zinc-500 font-mono flex items-center justify-between leading-none">
           <span>TIP: CHOOSE COMMANDS OR CLICK DIRECTLY</span>
-          <span>PRESS ESC TO DISMISS COMMAND MODAL</span>
+          <span>PRESS ESC TO DISMISS</span>
         </div>
       </div>
     </div>

@@ -64,6 +64,7 @@ import { UsersTab } from '@/components/admin/UsersTab'
 import { SalesTab } from '@/components/admin/SalesTab'
 import { NewsletterTab } from '@/components/admin/NewsletterTab'
 import { clientCache } from '@/lib/clientCache'
+import { StoreCache } from '@/lib/storeCache'
 
 
 interface ToastState {
@@ -103,16 +104,14 @@ export default function AdminDashboard() {
   const CACHE_DURATION_MS = 60 * 1000 // 60 seconds threshold for background revalidation
 
 
-  // Accent Switcher
-  const [accent, setAccent] = useState<'pink' | 'blue' | 'neon' | 'orange' | 'yellow' | 'purple'>('pink')
+  // Monochrome Accent Presets (Strictly No Orange)
+  const [accent, setAccent] = useState<'white' | 'zinc' | 'noir' | 'platinum'>('white')
 
   const accentDetails = {
-    pink: { label: 'Neon Pink', hex: '#FF0080', borderClass: 'shadow-[6px_6px_0px_#FF0080]' },
-    blue: { label: 'Electric Blue', hex: '#00BFFF', borderClass: 'shadow-[6px_6px_0px_#00BFFF]' },
-    neon: { label: 'Cyber Green', hex: '#00FF94', borderClass: 'shadow-[6px_6px_0px_#00FF94]' },
-    orange: { label: 'Volcanic Orange', hex: '#FF5C00', borderClass: 'shadow-[6px_6px_0px_#FF5C00]' },
-    yellow: { label: 'Tokyo Yellow', hex: '#FFE600', borderClass: 'shadow-[6px_6px_0px_#FFE600]' },
-    purple: { label: 'Neon Purple', hex: '#BF00FF', borderClass: 'shadow-[6px_6px_0px_#BF00FF]' },
+    white: { label: 'Pure White', hex: '#FFFFFF', borderClass: 'shadow-[0_0_14px_rgba(255,255,255,0.25)]' },
+    zinc: { label: 'Slate Zinc', hex: '#A1A1AA', borderClass: 'shadow-[0_0_14px_rgba(161,161,170,0.15)]' },
+    noir: { label: 'Deep Noir', hex: '#27272A', borderClass: 'shadow-[0_0_14px_rgba(39,39,42,0.35)]' },
+    platinum: { label: 'Platinum Minimal', hex: '#E4E4E7', borderClass: 'shadow-[0_0_14px_rgba(228,228,231,0.2)]' },
   }
 
   // Audit Logs
@@ -608,8 +607,16 @@ export default function AdminDashboard() {
     }
   }
 
-  // --- FETCH CONTEXT DATA WITH ADVANCED SWR CACHING ---
+  // --- FETCH CONTEXT DATA WITH PRODUCERTOY DUAL-LAYER STORECACHE (0ms CLICK & LOAD) ---
   const loadTabContext = async (tab: typeof activeTab, forceBypassCache = false) => {
+    // 1. Check in-memory 0ms StoreCache first for instantaneous click-and-load
+    const memoryCached = StoreCache.get(tab)
+    if (memoryCached && !forceBypassCache) {
+      applyCachedData(tab, memoryCached)
+      return
+    }
+
+    // 2. Check localStorage envelope cache
     const cachedEntry = clientCache.get(tab)
     const now = Date.now()
 
@@ -618,6 +625,7 @@ export default function AdminDashboard() {
     // SWR Pattern: Instantly render cached data while validating in the background
     if (cachedEntry && !shouldBypassCache) {
       applyCachedData(tab, cachedEntry.data)
+      StoreCache.set(tab, cachedEntry.data)
 
       // If the cache is fresh (< 60s), do not fetch again
       if (now - cachedEntry.timestamp < CACHE_DURATION_MS) {
@@ -715,6 +723,7 @@ export default function AdminDashboard() {
       }
 
       if (freshData !== null && freshData !== undefined) {
+        StoreCache.set(tab, freshData)
         clientCache.set(tab, {
           data: freshData,
           timestamp: Date.now()
@@ -728,6 +737,7 @@ export default function AdminDashboard() {
   }
 
   const invalidateCacheAndReload = async (tab: typeof activeTab) => {
+    StoreCache.remove(tab)
     clientCache.remove(tab)
     await loadTabContext(tab, true)
   }
@@ -1092,9 +1102,9 @@ export default function AdminDashboard() {
           }`}
         >
           <div className="relative">
-            <Coins className={`w-4.5 h-4.5 ${activeTab === 'sales' ? 'text-emerald-400' : ''}`} />
+            <Coins className={`w-4.5 h-4.5 ${activeTab === 'sales' ? 'text-white' : ''}`} />
             {activeTab === 'sales' && (
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-emerald-400" />
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white shadow-[0_0_8px_white]" />
             )}
           </div>
           <span className="text-[10px] tracking-tight">Orders</span>
@@ -1110,9 +1120,9 @@ export default function AdminDashboard() {
           }`}
         >
           <div className="relative">
-            <MessageSquare className={`w-4.5 h-4.5 ${activeTab === 'tickets' ? 'text-purple-400' : ''}`} />
+            <MessageSquare className={`w-4.5 h-4.5 ${activeTab === 'tickets' ? 'text-white' : ''}`} />
             {activeTab === 'tickets' && (
-              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-purple-400" />
+              <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-white shadow-[0_0_8px_white]" />
             )}
           </div>
           <span className="text-[10px] tracking-tight">Support</span>

@@ -261,7 +261,7 @@ export function PacksTab({
                       {pack.display_rank || 0}
                     </td>
                     <td className="p-4 text-center">
-                      <span className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase rounded-md ${pack.is_featured ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30' : 'bg-zinc-800 text-zinc-500'}`}>
+                      <span className={`inline-block px-2 py-0.5 text-[9px] font-bold uppercase rounded-md ${pack.is_featured ? 'bg-white/10 text-white border border-white/20' : 'bg-[#222222] text-zinc-500'}`}>
                         {pack.is_featured ? 'Featured' : 'Standard'}
                       </span>
                     </td>
@@ -459,7 +459,7 @@ export function PacksTab({
                     type="checkbox"
                     checked={activePack.is_featured}
                     onChange={e => setActivePack((prev: any) => ({ ...prev, is_featured: e.target.checked }))}
-                    className="accent-amber-400"
+                    className="accent-white"
                   />
                   Featured Product
                 </label>
@@ -469,7 +469,7 @@ export function PacksTab({
                     type="checkbox"
                     checked={activePack.is_bundle_only}
                     onChange={e => setActivePack((prev: any) => ({ ...prev, is_bundle_only: e.target.checked }))}
-                    className="accent-amber-400"
+                    className="accent-white"
                   />
                   Bundle Only
                 </label>
@@ -498,7 +498,7 @@ export function PacksTab({
             <button
               type="submit"
               disabled={saveLoading}
-              className="studio-button w-full mt-6 bg-[#FFE600] hover:bg-[#FFE600]/90 text-black font-bold border-none shadow-md px-4 py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+              className="w-full mt-6 bg-white hover:bg-zinc-200 text-black font-bold border-none shadow-sm px-4 py-3 rounded-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               {saveLoading ? 'Saving...' : (
                 <>

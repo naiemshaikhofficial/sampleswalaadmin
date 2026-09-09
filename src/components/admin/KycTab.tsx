@@ -142,7 +142,7 @@ export function KycTab({
                               ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30' 
                               : artist.verification_status === 'rejected' 
                               ? 'bg-red-500/15 text-red-400 border border-red-500/30' 
-                              : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                              : 'bg-white/10 text-zinc-200 border border-white/20'
                           }`}>
                             {artist.verification_status === 'approved' && <ShieldCheck className="w-3 h-3" />}
                             {artist.verification_status === 'rejected' && <AlertCircle className="w-3 h-3" />}
@@ -238,7 +238,7 @@ export function KycTab({
             </button>
 
             <h3 className="font-sans font-bold text-lg text-white mb-6 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-orange-500" />
+              <span className="w-2.5 h-2.5 rounded-full bg-white" />
               Artist KYC Details & Document Review
             </h3>
 
@@ -258,7 +258,7 @@ export function KycTab({
               </div>
               <div className="flex justify-between border-b border-white/[0.06] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Account Number</span>
-                <span className="text-[#00FF94] font-mono font-bold select-all">{activeArtist.account_number || 'N/A'}</span>
+                <span className="text-zinc-100 font-mono font-bold select-all">{activeArtist.account_number || 'N/A'}</span>
               </div>
               <div className="flex justify-between border-b border-white/[0.06] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">IFSC Code</span>
@@ -280,7 +280,7 @@ export function KycTab({
 
               {activeArtist.kyc_document_id ? (
                 <div className="border border-white/10 bg-black/40 rounded-xl p-6 text-center space-y-3">
-                  <div className="w-12 h-12 bg-orange-500/10 border border-orange-500/30 text-orange-400 rounded-xl mx-auto flex items-center justify-center">
+                  <div className="w-12 h-12 bg-white/10 border border-white/20 text-white rounded-xl mx-auto flex items-center justify-center">
                     <UserCheck className="w-6 h-6" />
                   </div>
                   <div>
@@ -291,7 +291,7 @@ export function KycTab({
                     href={activeArtist.kyc_document_id}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="studio-button px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold inline-flex items-center gap-1.5 text-xs rounded-xl cursor-pointer"
+                    className="px-4 py-2 bg-white hover:bg-zinc-200 text-black font-bold inline-flex items-center gap-1.5 text-xs rounded-lg cursor-pointer transition-all"
                   >
                     <ExternalLink className="w-3.5 h-3.5" /> Open Document
                   </a>
