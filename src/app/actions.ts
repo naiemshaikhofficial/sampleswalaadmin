@@ -1514,4 +1514,53 @@ export async function toggleFlashSale(value: boolean) {
   }
 }
 
+/**
+ * 13. Maintenance Mode Toggle Settings
+ */
+async function fetchMaintenanceStatus() {
+  try {
+    const db = getDB()
+    const { data, error } = await db
+      .from('app_metadata')
+      .select('value')
+      .eq('key', 'maintenance_mode')
+      .maybeSingle()
 
+    if (error || !data) {
+      return false
+    }
+    return data.value === 'true'
+  } catch (error) {
+    console.error('Error getting maintenance status:', error)
+    return false
+  }
+}
+
+export async function getMaintenanceStatus() {
+  return unstable_cache(
+    async () => fetchMaintenanceStatus(),
+    ['admin-maintenance-status-v1'],
+    { tags: ['admin-settings'] }
+  )()
+}
+
+export async function toggleMaintenanceMode(value: boolean) {
+  try {
+    const db = getDB()
+    const { error } = await db
+      .from('app_metadata')
+      .upsert({
+        key: 'maintenance_mode',
+        value: String(value),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' })
+
+    if (error) throw error
+    safeRevalidateTag('admin-settings')
+    notifyMainSiteRevalidate({ path: '/', tag: 'maintenance' })
+    return { success: true }
+  } catch (error) {
+    console.error('Error toggling maintenance mode:', error)
+    throw error
+  }
+}

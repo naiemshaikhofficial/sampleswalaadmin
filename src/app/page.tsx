@@ -20,6 +20,8 @@ import {
   toggleLaunchOffer,
   getFlashSaleStatus,
   toggleFlashSale,
+  getMaintenanceStatus,
+  toggleMaintenanceMode,
   revalidateAdminTag
 } from './actions'
 import { getAnalyticsData } from './actions/analytics'
@@ -87,6 +89,8 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'analytics' | 'packs' | 'kyc' | 'coupons' | 'tickets' | 'users' | 'sales' | 'logs' | 'newsletter' | 'settings'>('analytics')
 
   // Global settings toggles states
+  const [maintenanceEnabled, setMaintenanceEnabled] = useState(false)
+  const [maintenancePending, setMaintenancePending] = useState(false)
   const [bannerEnabled, setBannerEnabled] = useState(true)
   const [bannerPending, setBannerPending] = useState(false)
   const [flashSaleEnabled, setFlashSaleEnabled] = useState(false)
@@ -731,9 +735,13 @@ export default function AdminDashboard() {
         freshData = await getBrevoSubscribers()
         setSubscribersList(freshData)
       } else if (tab === 'settings') {
-        const launchOffer = await getLaunchOfferStatus()
-        const flashSale = await getFlashSaleStatus()
-        freshData = { launchOffer, flashSale }
+        const [maintenance, launchOffer, flashSale] = await Promise.all([
+          getMaintenanceStatus(),
+          getLaunchOfferStatus(),
+          getFlashSaleStatus()
+        ])
+        freshData = { maintenance, launchOffer, flashSale }
+        setMaintenanceEnabled(maintenance)
         setBannerEnabled(launchOffer)
         setFlashSaleEnabled(flashSale)
       }
@@ -800,6 +808,32 @@ export default function AdminDashboard() {
           })
         }
       }, 50)
+    }
+  }
+
+  const handleToggleMaintenance = async () => {
+    setMaintenancePending(true)
+    const newValue = !maintenanceEnabled
+    try {
+      const result = await toggleMaintenanceMode(newValue)
+      if (result.success) {
+        setMaintenanceEnabled(newValue)
+        showToast(
+          newValue
+            ? 'Maintenance mode is now ACTIVE! Visitors will be redirected to /maintenance'
+            : 'Maintenance mode is now OFF! Storefront is live and public.',
+          newValue ? 'warning' : 'success'
+        )
+        addAuditLog(
+          newValue ? 'MAINTENANCE_ACTIVE' : 'MAINTENANCE_OFF',
+          `${newValue ? 'Activated' : 'Deactivated'} maintenance mode redirection to /maintenance`,
+          newValue ? 'warning' : 'info'
+        )
+      }
+    } catch (err: any) {
+      showToast(err.message || 'Failed to toggle maintenance mode', 'error')
+    } finally {
+      setMaintenancePending(false)
     }
   }
 
@@ -1063,13 +1097,11 @@ export default function AdminDashboard() {
           {/* TAB 3: PLATFORM & SYSTEM SETTINGS */}
           {activeTab === 'settings' && (
             <SettingsTab
-              bannerEnabled={bannerEnabled}
-              bannerPending={bannerPending}
-              handleToggleLaunchOffer={handleToggleLaunchOffer}
-              flashSaleEnabled={flashSaleEnabled}
-              flashSalePending={flashSalePending}
-              handleToggleFlashSale={handleToggleFlashSale}
+              maintenanceEnabled={maintenanceEnabled}
+              maintenancePending={maintenancePending}
+              handleToggleMaintenance={handleToggleMaintenance}
               user={user}
+              showToast={showToast}
             />
           )}
 
