@@ -60,10 +60,10 @@ export const AnalyticsAudience: React.FC<AnalyticsAudienceProps> = ({
         <div className="flex items-center justify-between pb-2 border-b border-[#222222]">
           <h3 className="font-bold text-sm text-white flex items-center gap-2">
             <Users className="w-4 h-4 text-white" />
-            Audience Conversion Lifecycle
+            Customer Journey
           </h3>
           <span className="text-[10px] font-mono text-zinc-400">
-            Registered → Paying: <strong className="text-white">{customerAnalytics.overallBuyerConversion}%</strong>
+            Conversion: <strong className="text-white">{customerAnalytics.overallBuyerConversion}%</strong>
           </span>
         </div>
 
@@ -72,24 +72,24 @@ export const AnalyticsAudience: React.FC<AnalyticsAudienceProps> = ({
             <span className="text-[10px] text-zinc-500 font-mono block">STAGE 1</span>
             <span className="font-bold text-xs text-zinc-200 block">Registered</span>
             <p className="font-mono font-bold text-lg text-white">{customerAnalytics.totalRegisteredUsers}</p>
-            <span className="text-[10px] text-zinc-400 font-mono block">100% database accounts</span>
+            <span className="text-[10px] text-zinc-400 font-mono block">Total users</span>
           </div>
           <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-1.5">
             <span className="text-[10px] text-zinc-500 font-mono block">STAGE 2</span>
-            <span className="font-bold text-xs text-zinc-200 block">Active Vault</span>
+            <span className="font-bold text-xs text-zinc-200 block">Active Users</span>
             <p className="font-mono font-bold text-lg text-white">{customerAnalytics.activeVaultUsersCount}</p>
             <span className="text-[10px] text-zinc-400 font-mono block">
               {customerAnalytics.totalRegisteredUsers > 0
                 ? ((customerAnalytics.activeVaultUsersCount / customerAnalytics.totalRegisteredUsers) * 100).toFixed(1)
                 : '0'}
-              % engaged
+              % active
             </span>
           </div>
           <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-1.5">
             <span className="text-[10px] text-zinc-500 font-mono block">STAGE 3</span>
-            <span className="font-bold text-xs text-zinc-200 block">Free Claimers</span>
+            <span className="font-bold text-xs text-zinc-200 block">Free</span>
             <p className="font-mono font-bold text-lg text-white">{customerAnalytics.freeClaimersCount}</p>
-            <span className="text-[10px] text-zinc-400 font-mono block">Lead magnets</span>
+            <span className="text-[10px] text-zinc-400 font-mono block">Free downloads</span>
           </div>
           <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-1.5">
             <span className="text-[10px] text-zinc-500 font-mono block">STAGE 4</span>
@@ -101,7 +101,7 @@ export const AnalyticsAudience: React.FC<AnalyticsAudienceProps> = ({
           </div>
           <div className="bg-[#121212] border border-[#222222] rounded-xl p-3 space-y-1.5">
             <span className="text-[10px] text-zinc-500 font-mono block">STAGE 5</span>
-            <span className="font-bold text-xs text-zinc-200 block">Repeat VIP</span>
+            <span className="font-bold text-xs text-zinc-200 block">Repeat Buyers</span>
             <p className="font-mono font-bold text-lg text-white">{customerAnalytics.repeatBuyersCount}</p>
             <span className="text-[10px] text-white font-mono block font-bold">
               {customerAnalytics.repeatBuyerRate}% repeat rate
@@ -110,19 +110,19 @@ export const AnalyticsAudience: React.FC<AnalyticsAudienceProps> = ({
         </div>
       </div>
 
-      {/* Customer Spenders Directory */}
+      {/* Customer Directory */}
       <div className="bg-[#181818] border border-[#222222] rounded-xl p-4 sm:p-5 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#222222] pb-3">
           <div>
             <h3 className="font-bold text-sm text-white flex items-center gap-2">
               <Crown className="w-4 h-4 text-white" />
-              Customer Spenders Directory
+              Customer Directory
             </h3>
             <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
-              Verified customer names, real locations, lifetime spend in INR & USD, and owned packs.
+              Customer names, locations, lifetime spend, and purchased packs.
             </p>
           </div>
-          <span className="text-[10px] text-zinc-400 font-mono">
+          <span className="text-[10px] font-mono text-zinc-400">
             Showing {filteredCustomers.length} of {customerAnalytics.allVaultUsers.length} Customers
           </span>
         </div>
@@ -157,7 +157,7 @@ export const AnalyticsAudience: React.FC<AnalyticsAudienceProps> = ({
                 customerFilter === 'repeat' ? 'bg-white text-black font-bold' : 'text-zinc-400 hover:text-white'
               }`}
             >
-              Repeat VIP ({customerAnalytics.repeatBuyersCount})
+              Repeat ({customerAnalytics.repeatBuyersCount})
             </button>
             <button
               type="button"
@@ -175,7 +175,7 @@ export const AnalyticsAudience: React.FC<AnalyticsAudienceProps> = ({
                 customerFilter === 'high_value' ? 'bg-white text-black font-bold' : 'text-zinc-400 hover:text-white'
               }`}
             >
-              High Value (&gt;₹1.5k)
+              Top Spenders
             </button>
             <button
               type="button"
@@ -196,13 +196,13 @@ export const AnalyticsAudience: React.FC<AnalyticsAudienceProps> = ({
               <thead className="sticky top-0 bg-[#141414] z-10 border-b border-[#242424]">
                 <tr className="text-zinc-400 text-[10px] uppercase font-mono tracking-wider">
                   <th className="p-3">#</th>
-                  <th className="p-3">Customer Profile</th>
-                  <th className="p-3">Location (City / State / Country)</th>
-                  <th className="p-3 text-center">Status Cohort</th>
-                  <th className="p-3 text-center">Paid Orders</th>
-                  <th className="p-3 text-center">Free Claims</th>
-                  <th className="p-3">Packs Owned</th>
-                  <th className="p-3 text-right">Lifetime Spend</th>
+                  <th className="p-3">Customer</th>
+                  <th className="p-3">Location</th>
+                  <th className="p-3 text-center">Status</th>
+                  <th className="p-3 text-center">Paid</th>
+                  <th className="p-3 text-center">Free</th>
+                  <th className="p-3">Packs</th>
+                  <th className="p-3 text-right">Total Spend</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#202020] text-xs">
@@ -235,7 +235,7 @@ export const AnalyticsAudience: React.FC<AnalyticsAudienceProps> = ({
                       <td className="p-3 text-center">
                         {isRepeat ? (
                           <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-white/10 text-white border border-white/20 inline-block font-bold">
-                            REPEAT VIP ({cust.paidOrdersCount})
+                            REPEAT ({cust.paidOrdersCount})
                           </span>
                         ) : isFreeToPaid ? (
                           <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#202020] text-zinc-300 border border-[#333] inline-block">
@@ -243,11 +243,11 @@ export const AnalyticsAudience: React.FC<AnalyticsAudienceProps> = ({
                           </span>
                         ) : isFreeOnly ? (
                           <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-zinc-900 text-zinc-400 inline-block">
-                            FREE CLAIM
+                            FREE
                           </span>
                         ) : (
                           <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#1a1a1a] text-zinc-300 border border-[#2a2a2a] inline-block">
-                            BUYER (1)
+                            PAID
                           </span>
                         )}
                       </td>

@@ -28,10 +28,10 @@ export function AnalyticsFunnel({
           <div>
             <h3 className="font-bold text-sm text-white flex items-center gap-2">
               <ShoppingCart className="w-4 h-4 text-white" />
-              Cart & Checkout Drop-off Intelligence
+              Cart & Checkout Drop-off
             </h3>
             <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
-              Detailed checkout progression drop-off rates and potential lost revenue.
+              Checkout drop-off rates and recovery opportunities.
             </p>
           </div>
           <span className="text-[10px] font-mono text-zinc-400">
@@ -47,7 +47,7 @@ export function AnalyticsFunnel({
               <span className="text-white font-bold bg-white/10 px-1.5 py-0.2 rounded border border-white/20">100%</span>
             </div>
             <h5 className="font-bold text-xs text-zinc-200 uppercase tracking-wider font-mono">
-              Added to Cart / Vault
+              Added to Cart
             </h5>
             <p className="font-mono font-bold text-2xl text-white">
               {abandonmentData.addedToCart.toLocaleString()}

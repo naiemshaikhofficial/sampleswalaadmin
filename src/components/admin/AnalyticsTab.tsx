@@ -116,18 +116,18 @@ export function AnalyticsTab({
 
   const subTabs = [
     { id: 'overview' as const, label: 'Overview', icon: BarChart3 },
-    { id: 'packs' as const, label: 'Packs & Content', icon: Package },
-    { id: 'attribution' as const, label: 'Traffic Sources', icon: Flame },
-    { id: 'funnel' as const, label: 'Checkout & Drop-off', icon: ShoppingCart },
-    { id: 'audience' as const, label: 'Audience & Customers', icon: Users },
-    { id: 'revenue' as const, label: 'Revenue & Gateways', icon: DollarSign }
+    { id: 'packs' as const, label: 'Packs', icon: Package },
+    { id: 'attribution' as const, label: 'Traffic', icon: Flame },
+    { id: 'funnel' as const, label: 'Checkout', icon: ShoppingCart },
+    { id: 'audience' as const, label: 'Customers', icon: Users },
+    { id: 'revenue' as const, label: 'Revenue', icon: DollarSign }
   ]
 
   return (
     <div className="space-y-4 animate-fadeIn font-sans text-xs">
-      {/* YOUTUBE STUDIO STYLE SUB-TAB NAVIGATION PILLS */}
-      <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1 border-b border-[#222222] scrollbar-none">
-        <div className="flex items-center gap-1.5">
+      {/* SUB-TAB NAVIGATION PILLS */}
+      <div className="w-full overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center sm:justify-center gap-1.5 min-w-max px-2 sm:px-0">
           {subTabs.map(tab => {
             const Icon = tab.icon
             const isActive = subTab === tab.id
@@ -136,10 +136,10 @@ export function AnalyticsTab({
                 key={tab.id}
                 type="button"
                 onClick={() => setSubTab(tab.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg font-medium text-xs transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg font-medium text-xs transition-all whitespace-nowrap cursor-pointer shrink-0 ${
                   isActive
                     ? 'bg-white text-black font-bold shadow-sm'
-                    : 'text-zinc-400 hover:text-white hover:bg-white/5 border border-transparent'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-black' : 'text-zinc-400'}`} />
@@ -147,11 +147,6 @@ export function AnalyticsTab({
               </button>
             )
           })}
-        </div>
-
-        <div className="hidden md:flex items-center gap-2 text-[11px] font-mono text-zinc-400">
-          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-          <span>Real-time DB Sync</span>
         </div>
       </div>
 

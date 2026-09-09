@@ -16,10 +16,10 @@ export function AnalyticsPacks({ productAnalytics }: AnalyticsPacksProps) {
           <div>
             <h3 className="font-bold text-sm text-white flex items-center gap-2">
               <Package className="w-4 h-4 text-white" />
-              Product-Wise Performance & Catalog Rankings
+              Pack Performance
             </h3>
             <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
-              Individual sample pack profitability, download conversion, and catalog revenue share.
+              Sales, orders, and revenue share for each sample pack.
             </p>
           </div>
           <span className="text-[10px] font-mono text-zinc-400">
@@ -53,15 +53,15 @@ export function AnalyticsPacks({ productAnalytics }: AnalyticsPacksProps) {
 
               <div className="grid grid-cols-3 gap-2 text-center text-[10px] font-mono bg-[#181818] p-2 rounded-lg border border-[#222222]">
                 <div>
-                  <span className="text-zinc-500 block">Paid Orders</span>
-                  <span className="text-white font-bold">{pack.paidSales} sales</span>
+                  <span className="text-zinc-500 block">Paid</span>
+                  <span className="text-white font-bold">{pack.paidSales}</span>
                 </div>
                 <div>
-                  <span className="text-zinc-500 block">Free Claims</span>
-                  <span className="text-zinc-300 font-bold">{pack.freeDownloads} claims</span>
+                  <span className="text-zinc-500 block">Free</span>
+                  <span className="text-zinc-300 font-bold">{pack.freeDownloads}</span>
                 </div>
                 <div>
-                  <span className="text-zinc-500 block">Conv %</span>
+                  <span className="text-zinc-500 block">Conversion</span>
                   <span className="text-white font-bold">{pack.conversionRate}%</span>
                 </div>
               </div>
@@ -86,13 +86,13 @@ export function AnalyticsPacks({ productAnalytics }: AnalyticsPacksProps) {
               <thead>
                 <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[10px] uppercase font-mono tracking-wider">
                   <th className="p-3.5">#</th>
-                  <th className="p-3.5">Sample Pack Product</th>
+                  <th className="p-3.5">Pack</th>
                   <th className="p-3.5 text-right">Revenue (₹)</th>
-                  <th className="p-3.5 text-center">Revenue Share</th>
-                  <th className="p-3.5 text-center">Paid Orders</th>
-                  <th className="p-3.5 text-center">Free Downloads</th>
-                  <th className="p-3.5 text-center">Paid Conversion</th>
-                  <th className="p-3.5 text-right">Avg Selling Price</th>
+                  <th className="p-3.5 text-center">Share</th>
+                  <th className="p-3.5 text-center">Paid</th>
+                  <th className="p-3.5 text-center">Free</th>
+                  <th className="p-3.5 text-center">Conversion</th>
+                  <th className="p-3.5 text-right">Avg Price</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#222222] text-xs">

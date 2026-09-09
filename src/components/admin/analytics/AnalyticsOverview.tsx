@@ -203,8 +203,8 @@ export function AnalyticsOverview({
               ₹{financialData.aov.toLocaleString()}
             </h3>
             <div className="mt-2 pt-2 border-t border-[#222222] flex items-center justify-between text-[11px] font-mono text-zinc-400">
-              <span>Paid Orders Volume:</span>
-              <span className="text-white font-bold">{financialData.paidOrdersCount} orders</span>
+              <span>Paid Orders:</span>
+              <span className="text-white font-bold">{financialData.paidOrdersCount}</span>
             </div>
           </div>
         </div>
@@ -212,7 +212,7 @@ export function AnalyticsOverview({
         <div className="bg-[#181818] border border-[#222222] hover:border-[#2a2a2a] rounded-xl p-4 transition-all shadow-sm">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 font-mono">
-              Customer Lifetime Value
+              Avg Customer Spend
             </span>
             <div className="p-1.5 rounded-lg bg-[#202020] border border-[#2a2a2a] text-white">
               <Users className="w-4 h-4" />
@@ -224,7 +224,7 @@ export function AnalyticsOverview({
             </h3>
             <div className="mt-2 pt-2 border-t border-[#222222] flex items-center justify-between text-[11px] font-mono text-zinc-400">
               <span>Repeat Rate:</span>
-              <span className="text-white font-bold">{customerAnalytics.repeatBuyerRate}% ({customerAnalytics.repeatBuyersCount} buyers)</span>
+              <span className="text-white font-bold">{customerAnalytics.repeatBuyerRate}%</span>
             </div>
           </div>
         </div>
@@ -236,10 +236,10 @@ export function AnalyticsOverview({
           <div>
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-white" />
-              <h3 className="font-bold text-sm text-white">Store Activity Timeline</h3>
+              <h3 className="font-bold text-sm text-white">Store Activity</h3>
             </div>
             <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
-              Exact historical activity plotted from real database transaction records.
+              Daily sales, orders, and customer activity.
             </p>
           </div>
 
@@ -260,7 +260,7 @@ export function AnalyticsOverview({
                 activeMetric === 'paid_orders' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
               }`}
             >
-              Paid Orders
+              Paid
             </button>
             <button
               type="button"
@@ -269,7 +269,7 @@ export function AnalyticsOverview({
                 activeMetric === 'free_claims' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
               }`}
             >
-              Free Claims
+              Free
             </button>
             <button
               type="button"
@@ -300,7 +300,7 @@ export function AnalyticsOverview({
             </div>
             <div className="w-[1px] h-6 bg-[#262626] hidden sm:block" />
             <div className="hidden sm:block">
-              <span className="text-[10px] text-zinc-500 uppercase block">Peak Record Day</span>
+              <span className="text-[10px] text-zinc-500 uppercase block">Peak Day</span>
               <span className="font-bold text-white text-xs">
                 {chartSummary.peak.date} ({activeMetric === 'revenue' ? `₹${chartSummary.peak.value.toLocaleString()}` : chartSummary.peak.value})
               </span>
@@ -316,7 +316,7 @@ export function AnalyticsOverview({
                 </span>
               </div>
             ) : (
-              <span className="text-zinc-500 text-[10px] font-mono">Hover chart points for exact numbers</span>
+              <span className="text-zinc-500 text-[10px] font-mono">Hover points to see details</span>
             )}
           </div>
         </div>
@@ -426,10 +426,10 @@ export function AnalyticsOverview({
         <div className="flex items-center justify-between pb-2 border-b border-[#222222]">
           <div className="flex items-center gap-2">
             <Lightbulb className="w-4 h-4 text-white" />
-            <h3 className="font-bold text-sm text-white">Smart Automated Conclusions</h3>
+            <h3 className="font-bold text-sm text-white">Store Insights</h3>
           </div>
           <span className="text-[10px] font-mono text-zinc-400">
-            Actionable Intelligence
+            Recommendations
           </span>
         </div>
 
@@ -458,7 +458,7 @@ export function AnalyticsOverview({
         <div className="flex items-center justify-between border-b border-[#222222] pb-3">
           <div className="flex items-center gap-2">
             <Clock className="w-4 h-4 text-white" />
-            <h4 className="font-bold text-sm text-white">Real-Time Transactions Stream</h4>
+            <h4 className="font-bold text-sm text-white">Recent Orders</h4>
           </div>
           {setActiveTab && (
             <button
@@ -501,7 +501,7 @@ export function AnalyticsOverview({
                   <span className={`inline-block text-[9px] uppercase px-1.5 py-0.2 rounded mt-0.5 ${
                     isFree ? 'bg-zinc-800 text-zinc-400' : 'bg-white/10 text-white border border-white/20'
                   }`}>
-                    {isFree ? 'Free Claim' : 'Paid Order'}
+                    {isFree ? 'Free' : 'Paid'}
                   </span>
                 </div>
               </div>

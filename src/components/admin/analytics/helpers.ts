@@ -566,12 +566,12 @@ export function computeSalesRecommendations(
       action: 'Recommended Action: Enable 1-tap instant UPI QR code on the page and guest checkout to minimize drop-offs.'
     },
     {
-      id: 'lead_magnet',
-      badge: 'Lead Magnet Conversion',
-      title: 'India Street Rhythm generated 11 free claims with 1 converted buyer',
-      metric: `${customerAnalytics.freeClaimersCount} free claimers · ${customerAnalytics.freeToPaidRate}% conversion rate`,
-      insight: 'Converted user (Naiemoddin) generated ₹5,220 across 4 paid orders after initial free claim.',
-      action: 'Recommended Action: Setup an automated 3-day post-download Brevo email offering a 15% limited-time coupon on "The South".'
+      id: 'free_conversion',
+      badge: 'Free to Paid Conversion',
+      title: 'India Street Rhythm generated 11 free downloads with 1 converted buyer',
+      metric: `${customerAnalytics.freeClaimersCount} free users · ${customerAnalytics.freeToPaidRate}% conversion rate`,
+      insight: 'Converted user (Naiemoddin) generated ₹5,220 across 4 paid orders after initial free download.',
+      action: 'Recommended Action: Setup an automated 3-day post-download email offering a 15% limited-time coupon on "The South".'
     },
     {
       id: 'global_reach',

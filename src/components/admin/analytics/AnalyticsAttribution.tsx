@@ -22,14 +22,14 @@ export function AnalyticsAttribution({
           <div>
             <h3 className="font-bold text-sm text-white flex items-center gap-2">
               <Flame className="w-4 h-4 text-white" />
-              Traffic Sources & Revenue Attribution
+              Traffic Sources
             </h3>
             <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
-              Multi-touch attribution tracking where your sales originate and which sample packs each source buys.
+              Where your sales come from and what packs buyers choose.
             </p>
           </div>
           <span className="text-[10px] font-mono text-zinc-400">
-            100% Attributed Volume: <strong className="text-white">₹{grossRevenue.toLocaleString()}</strong>
+            Total Sales: <strong className="text-white">₹{grossRevenue.toLocaleString()}</strong>
           </span>
         </div>
 
@@ -80,7 +80,7 @@ export function AnalyticsAttribution({
           <div className="bg-[#141414] p-3 border-b border-[#242424] flex items-center justify-between">
             <span className="font-bold text-xs text-white flex items-center gap-1.5">
               <Layers className="w-3.5 h-3.5 text-zinc-400" />
-              Source → Product → Revenue Drilldown Mapping
+              Source → Product Breakdown
             </span>
             <span className="text-[10px] font-mono text-zinc-400">
               {selectedAttributionSource ? `Filtered by ${selectedAttributionSource.toUpperCase()}` : 'Showing all channel sales'}
@@ -91,11 +91,11 @@ export function AnalyticsAttribution({
             <table className="w-full text-left font-sans border-collapse min-w-[650px]">
               <thead>
                 <tr className="bg-[#161616] border-b border-[#222222] text-zinc-400 text-[10px] uppercase font-mono tracking-wider">
-                  <th className="p-3">Traffic Channel</th>
-                  <th className="p-3">Sample Pack Purchased</th>
+                  <th className="p-3">Source</th>
+                  <th className="p-3">Pack</th>
                   <th className="p-3 text-center">Orders</th>
-                  <th className="p-3 text-right">Revenue Generated</th>
-                  <th className="p-3 text-center">Channel Share</th>
+                  <th className="p-3 text-right">Revenue</th>
+                  <th className="p-3 text-center">Share</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#1f1f1f] text-xs">
