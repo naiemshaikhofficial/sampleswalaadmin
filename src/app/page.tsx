@@ -22,6 +22,7 @@ import {
   toggleFlashSale,
   revalidateAdminTag
 } from './actions'
+import { getAnalyticsData } from './actions/analytics'
 
 import {
   LayoutDashboard,
@@ -692,43 +693,16 @@ export default function AdminDashboard() {
     try {
       let freshData: any = null
       if (tab === 'analytics') {
-        const statsData = await getDashboardStats()
-        setStats(statsData)
-        let salesData: any[] = []
-        try {
-          salesData = await getAllVaultSales()
-          setVaultSalesList(salesData)
-        } catch (e) {
-          console.error("Failed to load detailed sales list for period analytics", e)
+        const payload = await getAnalyticsData()
+        if (payload.stats) setStats(payload.stats)
+        setVaultSalesList(payload.salesList || [])
+        setUsersList(payload.usersList || [])
+        setTickets(payload.ticketsList || [])
+        setPacks(payload.packsList || [])
+        if (payload.categoriesList && payload.categoriesList.length > 0) {
+          setCategories(payload.categoriesList)
         }
-
-        let usersData: any[] = []
-        try {
-          usersData = await getAllUsers()
-          setUsersList(usersData)
-        } catch (e) {
-          console.error("Failed to load users list for analytics charts", e)
-        }
-
-        let ticketsData: any[] = []
-        try {
-          ticketsData = await getSupportTickets()
-          setTickets(ticketsData)
-        } catch (e) {
-          console.error("Failed to load support tickets for analytics charts", e)
-        }
-
-        let packsDataList: any[] = []
-        try {
-          const packsRes = await getSamplePacks()
-          packsDataList = packsRes.packs || []
-          setPacks(packsDataList)
-          if (packsRes.categories) setCategories(packsRes.categories)
-        } catch (e) {
-          console.error("Failed to load sample packs for analytics ranking", e)
-        }
-
-        freshData = { stats: statsData, salesList: salesData, usersList: usersData, ticketsList: ticketsData, packsList: packsDataList }
+        freshData = payload
       } else if (tab === 'packs') {
         const result = await getSamplePacks()
         freshData = result
