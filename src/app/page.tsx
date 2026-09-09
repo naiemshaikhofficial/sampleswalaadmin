@@ -604,6 +604,7 @@ export default function AdminDashboard() {
         setVaultSalesList(data.salesList || [])
         if (data.usersList) setUsersList(data.usersList)
         if (data.ticketsList) setTickets(data.ticketsList)
+        if (data.packsList) setPacks(data.packsList)
       } else {
         setStats(data)
       }

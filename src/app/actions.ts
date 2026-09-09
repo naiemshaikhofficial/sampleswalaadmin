@@ -966,15 +966,17 @@ async function fetchAllVaultSales() {
     const { data: packs, error: packErr } = await db.from('sample_packs').select('id, name')
     if (packErr) throw packErr
 
-    // 3. Fetch only user accounts that correspond to these sales
+    // 3. Fetch user accounts and profiles that correspond to these sales
     const userIds = Array.from(new Set((sales || []).map((s: any) => s.user_id).filter(Boolean)))
     let userAccounts: any[] = []
+    let userProfiles: any[] = []
     if (userIds.length > 0) {
-      const { data } = await db
-        .from('user_accounts')
-        .select('*')
-        .in('user_id', userIds)
-      userAccounts = data || []
+      const [accRes, profRes] = await Promise.all([
+        db.from('user_accounts').select('*').in('user_id', userIds),
+        db.from('profiles').select('*').in('id', userIds)
+      ])
+      userAccounts = accRes.data || []
+      userProfiles = profRes.data || []
     }
 
     // 4. Fetch auth users for email addresses
@@ -991,6 +993,7 @@ async function fetchAllVaultSales() {
     const enrichedSales = (sales || []).map((sale: any) => {
       const pack = (packs || []).find((p: any) => p.id === sale.item_id)
       const account = (userAccounts || []).find((a: any) => a.user_id === sale.user_id)
+      const profile = (userProfiles || []).find((p: any) => p.id === sale.user_id)
       const authUser = (users || []).find((u: any) => u.id === sale.user_id)
 
       const usage = (couponUsages || []).find((u: any) => u.order_id === sale.razorpay_order_id)
@@ -1019,9 +1022,12 @@ async function fetchAllVaultSales() {
         razorpay_payment_id: sale.razorpay_payment_id || 'N/A',
         payment_method: isUsd ? 'International (Stripe/PayPal)' : 'Razorpay (UPI/Card/NetBanking)',
         pack_name: pack?.name || sale.item_name || 'Sample Pack Purchase',
-        buyer_name: account?.full_name || 'Anonymous Buyer',
+        buyer_name: account?.full_name || profile?.full_name || authUser?.user_metadata?.full_name || 'Customer',
         buyer_email: authUser?.email || 'N/A',
         buyer_phone: account?.phone_number || 'N/A',
+        buyer_city: account?.city || '',
+        buyer_state: account?.state || '',
+        buyer_country: account?.country || (isUsd ? 'United States' : 'India'),
         buyer_address: [
           account?.address_line1,
           account?.city,
