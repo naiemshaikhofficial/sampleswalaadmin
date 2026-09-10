@@ -1106,7 +1106,7 @@ async function fetchAllVaultSales() {
 export async function getAllVaultSales() {
   return unstable_cache(
     async () => fetchAllVaultSales(),
-    ['admin-vault-sales-v1'],
+    ['admin-vault-sales-v2'],
     { tags: ['admin-sales'] }
   )()
 }

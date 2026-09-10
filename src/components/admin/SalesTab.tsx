@@ -67,8 +67,12 @@ export function SalesTab({
     const headers = [
       'Order ID',
       'Product',
-      'Original Amount',
+      'Original M.R.P.',
+      'Coupon Code',
+      'Discount Amount',
+      'Final Amount Paid',
       'Currency',
+      'Payment Gateway',
       'Converted Amount (INR)',
       'Exchange Rate',
       'Buyer Name',
@@ -81,21 +85,32 @@ export function SalesTab({
     ]
     
     // Form row records
-    const rows = filteredSales.map(s => [
-      s.id || '',
-      `"${(s.pack_name || '').replace(/"/g, '""')}"`,
-      s.original_amount !== undefined ? s.original_amount : (s.amount || 0),
-      s.currency || (s.is_usd ? 'USD' : 'INR'),
-      s.converted_amount_inr !== undefined ? s.converted_amount_inr : (s.amount || 0),
-      s.exchange_rate || '',
-      `"${(s.buyer_name || '').replace(/"/g, '""')}"`,
-      s.buyer_email || '',
-      s.buyer_phone || '',
-      `"${(s.buyer_address || '').replace(/"/g, '""')}"`,
-      s.razorpay_order_id || '',
-      s.razorpay_payment_id || '',
-      new Date(s.created_at).toLocaleString()
-    ])
+    const rows = filteredSales.map(s => {
+      const origPrice = s.original_price ?? (s.is_usd ? 14.99 : 999)
+      const couponCode = s.coupon?.code || s.coupon_code || ''
+      const discountAmt = s.discount_amount ?? (couponCode ? Math.max(0, origPrice - Number(s.amount || 0)) : 0)
+      const gateway = s.payment_gateway || (s.is_usd ? 'paypal' : s.razorpay_order_id?.startsWith('sw_') ? 'cashfree' : 'razorpay')
+
+      return [
+        s.id || '',
+        `"${(s.pack_name || '').replace(/"/g, '""')}"`,
+        origPrice,
+        couponCode ? `"${couponCode}"` : '',
+        discountAmt,
+        s.original_amount !== undefined ? s.original_amount : (s.amount || 0),
+        s.currency || (s.is_usd ? 'USD' : 'INR'),
+        gateway,
+        s.converted_amount_inr !== undefined ? s.converted_amount_inr : (s.amount || 0),
+        s.exchange_rate || '',
+        `"${(s.buyer_name || '').replace(/"/g, '""')}"`,
+        s.buyer_email || '',
+        s.buyer_phone || '',
+        `"${(s.buyer_address || '').replace(/"/g, '""')}"`,
+        s.razorpay_order_id || '',
+        s.razorpay_payment_id || '',
+        new Date(s.created_at).toLocaleString()
+      ]
+    })
 
     // Join to single CSV content string
     const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n')
