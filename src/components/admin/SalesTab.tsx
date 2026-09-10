@@ -1,7 +1,21 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { Search, Mail, Phone, MapPin, X, Download, Ticket, Copy, Check } from 'lucide-react'
+import {
+  Search,
+  Mail,
+  Phone,
+  MapPin,
+  X,
+  Download,
+  Ticket,
+  Copy,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown,
+  Filter
+} from 'lucide-react'
 import { getShortSampleName } from '@/lib/formatUtils'
 
 interface SalesTabProps {
@@ -11,6 +25,110 @@ interface SalesTabProps {
   setPaletteSelection?: (val: any) => void
 }
 
+function PaginationControls({
+  currentPage,
+  totalPages,
+  totalItems,
+  itemsPerPage,
+  onPageChange,
+  itemLabel = 'transactions'
+}: {
+  currentPage: number
+  totalPages: number
+  totalItems: number
+  itemsPerPage: number
+  onPageChange: (page: number) => void
+  itemLabel?: string
+}) {
+  if (totalPages <= 1) return null
+
+  const getPages = () => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1)
+    }
+    const pages: (number | string)[] = []
+    if (currentPage <= 4) {
+      for (let i = 1; i <= 5; i++) pages.push(i)
+      pages.push('...')
+      pages.push(totalPages)
+    } else if (currentPage >= totalPages - 3) {
+      pages.push(1)
+      pages.push('...')
+      for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i)
+    } else {
+      pages.push(1)
+      pages.push('...')
+      pages.push(currentPage - 1)
+      pages.push(currentPage)
+      pages.push(currentPage + 1)
+      pages.push('...')
+      pages.push(totalPages)
+    }
+    return pages
+  }
+
+  const startIdx = (currentPage - 1) * itemsPerPage + 1
+  const endIdx = Math.min(currentPage * itemsPerPage, totalItems)
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-[#141414] border-t border-[#222222] text-xs font-mono">
+      <div className="text-zinc-400 text-[11px]">
+        Showing <span className="text-white font-bold">{startIdx}</span> to <span className="text-white font-bold">{endIdx}</span> of <span className="text-white font-bold">{totalItems}</span> {itemLabel}
+      </div>
+
+      <div className="flex items-center gap-1.5 self-center sm:self-auto">
+        <button
+          type="button"
+          disabled={currentPage === 1}
+          onClick={() => onPageChange(currentPage - 1)}
+          className="p-1.5 rounded-lg bg-[#202020] hover:bg-[#282828] text-zinc-300 hover:text-white border border-[#2c2c2c] disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
+          title="Previous Page"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+
+        <div className="flex items-center gap-1">
+          {getPages().map((p, idx) => {
+            if (p === '...') {
+              return (
+                <span key={`dots-${idx}`} className="px-1.5 text-zinc-500 select-none">
+                  ...
+                </span>
+              )
+            }
+            const pageNum = Number(p)
+            const isActive = pageNum === currentPage
+            return (
+              <button
+                key={pageNum}
+                type="button"
+                onClick={() => onPageChange(pageNum)}
+                className={`min-w-[28px] h-7 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-white text-black shadow-sm scale-105'
+                    : 'bg-[#1e1e1e] hover:bg-[#282828] text-zinc-300 hover:text-white border border-[#2b2b2b]'
+                }`}
+              >
+                {pageNum}
+              </button>
+            )
+          })}
+        </div>
+
+        <button
+          type="button"
+          disabled={currentPage === totalPages}
+          onClick={() => onPageChange(currentPage + 1)}
+          className="p-1.5 rounded-lg bg-[#202020] hover:bg-[#282828] text-zinc-300 hover:text-white border border-[#2c2c2c] disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
+          title="Next Page"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function SalesTab({
   vaultSalesList,
   isDateWithinRange,
@@ -18,6 +136,8 @@ export function SalesTab({
   setPaletteSelection
 }: SalesTabProps) {
   const [salesSearch, setSalesSearch] = useState('')
+  const [salesSort, setSalesSort] = useState<'newest' | 'oldest' | 'amount_desc' | 'amount_asc' | 'product_asc'>('newest')
+  const [salesTypeFilter, setSalesTypeFilter] = useState<'all' | 'paid' | 'free' | 'coupon'>('all')
   const [showOrderModal, setShowOrderModal] = useState(false)
   const [activeOrder, setActiveOrder] = useState<any>(null)
   const [copiedField, setCopiedField] = useState<string | null>(null)
@@ -35,7 +155,7 @@ export function SalesTab({
 
   useEffect(() => {
     setCurrentPage(1)
-  }, [salesSearch])
+  }, [salesSearch, salesSort, salesTypeFilter])
 
   useEffect(() => {
     if (paletteSelection && paletteSelection.type === 'order') {
@@ -45,20 +165,41 @@ export function SalesTab({
     }
   }, [paletteSelection, setPaletteSelection])
 
-  const filteredSales = vaultSalesList.filter(s => {
-    // Apply Date/Time-wise Filter
-    if (!isDateWithinRange(s.created_at)) return false
+  const filteredSales = useMemo(() => {
+    let list = vaultSalesList.filter(s => {
+      // Apply Date/Time-wise Filter
+      if (!isDateWithinRange(s.created_at)) return false
 
-    const searchLower = salesSearch.toLowerCase()
-    return (
-      (s.pack_name || '').toLowerCase().includes(searchLower) ||
-      (s.buyer_name || '').toLowerCase().includes(searchLower) ||
-      (s.buyer_email || '').toLowerCase().includes(searchLower) ||
-      (s.buyer_address || '').toLowerCase().includes(searchLower) ||
-      (s.razorpay_order_id || '').toLowerCase().includes(searchLower) ||
-      (s.razorpay_payment_id || '').toLowerCase().includes(searchLower)
-    )
-  })
+      if (salesTypeFilter === 'paid' && Number(s.amount || 0) <= 0) return false
+      if (salesTypeFilter === 'free' && Number(s.amount || 0) > 0) return false
+      if (salesTypeFilter === 'coupon' && !s.coupon_code && !s.coupon?.code) return false
+
+      const searchLower = salesSearch.toLowerCase()
+      return (
+        (s.pack_name || '').toLowerCase().includes(searchLower) ||
+        (s.buyer_name || '').toLowerCase().includes(searchLower) ||
+        (s.buyer_email || '').toLowerCase().includes(searchLower) ||
+        (s.buyer_address || '').toLowerCase().includes(searchLower) ||
+        (s.razorpay_order_id || '').toLowerCase().includes(searchLower) ||
+        (s.razorpay_payment_id || '').toLowerCase().includes(searchLower) ||
+        (s.coupon_code || '').toLowerCase().includes(searchLower) ||
+        (s.coupon?.code || '').toLowerCase().includes(searchLower)
+      )
+    })
+
+    list.sort((a, b) => {
+      const aAmt = a.converted_amount_inr !== undefined ? Number(a.converted_amount_inr) : Number(a.amount || 0)
+      const bAmt = b.converted_amount_inr !== undefined ? Number(b.converted_amount_inr) : Number(b.amount || 0)
+
+      if (salesSort === 'amount_desc') return bAmt - aAmt
+      if (salesSort === 'amount_asc') return aAmt - bAmt
+      if (salesSort === 'oldest') return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+      if (salesSort === 'product_asc') return (a.pack_name || '').localeCompare(b.pack_name || '')
+      return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+    })
+
+    return list
+  }, [vaultSalesList, isDateWithinRange, salesTypeFilter, salesSearch, salesSort])
 
   const handleExportCSV = () => {
     if (filteredSales.length === 0) return
@@ -182,7 +323,7 @@ export function SalesTab({
             Complete breakdown of store orders, customer delivery details, and payment settlements.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
             onClick={handleExportCSV}
@@ -190,15 +331,40 @@ export function SalesTab({
           >
             <Download className="w-3.5 h-3.5 text-zinc-300" /> Export CSV
           </button>
-          <div className="relative font-sans">
+          <div className="relative font-sans flex-1 sm:w-64">
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-zinc-400" />
             <input
               type="text"
-              placeholder="Search orders by product, buyer, email..."
+              placeholder="Search orders by product, buyer, email, coupon..."
               value={salesSearch}
               onChange={e => setSalesSearch(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-[#121212] border border-[#262626] rounded-lg text-white text-xs outline-none focus:border-white w-64 md:w-80 font-mono transition-colors"
+              className="w-full pl-9 pr-4 py-2 bg-[#121212] border border-[#262626] rounded-lg text-white text-xs outline-none focus:border-white font-mono transition-colors"
             />
+          </div>
+          <select
+            value={salesTypeFilter}
+            onChange={e => setSalesTypeFilter(e.target.value as any)}
+            className="bg-[#121212] border border-[#262626] rounded-lg px-3 py-2 text-white outline-none focus:border-white text-xs cursor-pointer transition-colors"
+          >
+            <option value="all">All Orders ({vaultSalesList.length})</option>
+            <option value="paid">Paid Only</option>
+            <option value="free">Free Claims Only</option>
+            <option value="coupon">Coupon Orders Only</option>
+          </select>
+          <div className="flex items-center gap-1.5 bg-[#121212] border border-[#262626] rounded-lg px-2.5 py-2 text-white text-xs">
+            <ArrowUpDown className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+            <span className="text-zinc-500 font-mono text-[10px] uppercase">Sort:</span>
+            <select
+              value={salesSort}
+              onChange={e => setSalesSort(e.target.value as any)}
+              className="bg-transparent text-white outline-none text-xs cursor-pointer font-medium"
+            >
+              <option value="newest" className="bg-[#181818] text-white">Newest First</option>
+              <option value="oldest" className="bg-[#181818] text-white">Oldest First</option>
+              <option value="amount_desc" className="bg-[#181818] text-white">Amount (High to Low)</option>
+              <option value="amount_asc" className="bg-[#181818] text-white">Amount (Low to High)</option>
+              <option value="product_asc" className="bg-[#181818] text-white">Product Name (A-Z)</option>
+            </select>
           </div>
         </div>
       </div>
@@ -308,25 +474,14 @@ export function SalesTab({
               })}
 
               {/* Mobile Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between gap-2 p-3 bg-[#181818] border border-[#222222] rounded-xl text-[10px] font-mono">
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-30 disabled:pointer-events-none"
-                  >
-                    Prev
-                  </button>
-                  <span className="text-zinc-400">Page {currentPage} of {totalPages}</span>
-                  <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-30 disabled:pointer-events-none"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredSales.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setCurrentPage}
+                itemLabel="orders"
+              />
             </div>
 
             {/* DESKTOP VIEW: DATA TABLE */}
@@ -420,65 +575,16 @@ export function SalesTab({
                       </td>
                     </tr>
                   ))}
-                  
-                  {/* Pagination Controller Row */}
-                  {totalPages > 1 && (
-                    <tr>
-                      <td colSpan={5} className="p-4 bg-[#141414] border-t border-[#222222]">
-                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-[10px]">
-                          <div className="text-zinc-400">
-                            Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredSales.length)} of {filteredSales.length} transactions
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              disabled={currentPage === 1}
-                              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                              className="px-3 py-1.5 border border-[#252525] rounded-lg bg-[#202020] text-white hover:bg-[#252525] transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
-                            >
-                              Previous
-                            </button>
-
-                            {Array.from({ length: totalPages }, (_, i) => i + 1)
-                              .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
-                              .map((p, idx, arr) => {
-                                const elements = []
-                                if (idx > 0 && p - arr[idx - 1] > 1) {
-                                  elements.push(
-                                    <span key={`dots-${p}`} className="px-1 text-zinc-500">
-                                      ...
-                                    </span>
-                                  )
-                                }
-                                elements.push(
-                                  <button
-                                    key={p}
-                                    onClick={() => setCurrentPage(p)}
-                                    className={`w-7 h-7 rounded-lg border font-bold transition-all cursor-pointer ${
-                                      currentPage === p 
-                                        ? 'bg-white text-black border-white shadow-sm font-bold' 
-                                        : 'bg-white/5 border-white/10 text-zinc-300 hover:bg-white/10'
-                                    }`}
-                                  >
-                                    {p}
-                                  </button>
-                                )
-                                return elements
-                              })}
-
-                            <button
-                              disabled={currentPage === totalPages}
-                              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                              className="px-3 py-1.5 border border-white/10 rounded-lg bg-white/5 text-white hover:bg-white/10 transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
-                            >
-                              Next
-                            </button>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredSales.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setCurrentPage}
+                itemLabel="orders"
+              />
             </div>
           </>
         )

@@ -51,6 +51,7 @@ export function AnalyticsOverview({
   setActiveTab
 }: AnalyticsOverviewProps) {
   const [activeMetric, setActiveMetric] = useState<'revenue' | 'paid_orders' | 'free_claims' | 'signups'>('revenue')
+  const [timelineWindow, setTimelineWindow] = useState<'all' | '30d' | '14d' | '12d'>('all')
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null)
 
   // Order Receipt Modal State
@@ -101,15 +102,24 @@ export function AnalyticsOverview({
     }
 
     const currentYear = new Date().getFullYear()
-    return Object.entries(groups)
+    let sortedList = Object.entries(groups)
       .map(([date, value]) => ({
         date,
         value,
         timestamp: new Date(`${date}, ${currentYear}`).getTime()
       }))
       .sort((a, b) => a.timestamp - b.timestamp)
-      .slice(-12)
-  }, [activeMetric, vaultSalesList, usersList])
+
+    if (timelineWindow === '12d') {
+      sortedList = sortedList.slice(-12)
+    } else if (timelineWindow === '14d') {
+      sortedList = sortedList.slice(-14)
+    } else if (timelineWindow === '30d') {
+      sortedList = sortedList.slice(-30)
+    }
+    // 'all' preserves the full all-time history
+    return sortedList
+  }, [activeMetric, timelineWindow, vaultSalesList, usersList])
 
   const chartSummary = useMemo(() => {
     if (chartData.length === 0) return { total: 0, peak: { date: '-', value: 0 }, avg: 0 }
@@ -476,50 +486,87 @@ export function AnalyticsOverview({
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-1 bg-[#121212] border border-[#222222] p-1 rounded-lg">
-            <button
-              type="button"
-              onClick={() => { setActiveMetric('revenue'); setHoveredPointIndex(null) }}
-              className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
-                activeMetric === 'revenue' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              Revenue (₹)
-            </button>
-            <button
-              type="button"
-              onClick={() => { setActiveMetric('paid_orders'); setHoveredPointIndex(null) }}
-              className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
-                activeMetric === 'paid_orders' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              Paid Orders
-            </button>
-            <button
-              type="button"
-              onClick={() => { setActiveMetric('free_claims'); setHoveredPointIndex(null) }}
-              className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
-                activeMetric === 'free_claims' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              Free Claims
-            </button>
-            <button
-              type="button"
-              onClick={() => { setActiveMetric('signups'); setHoveredPointIndex(null) }}
-              className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
-                activeMetric === 'signups' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              User Signups
-            </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Timeline Window Filter */}
+            <div className="flex items-center gap-1 bg-[#121212] border border-[#222222] p-1 rounded-lg text-xs">
+              <button
+                type="button"
+                onClick={() => { setTimelineWindow('all'); setHoveredPointIndex(null) }}
+                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer ${
+                  timelineWindow === 'all' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                All Time ({activeMetric === 'revenue' ? `₹${financialData.grossRevenue.toLocaleString()}` : `${vaultSalesList.length} Orders`})
+              </button>
+              <button
+                type="button"
+                onClick={() => { setTimelineWindow('30d'); setHoveredPointIndex(null) }}
+                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer ${
+                  timelineWindow === '30d' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                Last 30D
+              </button>
+              <button
+                type="button"
+                onClick={() => { setTimelineWindow('12d'); setHoveredPointIndex(null) }}
+                className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-all cursor-pointer ${
+                  timelineWindow === '12d' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
+                }`}
+                title="Only recent 12 active days (total ₹14,262)"
+              >
+                Recent 12D (₹14,262)
+              </button>
+            </div>
+
+            {/* Metric Selectors */}
+            <div className="flex flex-wrap gap-1 bg-[#121212] border border-[#222222] p-1 rounded-lg">
+              <button
+                type="button"
+                onClick={() => { setActiveMetric('revenue'); setHoveredPointIndex(null) }}
+                className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+                  activeMetric === 'revenue' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                Revenue (₹)
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveMetric('paid_orders'); setHoveredPointIndex(null) }}
+                className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+                  activeMetric === 'paid_orders' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                Paid Orders
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveMetric('free_claims'); setHoveredPointIndex(null) }}
+                className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+                  activeMetric === 'free_claims' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                Free Claims
+              </button>
+              <button
+                type="button"
+                onClick={() => { setActiveMetric('signups'); setHoveredPointIndex(null) }}
+                className={`px-3 py-1 rounded text-xs font-semibold transition-all cursor-pointer ${
+                  activeMetric === 'signups' ? 'bg-white text-black shadow-sm' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                User Signups
+              </button>
+            </div>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono py-1">
           <div className="flex items-center gap-4">
             <div>
-              <span className="text-[10px] text-zinc-500 uppercase block">Total in Window</span>
+              <span className="text-[10px] text-zinc-500 uppercase block">
+                {timelineWindow === 'all' ? 'All-Time Total' : timelineWindow === '12d' ? '12-Day Window' : `Window (${chartData.length} Days)`}
+              </span>
               <span className="font-bold text-white text-sm">
                 {activeMetric === 'revenue' ? `₹${chartSummary.total.toLocaleString()} INR` : chartSummary.total}
               </span>

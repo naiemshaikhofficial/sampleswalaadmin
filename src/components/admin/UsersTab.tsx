@@ -1,7 +1,22 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { Search, Mail, Phone, MapPin, Ban, ShieldCheck, Trash2, X, Download, Package, Ticket } from 'lucide-react'
+import {
+  Search,
+  Mail,
+  Phone,
+  MapPin,
+  Ban,
+  ShieldCheck,
+  Trash2,
+  X,
+  Download,
+  Package,
+  Ticket,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUpDown
+} from 'lucide-react'
 import { banUser, unbanUser, deleteUser, updateUserRole } from '@/app/actions'
 
 interface UsersTabProps {
@@ -13,6 +28,110 @@ interface UsersTabProps {
   askConfirmation: (title: string, message: string, isDanger?: boolean, confirmText?: string) => Promise<boolean>
   paletteSelection?: { type: string; data: any } | null
   setPaletteSelection?: (val: any) => void
+}
+
+function PaginationControls({
+  currentPage,
+  totalPages,
+  totalItems,
+  itemsPerPage,
+  onPageChange,
+  itemLabel = 'users'
+}: {
+  currentPage: number
+  totalPages: number
+  totalItems: number
+  itemsPerPage: number
+  onPageChange: (page: number) => void
+  itemLabel?: string
+}) {
+  if (totalPages <= 1) return null
+
+  const getPages = () => {
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1)
+    }
+    const pages: (number | string)[] = []
+    if (currentPage <= 4) {
+      for (let i = 1; i <= 5; i++) pages.push(i)
+      pages.push('...')
+      pages.push(totalPages)
+    } else if (currentPage >= totalPages - 3) {
+      pages.push(1)
+      pages.push('...')
+      for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i)
+    } else {
+      pages.push(1)
+      pages.push('...')
+      pages.push(currentPage - 1)
+      pages.push(currentPage)
+      pages.push(currentPage + 1)
+      pages.push('...')
+      pages.push(totalPages)
+    }
+    return pages
+  }
+
+  const startIdx = (currentPage - 1) * itemsPerPage + 1
+  const endIdx = Math.min(currentPage * itemsPerPage, totalItems)
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-[#141414] border-t border-[#222222] text-xs font-mono">
+      <div className="text-zinc-400 text-[11px]">
+        Showing <span className="text-white font-bold">{startIdx}</span> to <span className="text-white font-bold">{endIdx}</span> of <span className="text-white font-bold">{totalItems}</span> {itemLabel}
+      </div>
+
+      <div className="flex items-center gap-1.5 self-center sm:self-auto">
+        <button
+          type="button"
+          disabled={currentPage === 1}
+          onClick={() => onPageChange(currentPage - 1)}
+          className="p-1.5 rounded-lg bg-[#202020] hover:bg-[#282828] text-zinc-300 hover:text-white border border-[#2c2c2c] disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
+          title="Previous Page"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+
+        <div className="flex items-center gap-1">
+          {getPages().map((p, idx) => {
+            if (p === '...') {
+              return (
+                <span key={`dots-${idx}`} className="px-1.5 text-zinc-500 select-none">
+                  ...
+                </span>
+              )
+            }
+            const pageNum = Number(p)
+            const isActive = pageNum === currentPage
+            return (
+              <button
+                key={pageNum}
+                type="button"
+                onClick={() => onPageChange(pageNum)}
+                className={`min-w-[28px] h-7 px-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-white text-black shadow-sm scale-105'
+                    : 'bg-[#1e1e1e] hover:bg-[#282828] text-zinc-300 hover:text-white border border-[#2b2b2b]'
+                }`}
+              >
+                {pageNum}
+              </button>
+            )
+          })}
+        </div>
+
+        <button
+          type="button"
+          disabled={currentPage === totalPages}
+          onClick={() => onPageChange(currentPage + 1)}
+          className="p-1.5 rounded-lg bg-[#202020] hover:bg-[#282828] text-zinc-300 hover:text-white border border-[#2c2c2c] disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
+          title="Next Page"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  )
 }
 
 export function UsersTab({
@@ -27,6 +146,7 @@ export function UsersTab({
 }: UsersTabProps) {
   const [userSearch, setUserSearch] = useState('')
   const [userFilter, setUserFilter] = useState<'all' | 'active' | 'banned' | 'subscribed'>('all')
+  const [userSort, setUserSort] = useState<'newest' | 'oldest' | 'orders_desc' | 'spend_desc' | 'name_asc' | 'credits_desc'>('newest')
   const [showUserModal, setShowUserModal] = useState(false)
   const [activeUser, setActiveUser] = useState<any>(null)
   const [actionLoading, setActionLoading] = useState(false)
@@ -35,10 +155,10 @@ export function UsersTab({
   const [currentPage, setCurrentPage] = useState(1)
   const ITEMS_PER_PAGE = 20
 
-  // Reset pagination on search query or filter criteria change
+  // Reset pagination on search query, filter criteria or sort change
   useEffect(() => {
     setCurrentPage(1)
-  }, [userSearch, userFilter])
+  }, [userSearch, userFilter, userSort])
 
   useEffect(() => {
     if (paletteSelection && paletteSelection.type === 'user') {
@@ -263,6 +383,22 @@ export function UsersTab({
             <option value="banned">Banned Only</option>
             <option value="subscribed">Subscribers Only</option>
           </select>
+          <div className="flex items-center gap-1.5 bg-[#121212] border border-[#262626] rounded-lg px-2.5 py-2 text-white text-xs">
+            <ArrowUpDown className="w-3.5 h-3.5 text-zinc-400 flex-shrink-0" />
+            <span className="text-zinc-500 font-mono text-[10px] uppercase">Sort:</span>
+            <select
+              value={userSort}
+              onChange={e => setUserSort(e.target.value as any)}
+              className="bg-transparent text-white outline-none text-xs cursor-pointer font-medium"
+            >
+              <option value="newest" className="bg-[#181818] text-white">Newest Registered</option>
+              <option value="oldest" className="bg-[#181818] text-white">Oldest Registered</option>
+              <option value="orders_desc" className="bg-[#181818] text-white">Most Orders / Packs</option>
+              <option value="spend_desc" className="bg-[#181818] text-white">Highest Spend (₹)</option>
+              <option value="name_asc" className="bg-[#181818] text-white">Name (A-Z)</option>
+              <option value="credits_desc" className="bg-[#181818] text-white">Highest Credits</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -317,6 +453,39 @@ export function UsersTab({
           if (userFilter === 'active') return !u.is_banned
           if (userFilter === 'subscribed') return u.subscription_status === 'ACTIVE' || u.subscription_tier !== 'NONE'
           return true
+        })
+
+        // Sort users according to selected criteria
+        filtered.sort((a, b) => {
+          const aEmail = (a.email || '').toLowerCase()
+          const bEmail = (b.email || '').toLowerCase()
+          const aVault = userVaultMap[a.id] || userVaultMap[aEmail]
+          const bVault = userVaultMap[b.id] || userVaultMap[bEmail]
+
+          if (userSort === 'orders_desc') {
+            const aCount = aVault?.count || 0
+            const bCount = bVault?.count || 0
+            if (bCount !== aCount) return bCount - aCount
+            return (bVault?.totalSpend || 0) - (aVault?.totalSpend || 0)
+          }
+          if (userSort === 'spend_desc') {
+            const aSpend = aVault?.totalSpend || 0
+            const bSpend = bVault?.totalSpend || 0
+            if (bSpend !== aSpend) return bSpend - aSpend
+            return (bVault?.count || 0) - (aVault?.count || 0)
+          }
+          if (userSort === 'oldest') {
+            return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime()
+          }
+          if (userSort === 'name_asc') {
+            const aName = a.full_name || a.email || ''
+            const bName = b.full_name || b.email || ''
+            return aName.localeCompare(bName)
+          }
+          if (userSort === 'credits_desc') {
+            return (b.credits || 0) - (a.credits || 0)
+          }
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
         })
 
         if (filtered.length === 0) {
@@ -425,25 +594,14 @@ export function UsersTab({
               ))}
 
               {/* Mobile Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between gap-2 p-3 bg-[#181818] border border-[#222222] rounded-xl text-[10px] font-mono">
-                  <button
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-30 disabled:pointer-events-none"
-                  >
-                    Prev
-                  </button>
-                  <span className="text-zinc-400">Page {currentPage} of {totalPages}</span>
-                  <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white disabled:opacity-30 disabled:pointer-events-none"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filtered.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setCurrentPage}
+                itemLabel="users"
+              />
             </div>
 
             {/* DESKTOP VIEW: DATA TABLE */}
@@ -582,6 +740,14 @@ export function UsersTab({
                   </tbody>
                 </table>
               </div>
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filtered.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                onPageChange={setCurrentPage}
+                itemLabel="registered users"
+              />
             </div>
           </>
         )
