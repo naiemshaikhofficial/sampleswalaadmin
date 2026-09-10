@@ -379,6 +379,17 @@ export function UsersTab({
                         </span>
                       )}
                     </div>
+                    {(() => {
+                      const email = (u.email || '').toLowerCase()
+                      const vaultInfo = userVaultMap[u.id] || userVaultMap[email]
+                      if (!vaultInfo || vaultInfo.count === 0) return null
+                      return (
+                        <span className="text-[9px] bg-white/10 text-white border border-white/20 px-1.5 py-0.5 rounded font-mono font-medium flex items-center gap-1">
+                          <Package className="w-2.5 h-2.5 text-white" />
+                          {vaultInfo.count} {vaultInfo.count === 1 ? 'Pack' : 'Packs'} ({vaultInfo.totalSpend > 0 ? `₹${Math.round(vaultInfo.totalSpend).toLocaleString('en-IN')}` : 'Free'})
+                        </span>
+                      )
+                    })()}
                     <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
                       {u.is_banned ? (
                         <button
@@ -491,6 +502,24 @@ export function UsersTab({
                                   </span>
                                 )}
                               </div>
+                              {(() => {
+                                const email = (u.email || '').toLowerCase()
+                                const vaultInfo = userVaultMap[u.id] || userVaultMap[email]
+                                if (!vaultInfo || vaultInfo.count === 0) return null
+                                return (
+                                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                    <span className="text-[10px] bg-white/10 text-white border border-white/20 px-2 py-0.5 rounded font-mono font-medium flex items-center gap-1">
+                                      <Package className="w-3 h-3 text-white" />
+                                      {vaultInfo.count} {vaultInfo.count === 1 ? 'Pack' : 'Packs'} ({vaultInfo.totalSpend > 0 ? `₹${Math.round(vaultInfo.totalSpend).toLocaleString('en-IN')}` : 'Free Claim'})
+                                    </span>
+                                    {vaultInfo.couponCode && (
+                                      <span className="text-[9px] bg-white/15 text-white border border-white/30 px-1.5 py-0.5 rounded font-mono font-bold flex items-center gap-1" title={`Discount coupon: ${vaultInfo.couponCode}`}>
+                                        <Ticket className="w-2.5 h-2.5 text-white" /> {vaultInfo.couponCode}
+                                      </span>
+                                    )}
+                                  </div>
+                                )
+                              })()}
                             </div>
                           </div>
                         </td>
@@ -607,6 +636,36 @@ export function UsersTab({
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Subscription Tier</span>
                 <span className="text-zinc-200 font-bold uppercase">{activeUser.subscription_tier || 'NONE'} ({activeUser.subscription_status || 'INACTIVE'})</span>
               </div>
+              {(() => {
+                const email = (activeUser.email || '').toLowerCase()
+                const vaultInfo = userVaultMap[activeUser.id] || userVaultMap[email]
+                return (
+                  <div className="flex flex-col space-y-2 border-b border-white/[0.06] pb-2.5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-zinc-500 font-bold uppercase text-[10px]">Vault Orders & Library</span>
+                      <span className="text-white font-mono font-bold text-xs">
+                        {vaultInfo ? `${vaultInfo.count} Orders (${vaultInfo.totalSpend > 0 ? `₹${Math.round(vaultInfo.totalSpend).toLocaleString('en-IN')}` : 'Free Claims'})` : '0 Orders'}
+                      </span>
+                    </div>
+                    {vaultInfo && vaultInfo.packs.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-0.5">
+                        {vaultInfo.packs.map((p, idx) => (
+                          <span key={idx} className="text-[9px] bg-white/10 text-white border border-white/20 px-2 py-0.5 rounded font-mono">
+                            📦 {p}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {vaultInfo?.couponCode && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-300 font-mono pt-1">
+                        <Ticket className="w-3 h-3 text-white" />
+                        <span>Coupon Redeemed:</span>
+                        <span className="text-white font-bold bg-white/15 px-1.5 py-0.5 rounded border border-white/30">{vaultInfo.couponCode}</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })()}
               <div className="flex justify-between border-b border-white/[0.06] pb-2">
                 <span className="text-zinc-500 font-bold uppercase text-[10px]">Auth Provider</span>
                 <span className="text-white font-bold uppercase flex items-center gap-1.5">
