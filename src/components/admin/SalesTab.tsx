@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { Search, Mail, Phone, MapPin, X, Download, Ticket, Copy, Check } from 'lucide-react'
 import { getShortSampleName } from '@/lib/formatUtils'
 
@@ -127,6 +127,50 @@ export function SalesTab({
     document.body.removeChild(link)
   }
 
+  // Compute live sales summary statistics for top cards
+  const salesSummary = useMemo(() => {
+    let totalRevenueINR = 0
+    let paidCount = 0
+    let freeCount = 0
+    let totalDiscountINR = 0
+    let couponCount = 0
+
+    filteredSales.forEach((s: any) => {
+      const rawAmt = Number(s.amount || 0)
+      const isUsd = Boolean(s.is_usd || s.currency === 'USD')
+      const converted = s.converted_amount_inr !== undefined
+        ? Number(s.converted_amount_inr)
+        : (isUsd ? rawAmt * (s.exchange_rate || 90) : rawAmt)
+
+      if (rawAmt > 0) {
+        paidCount++
+        totalRevenueINR += converted
+      } else {
+        freeCount++
+      }
+
+      const hasCoupon = Boolean(s.coupon?.code || s.coupon_code)
+      const discount = Number(s.discount_amount ?? s.coupon?.discount_amount ?? 0)
+      if (hasCoupon || discount > 0) {
+        couponCount++
+        if (discount > 0) {
+          totalDiscountINR += discount
+        } else if (rawAmt === 10) {
+          totalDiscountINR += 989
+        }
+      }
+    })
+
+    return {
+      totalOrders: filteredSales.length,
+      paidCount,
+      freeCount,
+      totalRevenueINR,
+      totalDiscountINR,
+      couponCount
+    }
+  }, [filteredSales])
+
   return (
     <div className="space-y-6 animate-fadeIn font-mono text-xs">
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-[#181818] p-4 sm:p-5 border border-[#222222] rounded-xl shadow-sm">
@@ -156,6 +200,41 @@ export function SalesTab({
               className="pl-9 pr-4 py-2 bg-[#121212] border border-[#262626] rounded-lg text-white text-xs outline-none focus:border-white w-64 md:w-80 font-mono transition-colors"
             />
           </div>
+        </div>
+      </div>
+
+      {/* ORDERS & SALES SUMMARY STATS */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="bg-[#181818] border border-[#222222] rounded-xl p-3.5 space-y-1">
+          <span className="text-[10px] text-zinc-400 uppercase font-mono tracking-wider block">Total Orders</span>
+          <p className="font-mono font-bold text-xl text-white">{salesSummary.totalOrders}</p>
+          <span className="text-[10px] text-zinc-400 font-mono block">
+            {salesSummary.paidCount} Paid • {salesSummary.freeCount} Free
+          </span>
+        </div>
+
+        <div className="bg-[#181818] border border-[#222222] rounded-xl p-3.5 space-y-1">
+          <span className="text-[10px] text-zinc-400 uppercase font-mono tracking-wider block">Gross Sales Volume</span>
+          <p className="font-mono font-bold text-xl text-white">₹{salesSummary.totalRevenueINR.toLocaleString()} <span className="text-[10px] font-normal text-zinc-400">INR</span></p>
+          <span className="text-[10px] text-zinc-400 font-mono block">
+            {salesSummary.paidCount} Paid Settlements
+          </span>
+        </div>
+
+        <div className="bg-[#181818] border border-[#222222] rounded-xl p-3.5 space-y-1">
+          <span className="text-[10px] text-zinc-400 uppercase font-mono tracking-wider block">Free Lead Claims</span>
+          <p className="font-mono font-bold text-xl text-white">{salesSummary.freeCount}</p>
+          <span className="text-[10px] text-zinc-400 font-mono block">
+            Promotional Claims
+          </span>
+        </div>
+
+        <div className="bg-[#181818] border border-[#222222] rounded-xl p-3.5 space-y-1">
+          <span className="text-[10px] text-zinc-400 uppercase font-mono tracking-wider block">Promo Savings Given</span>
+          <p className="font-mono font-bold text-xl text-white">₹{salesSummary.totalDiscountINR.toLocaleString()} <span className="text-[10px] font-normal text-zinc-400">INR</span></p>
+          <span className="text-[10px] text-zinc-400 font-mono block">
+            Across {salesSummary.couponCount} Coupon Orders
+          </span>
         </div>
       </div>
 
@@ -202,7 +281,7 @@ export function SalesTab({
                           {Number(s.amount) === 0 ? 'Free' : 'Verified'}
                         </span>
                         {(s.coupon?.code || s.coupon_code) && (
-                          <span className="flex-shrink-0 inline-flex items-center gap-0.5 text-[8px] font-bold uppercase rounded px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                          <span className="flex-shrink-0 inline-flex items-center gap-0.5 text-[8px] font-bold uppercase rounded px-1.5 py-0.5 bg-white/15 text-white border border-white/30 font-mono">
                             <Ticket className="w-2.5 h-2.5" />
                             {s.coupon?.code || s.coupon_code}
                           </span>
@@ -285,7 +364,7 @@ export function SalesTab({
                               {Number(s.amount) === 0 ? 'Free Claim' : 'Verified Order'}
                             </span>
                             {(s.coupon?.code || s.coupon_code) && (
-                              <span className="inline-flex items-center gap-1 text-[8px] font-bold uppercase rounded px-2 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono">
+                              <span className="inline-flex items-center gap-1 text-[8px] font-bold uppercase rounded px-2 py-0.5 bg-white/15 text-white border border-white/30 font-mono">
                                 <Ticket className="w-2.5 h-2.5" />
                                 {s.coupon?.code || s.coupon_code}
                                 {s.coupon?.discount_percent ? ` (${s.coupon.discount_percent}% OFF)` : ''}
@@ -455,15 +534,15 @@ export function SalesTab({
 
                     {/* PROMO COUPON DETAILS */}
                     {(hasCoupon || discountAmt > 0) && (
-                      <div className="bg-emerald-500/[0.08] border border-emerald-500/30 rounded-lg p-3 space-y-2">
+                      <div className="bg-white/[0.04] border border-white/20 rounded-lg p-3 space-y-2">
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-2">
-                            <Ticket className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                            <Ticket className="w-4 h-4 text-white flex-shrink-0" />
                             <div>
                               <span className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider block">
                                 Promo Coupon Applied
                               </span>
-                              <span className="inline-block bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono font-black text-xs border border-emerald-500/40 tracking-wide mt-0.5">
+                              <span className="inline-block bg-white/15 text-white px-2 py-0.5 rounded font-mono font-black text-xs border border-white/30 tracking-wide mt-0.5">
                                 {couponCode || 'PROMOTIONAL DISCOUNT'}
                               </span>
                             </div>
@@ -472,15 +551,15 @@ export function SalesTab({
                             <span className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider block">
                               Discount Applied
                             </span>
-                            <span className="text-emerald-400 font-black text-xs font-mono">
+                            <span className="text-white font-black text-xs font-mono">
                               {discountPct > 0 ? `${discountPct}% OFF` : 'Special Discount'}
                             </span>
                           </div>
                         </div>
 
-                        <div className="flex justify-between items-center text-xs pt-2 border-t border-emerald-500/20 text-emerald-300 font-mono">
+                        <div className="flex justify-between items-center text-xs pt-2 border-t border-white/10 text-zinc-200 font-mono">
                           <span className="text-[11px]">Total Coupon Savings:</span>
-                          <span className="font-bold">
+                          <span className="font-bold text-white">
                             -{activeOrder.is_usd ? `$${discountAmt.toFixed(2)} USD` : `₹${discountAmt.toLocaleString()} INR`}
                           </span>
                         </div>
@@ -492,7 +571,7 @@ export function SalesTab({
                       <div>
                         <span className="text-zinc-200 font-bold text-sm block">Final Total Paid</span>
                         {discountAmt > 0 && (
-                          <span className="text-[11px] text-emerald-400 font-medium">
+                          <span className="text-[11px] text-zinc-300 font-medium">
                             Customer saved {activeOrder.is_usd ? `$${discountAmt.toFixed(2)}` : `₹${discountAmt.toLocaleString()}`} ({discountPct}% OFF)
                           </span>
                         )}
@@ -528,7 +607,7 @@ export function SalesTab({
                           className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer"
                           title="Copy Order ID"
                         >
-                          {copiedField === 'orderId' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          {copiedField === 'orderId' ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
                         </button>
                       </div>
                     </div>
@@ -571,7 +650,7 @@ export function SalesTab({
                             className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer"
                             title={`Copy ${gatewayTitle} Order ID`}
                           >
-                            {copiedField === 'gatewayOrderId' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                            {copiedField === 'gatewayOrderId' ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
                           </button>
                         )}
                       </div>
@@ -587,7 +666,7 @@ export function SalesTab({
                             className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer"
                             title={`Copy ${gatewayTitle} Payment ID`}
                           >
-                            {copiedField === 'paymentId' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                            {copiedField === 'paymentId' ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
                           </button>
                         )}
                       </div>

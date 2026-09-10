@@ -95,9 +95,19 @@ export function computeFinancialData(
   let domesticINR = 0
   let internationalUSD = 0
   let internationalUSDConverted = 0
+  let domesticOrdersCount = 0
+  let internationalOrdersCount = 0
+  let totalDiscountsGiven = 0
+  let couponOrdersCount = 0
+
+  const gatewayBreakdown = {
+    cashfree: { count: 0, revenue: 0 },
+    razorpay: { count: 0, revenue: 0 },
+    paypal: { count: 0, revenue: 0 }
+  }
 
   paidSales.forEach(s => {
-    const isUsd = Boolean(s.is_usd)
+    const isUsd = Boolean(s.is_usd || s.currency === 'USD')
     const rawAmt = Number(s.amount || 0)
     const converted = s.converted_amount_inr !== undefined
       ? Number(s.converted_amount_inr)
@@ -106,8 +116,54 @@ export function computeFinancialData(
     if (isUsd) {
       internationalUSD += (s.original_amount !== undefined ? Number(s.original_amount) : rawAmt)
       internationalUSDConverted += converted
+      internationalOrdersCount++
     } else {
       domesticINR += rawAmt
+      domesticOrdersCount++
+    }
+
+    // Dynamic Gateway attribution
+    const gw = (s.payment_gateway || '').toLowerCase()
+    const rOrder = s.razorpay_order_id || ''
+    const rPay = s.razorpay_payment_id || ''
+    if (gw === 'cashfree' || rOrder.startsWith('sw_') || rPay.startsWith('CF_')) {
+      gatewayBreakdown.cashfree.count++
+      gatewayBreakdown.cashfree.revenue += converted
+    } else if (gw === 'paypal' || isUsd) {
+      gatewayBreakdown.paypal.count++
+      gatewayBreakdown.paypal.revenue += converted
+    } else {
+      gatewayBreakdown.razorpay.count++
+      gatewayBreakdown.razorpay.revenue += converted
+    }
+  })
+
+  // Count free orders into domestic/gateway counters
+  freeSales.forEach(s => {
+    const isUsd = Boolean(s.is_usd || s.currency === 'USD')
+    if (isUsd) {
+      internationalOrdersCount++
+    } else {
+      domesticOrdersCount++
+    }
+  })
+
+  // Calculate promotional coupon discounts given across all orders
+  vaultSalesList.forEach(s => {
+    const hasCoupon = Boolean(s.coupon?.code || s.coupon_code)
+    const rawAmt = Number(s.amount || 0)
+    const origPrice = Number(s.original_price ?? (s.is_usd ? 14.99 : 999))
+    const discountAmt = Number(s.discount_amount ?? s.coupon?.discount_amount ?? 0)
+
+    if (hasCoupon || discountAmt > 0) {
+      couponOrdersCount++
+      if (discountAmt > 0) {
+        totalDiscountsGiven += discountAmt
+      } else if (origPrice > rawAmt) {
+        totalDiscountsGiven += (origPrice - rawAmt)
+      } else if (rawAmt === 10) {
+        totalDiscountsGiven += 989
+      }
     }
   })
 
@@ -164,6 +220,11 @@ export function computeFinancialData(
     paidOrdersCount,
     freeOrdersCount: freeSales.length,
     totalOrdersCount: vaultSalesList.length,
+    totalDiscountsGiven,
+    couponOrdersCount,
+    domesticOrdersCount,
+    internationalOrdersCount,
+    gatewayBreakdown,
     rawGrowth,
     formattedGrowth,
     isGrowthPositive: rawGrowth >= 0
@@ -173,7 +234,7 @@ export function computeFinancialData(
 // Compute Customer Analytics
 export function computeCustomerAnalytics(
   vaultSalesList: VaultSale[],
-  totalUsersFallback = 96,
+  totalUsersFallback = 104,
   usersListCount = 0,
   exchangeRate = 90
 ): CustomerAnalytics {

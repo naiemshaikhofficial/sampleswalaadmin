@@ -1053,6 +1053,7 @@ export default function AdminDashboard() {
           {activeTab === 'users' && (
             <UsersTab
               usersList={usersList}
+              vaultSalesList={vaultSalesList}
               invalidateCacheAndReload={invalidateCacheAndReload}
               showToast={showToast}
               addAuditLog={addAuditLog}

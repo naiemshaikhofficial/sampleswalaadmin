@@ -86,7 +86,7 @@ export function AnalyticsTab({
 
   // 2. Customer & Audience Analytics
   const customerAnalytics = useMemo(() => {
-    return computeCustomerAnalytics(vaultSalesList, stats.totalUsers || 96, usersList.length, exchangeRate)
+    return computeCustomerAnalytics(vaultSalesList, stats.totalUsers || 104, usersList.length, exchangeRate)
   }, [vaultSalesList, stats.totalUsers, usersList.length, exchangeRate])
 
   // 3. Product Catalog Metrics

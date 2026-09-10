@@ -63,6 +63,15 @@ export interface FinancialData {
   paidOrdersCount: number
   freeOrdersCount: number
   totalOrdersCount: number
+  totalDiscountsGiven: number
+  couponOrdersCount: number
+  domesticOrdersCount: number
+  internationalOrdersCount: number
+  gatewayBreakdown: {
+    cashfree: { count: number; revenue: number }
+    razorpay: { count: number; revenue: number }
+    paypal: { count: number; revenue: number }
+  }
   rawGrowth: number
   formattedGrowth: string
   isGrowthPositive: boolean
