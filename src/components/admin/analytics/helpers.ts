@@ -167,7 +167,8 @@ export function computeFinancialData(
     }
   })
 
-  const grossRevenue = domesticINR + internationalUSDConverted || fallbackRevenue || 0
+  const computedSum = domesticINR + internationalUSDConverted
+  const grossRevenue = vaultSalesList ? computedSum : (fallbackRevenue || 0)
   const domesticFees = Math.round(domesticINR * 0.0236)
   const internationalFees = Math.round(internationalUSDConverted * 0.035)
   const gatewayFees = domesticFees + internationalFees

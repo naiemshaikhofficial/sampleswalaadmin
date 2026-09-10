@@ -1066,7 +1066,12 @@ async function fetchAllVaultSales() {
       const isUsd = isUsdOrder(sale)
       const gateway = getOrderGateway(sale)
       const rawAmt = Number(sale.amount || 0)
-      const convertedAmt = isUsd ? convertUsdToInr(rawAmt, liveRate) : rawAmt
+      const convertedAmt = (sale.converted_amount_inr !== undefined && sale.converted_amount_inr !== null)
+        ? Number(sale.converted_amount_inr)
+        : (isUsd ? convertUsdToInr(rawAmt, Number(sale.exchange_rate || liveRate)) : rawAmt)
+      const orderRate = sale.exchange_rate !== undefined && sale.exchange_rate !== null
+        ? Number(sale.exchange_rate)
+        : (isUsd ? liveRate : 1)
 
       // Original price resolution (from vault or sample_pack)
       const origPrice = Number(
@@ -1108,7 +1113,7 @@ async function fetchAllVaultSales() {
         payment_gateway: gateway,
         original_amount: rawAmt,
         converted_amount_inr: convertedAmt,
-        exchange_rate: liveRate,
+        exchange_rate: orderRate,
         created_at: sale.created_at,
         razorpay_order_id: sale.razorpay_order_id || 'N/A',
         razorpay_payment_id: sale.razorpay_payment_id || 'N/A',

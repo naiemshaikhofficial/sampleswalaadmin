@@ -991,6 +991,7 @@ export default function AdminDashboard() {
               coupons={coupons}
               setActiveTab={setActiveTab}
               themeMode={themeMode}
+              isDateWithinRange={isDateWithinRange}
             />
           )}
 

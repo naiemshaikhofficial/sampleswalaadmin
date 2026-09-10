@@ -684,15 +684,23 @@ export function AnalyticsOverview({
                       stroke="#ffffff"
                       strokeWidth="2"
                     />
-                    <text
-                      x={p.x}
-                      y={lineChartPoints.height - 10}
-                      fill={isHovered ? '#ffffff' : '#71717a'}
-                      className="text-[9px] font-mono font-medium"
-                      textAnchor="middle"
-                    >
-                      {p.date}
-                    </text>
+                    {(() => {
+                      const totalPts = lineChartPoints.points.length
+                      const step = totalPts > 18 ? 3 : totalPts > 12 ? 2 : 1
+                      const shouldShow = isHovered || i === 0 || i === totalPts - 1 || (i % step === 0 && (totalPts - 1 - i) >= Math.floor(step / 2))
+                      if (!shouldShow) return null
+                      return (
+                        <text
+                          x={p.x}
+                          y={lineChartPoints.height - 10}
+                          fill={isHovered ? '#ffffff' : '#71717a'}
+                          className={`text-[9px] font-mono ${isHovered ? 'font-bold' : 'font-medium'}`}
+                          textAnchor="middle"
+                        >
+                          {p.date}
+                        </text>
+                      )
+                    })()}
                   </g>
                 )
               })}
