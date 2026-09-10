@@ -1009,11 +1009,14 @@ async function fetchAllVaultSales() {
     // 4. Fetch auth users for email addresses
     const users = await getAuthUsers(db)
 
-    // 5. Fetch coupon usages
-    const { data: couponUsages, error: couponErr } = await db
-      .from('coupon_usages')
-      .select('order_id, coupons(code, discount_percent)')
-    if (couponErr) throw couponErr
+    // 5. Fetch coupon usages and order sessions for deep transaction & discount metadata
+    const orderIds = Array.from(new Set((sales || []).map((s: any) => s.razorpay_order_id).filter(Boolean)))
+    const [couponUsagesRes, orderSessionsRes] = await Promise.all([
+      db.from('coupon_usages').select('order_id, coupons(code, discount_percent)'),
+      orderIds.length > 0 ? db.from('order_sessions').select('order_id, coupon_code, amount, billing_details, gateway').in('order_id', orderIds) : { data: [] }
+    ])
+    const couponUsages = couponUsagesRes.data || []
+    const orderSessions = orderSessionsRes.data || []
 
     const liveRate = await getUsdToInrRate()
 
@@ -1022,17 +1025,39 @@ async function fetchAllVaultSales() {
       const account = (userAccounts || []).find((a: any) => a.user_id === sale.user_id)
       const profile = (userProfiles || []).find((p: any) => p.id === sale.user_id)
       const authUser = (users || []).find((u: any) => u.id === sale.user_id)
-
-      const usage = (couponUsages || []).find((u: any) => u.order_id === sale.razorpay_order_id)
-      const couponInfo = usage?.coupons ? {
-        code: usage.coupons.code,
-        discount_percent: usage.coupons.discount_percent
-      } : null
+      const session = (orderSessions || []).find((os: any) => os.order_id === sale.razorpay_order_id)
+      const sessionBilling = session?.billing_details
 
       const isUsd = isUsdOrder(sale)
       const gateway = getOrderGateway(sale)
       const rawAmt = Number(sale.amount || 0)
       const convertedAmt = isUsd ? convertUsdToInr(rawAmt, liveRate) : rawAmt
+
+      // Original price resolution (from vault or sample_pack)
+      const origPrice = Number(
+        sale.original_price ?? 
+        (isUsd ? (pack?.price_usd || 14.99) : (pack?.price_inr || rawAmt))
+      )
+      const discountAmt = Number(
+        sale.discount_amount ?? 
+        Math.max(0, origPrice - rawAmt)
+      )
+
+      // Coupon resolution: 1. user_vault -> 2. order_sessions -> 3. coupon_usages
+      const usage = (couponUsages || []).find((u: any) => u.order_id === sale.razorpay_order_id)
+      const rawCouponCode = sale.coupon_code || session?.coupon_code || usage?.coupons?.code || null
+      const detectedCouponCode = rawCouponCode ? String(rawCouponCode).toUpperCase().trim() : null
+
+      let couponDiscountPercent = usage?.coupons?.discount_percent || 0
+      if (!couponDiscountPercent && origPrice > 0 && discountAmt > 0) {
+        couponDiscountPercent = Math.min(100, Math.round((discountAmt / origPrice) * 100))
+      }
+
+      const couponInfo = detectedCouponCode ? {
+        code: detectedCouponCode,
+        discount_percent: couponDiscountPercent,
+        discount_amount: discountAmt
+      } : null
 
       return {
         id: sale.id,
@@ -1040,6 +1065,9 @@ async function fetchAllVaultSales() {
         item_id: sale.item_id,
         pack_id: sale.item_id,
         amount: sale.amount || 0,
+        original_price: origPrice,
+        discount_amount: discountAmt,
+        coupon_code: detectedCouponCode,
         is_usd: isUsd,
         currency: isUsd ? 'USD' : 'INR',
         payment_gateway: gateway,
@@ -1051,18 +1079,18 @@ async function fetchAllVaultSales() {
         razorpay_payment_id: sale.razorpay_payment_id || 'N/A',
         payment_method: getPaymentMethodLabel(gateway, isUsd),
         pack_name: pack?.name || sale.item_name || 'Sample Pack Purchase',
-        buyer_name: account?.full_name || profile?.full_name || authUser?.user_metadata?.full_name || 'Customer',
-        buyer_email: authUser?.email || 'N/A',
-        buyer_phone: account?.phone_number || 'N/A',
-        buyer_city: account?.city || '',
-        buyer_state: account?.state || '',
-        buyer_country: account?.country || (isUsd ? 'United States' : 'India'),
+        buyer_name: account?.full_name || profile?.full_name || sessionBilling?.fullName || authUser?.user_metadata?.full_name || 'Customer',
+        buyer_email: authUser?.email || (sessionBilling?.address?.includes('@') ? sessionBilling.address : 'N/A'),
+        buyer_phone: account?.phone_number || sessionBilling?.phone || 'N/A',
+        buyer_city: account?.city || sessionBilling?.city || '',
+        buyer_state: account?.state || sessionBilling?.state || '',
+        buyer_country: account?.country || sessionBilling?.country || (isUsd ? 'United States' : 'India'),
         buyer_address: [
-          account?.address_line1,
-          account?.city,
-          account?.state,
-          account?.postal_code,
-          account?.country
+          account?.address_line1 || sessionBilling?.address,
+          account?.city || sessionBilling?.city,
+          account?.state || sessionBilling?.state,
+          account?.postal_code || sessionBilling?.zip,
+          account?.country || sessionBilling?.country
         ].filter(Boolean).join(', ') || 'No address provided',
         coupon: couponInfo
       }

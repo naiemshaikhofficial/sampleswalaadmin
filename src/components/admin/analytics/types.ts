@@ -13,6 +13,9 @@ export interface VaultSale {
   buyer_address?: string
   created_at: string
   amount: number
+  original_price?: number
+  discount_amount?: number
+  coupon_code?: string | null
   currency?: string
   payment_gateway?: string
   is_usd?: boolean
@@ -24,6 +27,7 @@ export interface VaultSale {
   coupon?: {
     code?: string
     discount_percent?: number
+    discount_amount?: number
   } | null
 }
 

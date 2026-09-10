@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Search, Mail, Phone, MapPin, X, Download } from 'lucide-react'
+import { Search, Mail, Phone, MapPin, X, Download, Ticket, Copy, Check } from 'lucide-react'
 import { getShortSampleName } from '@/lib/formatUtils'
 
 interface SalesTabProps {
@@ -20,6 +20,14 @@ export function SalesTab({
   const [salesSearch, setSalesSearch] = useState('')
   const [showOrderModal, setShowOrderModal] = useState(false)
   const [activeOrder, setActiveOrder] = useState<any>(null)
+  const [copiedField, setCopiedField] = useState<string | null>(null)
+
+  const copyText = (text: string, field: string) => {
+    if (!text) return
+    navigator.clipboard.writeText(text)
+    setCopiedField(field)
+    setTimeout(() => setCopiedField(null), 2000)
+  }
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
@@ -170,13 +178,21 @@ export function SalesTab({
                         </h4>
                         <p className="text-[11px] text-zinc-400 mt-0.5 font-medium">{s.buyer_name}</p>
                       </div>
-                      <span className={`flex-shrink-0 text-[8px] font-bold uppercase rounded px-2 py-0.5 ${
-                        Number(s.amount) === 0
-                          ? 'bg-[#222222] text-zinc-400 border border-zinc-700'
-                          : 'bg-white/10 text-white border border-white/20'
-                      }`}>
-                        {Number(s.amount) === 0 ? 'Free' : 'Verified'}
-                      </span>
+                      <div className="flex items-center gap-1 flex-wrap justify-end">
+                        <span className={`flex-shrink-0 text-[8px] font-bold uppercase rounded px-2 py-0.5 ${
+                          Number(s.amount) === 0
+                            ? 'bg-[#222222] text-zinc-400 border border-zinc-700'
+                            : 'bg-white/10 text-white border border-white/20'
+                        }`}>
+                          {Number(s.amount) === 0 ? 'Free' : 'Verified'}
+                        </span>
+                        {(s.coupon?.code || s.coupon_code) && (
+                          <span className="flex-shrink-0 inline-flex items-center gap-0.5 text-[8px] font-bold uppercase rounded px-1.5 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                            <Ticket className="w-2.5 h-2.5" />
+                            {s.coupon?.code || s.coupon_code}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex items-center justify-between text-[10px] font-mono pt-1 border-t border-[#222222]">
@@ -245,13 +261,22 @@ export function SalesTab({
                       <td className="p-4">
                         <div className="bg-white/[0.02] border border-white/10 rounded-xl p-3 font-sans">
                           <p className="font-sans font-bold text-sm text-zinc-100 leading-tight">{s.pack_name}</p>
-                          <span className={`inline-block text-[8px] font-bold uppercase rounded px-2 py-0.5 mt-2 ${
-                            Number(s.amount) === 0
-                              ? 'bg-[#222222] text-zinc-400 border border-zinc-700'
-                              : 'bg-white/10 text-white border border-white/20'
-                          }`}>
-                            {Number(s.amount) === 0 ? 'Free Claim' : 'Verified Order'}
-                          </span>
+                          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                            <span className={`inline-block text-[8px] font-bold uppercase rounded px-2 py-0.5 ${
+                              Number(s.amount) === 0
+                                ? 'bg-[#222222] text-zinc-400 border border-zinc-700'
+                                : 'bg-white/10 text-white border border-white/20'
+                            }`}>
+                              {Number(s.amount) === 0 ? 'Free Claim' : 'Verified Order'}
+                            </span>
+                            {(s.coupon?.code || s.coupon_code) && (
+                              <span className="inline-flex items-center gap-1 text-[8px] font-bold uppercase rounded px-2 py-0.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-mono">
+                                <Ticket className="w-2.5 h-2.5" />
+                                {s.coupon?.code || s.coupon_code}
+                                {s.coupon?.discount_percent ? ` (${s.coupon.discount_percent}% OFF)` : ''}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
                       <td className="p-4">
@@ -382,96 +407,184 @@ export function SalesTab({
               Order Transaction Receipt
             </h3>
 
-            {/* ORDER TRANSACTION METADATA */}
-            <div className="bg-[#121212] border border-[#222222] rounded-lg p-4 space-y-3 mb-6 text-zinc-300 font-sans">
-              <div className="flex justify-between border-b border-[#222222] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Order ID</span>
-                <span className="text-white font-mono font-bold">{activeOrder.id}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Product Purchased</span>
-                <span className="text-white font-bold text-sm text-right">{activeOrder.pack_name}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Buyer Name</span>
-                <span className="text-zinc-100 font-bold">{activeOrder.buyer_name || 'Anonymous'}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Buyer Email</span>
-                <span className="text-zinc-100 font-mono select-all">{activeOrder.buyer_email || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Buyer Phone</span>
-                <span className="text-zinc-100 font-mono select-all">{activeOrder.buyer_phone || 'N/A'}</span>
-              </div>
-              <div className="flex flex-col space-y-1.5 border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Delivery Address</span>
-                <span className="text-zinc-300 font-mono leading-normal bg-black/40 border border-white/10 p-2.5 rounded-lg text-[10px] select-all">
-                  {activeOrder.buyer_address || 'No physical delivery address provided for this order.'}
-                </span>
-              </div>
-               {activeOrder.coupon && (
-                <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                  <span className="text-zinc-500 font-bold uppercase text-[10px]">Coupon Applied</span>
-                  <span className="text-zinc-200 font-bold uppercase text-[10px]">
-                    {activeOrder.coupon.code} ({activeOrder.coupon.discount_percent}% OFF)
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Total Paid</span>
-                {activeOrder.is_usd ? (
-                  <div className="text-right">
-                    <span className="text-white font-bold text-sm">
-                      ${Number(activeOrder.original_amount !== undefined ? activeOrder.original_amount : activeOrder.amount).toFixed(2)} USD
-                    </span>
-                    <p className="text-[10px] text-zinc-400 font-mono">
-                      ≈ ₹{(activeOrder.converted_amount_inr ?? Math.round(Number(activeOrder.amount) * 90)).toLocaleString()} INR
-                    </p>
+            {(() => {
+              const gw = activeOrder.payment_gateway || ''
+              const gatewayTitle = (() => {
+                if (gw === 'cashfree' || activeOrder.razorpay_order_id?.startsWith('sw_') || activeOrder.razorpay_payment_id?.startsWith('CF_')) return 'Cashfree'
+                if (gw === 'paypal' || activeOrder.is_usd) return 'PayPal'
+                if (gw === 'free' || activeOrder.razorpay_order_id?.startsWith('SW_FREE')) return 'Internal Free'
+                return 'Razorpay'
+              })()
+
+              const hasCoupon = Boolean(activeOrder.coupon?.code || activeOrder.coupon_code)
+              const couponCode = (activeOrder.coupon?.code || activeOrder.coupon_code || '').toUpperCase()
+              const paidAmount = Number(activeOrder.amount || 0)
+              const origPrice = Number(activeOrder.original_price ?? (activeOrder.is_usd ? 14.99 : 999))
+              const discountAmt = Number(
+                activeOrder.discount_amount ?? 
+                (hasCoupon ? Math.max(0, origPrice - paidAmount) : Math.max(0, origPrice - paidAmount))
+              )
+              const discountPct = activeOrder.coupon?.discount_percent || 
+                (origPrice > 0 && discountAmt > 0 ? Math.min(100, Math.round((discountAmt / origPrice) * 100)) : 0)
+
+              return (
+                <>
+                  {/* 1. FINANCIAL & PROMO DISCOUNT BREAKDOWN */}
+                  <div className="bg-[#121212] border border-[#252525] rounded-xl p-4 space-y-3 mb-4 font-sans">
+                    <div className="flex justify-between items-center text-xs pb-2.5 border-b border-white/[0.06]">
+                      <span className="text-zinc-400 font-medium">Original Product Price (M.R.P.)</span>
+                      <span className={`font-mono ${hasCoupon || discountAmt > 0 ? 'line-through text-zinc-500 text-xs' : 'text-zinc-200 font-bold'}`}>
+                        {activeOrder.is_usd ? `$${origPrice.toFixed(2)} USD` : `₹${origPrice.toLocaleString()} INR`}
+                      </span>
+                    </div>
+
+                    {/* PROMO COUPON DETAILS */}
+                    {(hasCoupon || discountAmt > 0) && (
+                      <div className="bg-emerald-500/[0.08] border border-emerald-500/30 rounded-lg p-3 space-y-2">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <Ticket className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                            <div>
+                              <span className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider block">
+                                Promo Coupon Applied
+                              </span>
+                              <span className="inline-block bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono font-black text-xs border border-emerald-500/40 tracking-wide mt-0.5">
+                                {couponCode || 'PROMOTIONAL DISCOUNT'}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[9px] text-zinc-400 uppercase font-bold tracking-wider block">
+                              Discount Applied
+                            </span>
+                            <span className="text-emerald-400 font-black text-xs font-mono">
+                              {discountPct > 0 ? `${discountPct}% OFF` : 'Special Discount'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center text-xs pt-2 border-t border-emerald-500/20 text-emerald-300 font-mono">
+                          <span className="text-[11px]">Total Coupon Savings:</span>
+                          <span className="font-bold">
+                            -{activeOrder.is_usd ? `$${discountAmt.toFixed(2)} USD` : `₹${discountAmt.toLocaleString()} INR`}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* NET SETTLEMENT */}
+                    <div className="flex justify-between items-center pt-1">
+                      <div>
+                        <span className="text-zinc-200 font-bold text-sm block">Final Total Paid</span>
+                        {discountAmt > 0 && (
+                          <span className="text-[11px] text-emerald-400 font-medium">
+                            Customer saved {activeOrder.is_usd ? `$${discountAmt.toFixed(2)}` : `₹${discountAmt.toLocaleString()}`} ({discountPct}% OFF)
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        {activeOrder.is_usd ? (
+                          <div>
+                            <span className="text-white font-black text-base font-mono">
+                              ${Number(activeOrder.original_amount !== undefined ? activeOrder.original_amount : activeOrder.amount).toFixed(2)} USD
+                            </span>
+                            <p className="text-[10px] text-zinc-400 font-mono mt-0.5">
+                              ≈ ₹{(activeOrder.converted_amount_inr ?? Math.round(Number(activeOrder.amount) * 90)).toLocaleString()} INR
+                            </p>
+                          </div>
+                        ) : (
+                          <span className="text-white font-black text-base font-mono">
+                            {paidAmount === 0 ? 'Free Claim (₹0)' : `₹${paidAmount.toLocaleString()} INR`}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                ) : (
-                  <div className="text-right">
-                    <span className="text-white font-bold text-sm">
-                      {Number(activeOrder.amount) === 0 ? 'Free Claim (₹0)' : `₹${Number(activeOrder.amount).toLocaleString()} INR`}
-                    </span>
+
+                  {/* 2. ORDER TRANSACTION & BUYER METADATA */}
+                  <div className="bg-[#121212] border border-[#222222] rounded-xl p-4 space-y-2.5 mb-6 text-zinc-300 font-sans">
+                    <div className="flex justify-between items-center border-b border-[#222222] pb-2">
+                      <span className="text-zinc-500 font-bold uppercase text-[10px]">Order ID</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-white font-mono font-bold text-[11px] select-all">{activeOrder.id}</span>
+                        <button
+                          type="button"
+                          onClick={() => copyText(activeOrder.id, 'orderId')}
+                          className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                          title="Copy Order ID"
+                        >
+                          {copiedField === 'orderId' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                      <span className="text-zinc-500 font-bold uppercase text-[10px]">Product Purchased</span>
+                      <span className="text-white font-bold text-sm text-right max-w-[280px]">{activeOrder.pack_name}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                      <span className="text-zinc-500 font-bold uppercase text-[10px]">Buyer Name</span>
+                      <span className="text-zinc-100 font-bold">{activeOrder.buyer_name || 'Anonymous'}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                      <span className="text-zinc-500 font-bold uppercase text-[10px]">Buyer Email</span>
+                      <span className="text-zinc-100 font-mono select-all text-[11px]">{activeOrder.buyer_email || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                      <span className="text-zinc-500 font-bold uppercase text-[10px]">Buyer Phone</span>
+                      <span className="text-zinc-100 font-mono select-all text-[11px]">{activeOrder.buyer_phone || 'N/A'}</span>
+                    </div>
+                    <div className="flex flex-col space-y-1.5 border-b border-white/[0.06] pb-2">
+                      <span className="text-zinc-500 font-bold uppercase text-[10px]">Delivery Address</span>
+                      <span className="text-zinc-300 font-mono leading-normal bg-black/40 border border-white/10 p-2.5 rounded-lg text-[10px] select-all">
+                        {activeOrder.buyer_address || 'No physical delivery address provided for this order.'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                      <span className="text-zinc-500 font-bold uppercase text-[10px]">Payment Method</span>
+                      <span className="text-zinc-200 font-medium text-[11px]">
+                        {activeOrder.payment_method || (activeOrder.is_usd ? 'PayPal (USD)' : 'UPI / Card / NetBanking')}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-white/[0.06] pb-2">
+                      <span className="text-zinc-500 font-bold uppercase text-[10px]">{gatewayTitle} Order ID</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-white font-mono tracking-tight text-[10px] select-all">{activeOrder.razorpay_order_id || 'N/A'}</span>
+                        {activeOrder.razorpay_order_id && activeOrder.razorpay_order_id !== 'N/A' && (
+                          <button
+                            type="button"
+                            onClick={() => copyText(activeOrder.razorpay_order_id, 'gatewayOrderId')}
+                            className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                            title={`Copy ${gatewayTitle} Order ID`}
+                          >
+                            {copiedField === 'gatewayOrderId' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-white/[0.06] pb-2">
+                      <span className="text-zinc-500 font-bold uppercase text-[10px]">{gatewayTitle} Payment ID</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-white font-mono tracking-tight text-[10px] select-all">{activeOrder.razorpay_payment_id || 'N/A'}</span>
+                        {activeOrder.razorpay_payment_id && activeOrder.razorpay_payment_id !== 'N/A' && (
+                          <button
+                            type="button"
+                            onClick={() => copyText(activeOrder.razorpay_payment_id, 'paymentId')}
+                            className="p-1 hover:bg-white/10 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                            title={`Copy ${gatewayTitle} Payment ID`}
+                          >
+                            {copiedField === 'paymentId' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500 font-bold uppercase text-[10px]">Order Timestamp</span>
+                      <span className="text-zinc-400 font-mono text-[10px]">{new Date(activeOrder.created_at).toLocaleString()}</span>
+                    </div>
                   </div>
-                )}
-              </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Payment Method</span>
-                <span className="text-zinc-200 font-medium text-[11px]">
-                  {activeOrder.payment_method || (activeOrder.is_usd ? 'PayPal (USD)' : 'UPI / Card / NetBanking')}
-                </span>
-              </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">
-                  {(() => {
-                    const gw = activeOrder.payment_gateway || ''
-                    if (gw === 'cashfree' || activeOrder.razorpay_order_id?.startsWith('sw_') || activeOrder.razorpay_payment_id?.startsWith('CF_')) return 'Cashfree'
-                    if (gw === 'paypal' || activeOrder.is_usd) return 'PayPal'
-                    if (gw === 'free' || activeOrder.razorpay_order_id?.startsWith('SW_FREE')) return 'Internal'
-                    return 'Razorpay'
-                  })()} Order ID
-                </span>
-                <span className="text-white font-mono tracking-tight text-[10px] select-all">{activeOrder.razorpay_order_id || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">
-                  {(() => {
-                    const gw = activeOrder.payment_gateway || ''
-                    if (gw === 'cashfree' || activeOrder.razorpay_order_id?.startsWith('sw_') || activeOrder.razorpay_payment_id?.startsWith('CF_')) return 'Cashfree'
-                    if (gw === 'paypal' || activeOrder.is_usd) return 'PayPal'
-                    if (gw === 'free' || activeOrder.razorpay_order_id?.startsWith('SW_FREE')) return 'Internal'
-                    return 'Razorpay'
-                  })()} Payment ID
-                </span>
-                <span className="text-white font-mono tracking-tight text-[10px] select-all">{activeOrder.razorpay_payment_id || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Order Timestamp</span>
-                <span className="text-zinc-400 font-mono text-[10px]">{new Date(activeOrder.created_at).toLocaleString()}</span>
-              </div>
-            </div>
+                </>
+              )
+            })()}
 
             <button
               type="button"
