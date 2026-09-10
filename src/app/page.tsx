@@ -1102,6 +1102,8 @@ export default function AdminDashboard() {
               handleToggleMaintenance={handleToggleMaintenance}
               user={user}
               showToast={showToast}
+              addAuditLog={addAuditLog}
+              askConfirmation={askConfirmation}
             />
           )}
 

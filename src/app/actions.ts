@@ -4,6 +4,30 @@ import { createClient } from '@supabase/supabase-js'
 import { getUsdToInrRate, getExchangeRateInfo, convertUsdToInr, isUsdOrder } from '@/lib/exchangeRate'
 import { unstable_cache } from 'next/cache'
 import { safeRevalidateTag, safeRevalidatePath, notifyMainSiteRevalidate } from '@/lib/revalidateHelper'
+import fs from 'fs'
+import path from 'path'
+import type { GlobalSiteSettings, SystemTelemetry } from '@/types/siteSettings'
+import { DEFAULT_SITE_SETTINGS } from '@/types/siteSettings'
+
+function getLiveEnvVar(key: string): string {
+  if (process.env[key]) return process.env[key]!
+  try {
+    const envPath = path.resolve(process.cwd(), '.env.local')
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8')
+      const lines = content.split('\n')
+      for (const line of lines) {
+        const trimmed = line.trim()
+        if (trimmed.startsWith('#') || !trimmed.includes('=')) continue
+        const [k, ...rest] = trimmed.split('=')
+        if (k.trim() === key) {
+          return rest.join('=').trim().replace(/^["']|["']$/g, '')
+        }
+      }
+    }
+  } catch {}
+  return ''
+}
 
 let cachedDb: any = null
 
@@ -1564,3 +1588,226 @@ export async function toggleMaintenanceMode(value: boolean) {
     throw error
   }
 }
+
+/**
+ * ============================================================================
+ * 13. GLOBAL SITE SETTINGS & TELEMETRY
+ * ============================================================================
+ */
+
+
+function maskApiKey(key?: string): string {
+  if (!key || key.trim().length === 0) return 'Not Configured'
+  const trimmed = key.trim()
+  if (trimmed.length < 8) return '••••••••'
+  const start = trimmed.slice(0, Math.min(8, Math.floor(trimmed.length / 2)))
+  const end = trimmed.slice(-4)
+  return `${start}••••••••${end}`
+}
+
+export async function getGlobalSiteSettings(): Promise<{ settings: GlobalSiteSettings; telemetry: SystemTelemetry }> {
+  try {
+    const db = getDB()
+    const startTime = Date.now()
+
+    const [
+      metaRes,
+      rateInfo,
+      packsCountRes,
+      samplesCountRes,
+      usersCountRes,
+      ordersCountRes,
+      couponsCountRes,
+      ticketsCountRes
+    ] = await Promise.all([
+      db.from('app_metadata').select('key, value').in('key', ['site_settings', 'maintenance_mode', 'show_launch_offer', 'show_flash_sale']),
+      getExchangeRateInfo().catch(() => ({ rate: 87.2, source: 'fallback', lastUpdated: new Date().toISOString() })),
+      db.from('sample_packs').select('*', { count: 'exact', head: true }),
+      db.from('samples').select('*', { count: 'exact', head: true }),
+      db.from('user_accounts').select('*', { count: 'exact', head: true }),
+      db.from('order_sessions').select('*', { count: 'exact', head: true }),
+      db.from('coupons').select('*', { count: 'exact', head: true }),
+      db.from('support_tickets').select('*', { count: 'exact', head: true }),
+    ])
+
+    const latencyMs = Math.max(1, Date.now() - startTime)
+
+    const metaMap: Record<string, string> = {}
+    if (metaRes.data) {
+      for (const row of metaRes.data) {
+        metaMap[row.key] = row.value
+      }
+    }
+
+    let parsedSettings: Partial<GlobalSiteSettings> = {}
+    if (metaMap['site_settings']) {
+      try {
+        parsedSettings = JSON.parse(metaMap['site_settings'])
+      } catch (err) {
+        console.error('Failed to parse site_settings JSON:', err)
+      }
+    }
+
+    const mergedSettings: GlobalSiteSettings = {
+      ...DEFAULT_SITE_SETTINGS,
+      ...parsedSettings,
+      maintenance_mode: parsedSettings.maintenance_mode !== undefined 
+        ? Boolean(parsedSettings.maintenance_mode) 
+        : (metaMap['maintenance_mode'] === 'true'),
+    }
+
+    const rzpKey = getLiveEnvVar('RAZORPAY_KEY_ID') || getLiveEnvVar('NEXT_PUBLIC_RAZORPAY_KEY_ID')
+    const paypalClient = getLiveEnvVar('NEXT_PUBLIC_PAYPAL_CLIENT_ID') || getLiveEnvVar('PAYPAL_CLIENT_ID')
+    const cashfreeAppId = getLiveEnvVar('CASHFREE_APP_ID')
+    const resendKey = getLiveEnvVar('RESEND_API_KEY')
+    const brevoKey = getLiveEnvVar('BREVO_API_KEY')
+    const turnstileKey = getLiveEnvVar('TURNSTILE_SECRET_KEY')
+
+    const telemetry: SystemTelemetry = {
+      database_status: metaRes.error ? 'error' : 'connected',
+      database_latency_ms: latencyMs,
+      total_sample_packs: packsCountRes.count ?? 0,
+      total_samples: samplesCountRes.count ?? 0,
+      total_registered_users: usersCountRes.count ?? 0,
+      total_orders: ordersCountRes.count ?? 0,
+      total_coupons: couponsCountRes.count ?? 0,
+      total_support_tickets: ticketsCountRes.count ?? 0,
+      current_live_usd_rate: rateInfo?.rate || 87.2,
+      razorpay_configured: Boolean(rzpKey),
+      razorpay_masked_key: maskApiKey(rzpKey),
+      paypal_configured: Boolean(paypalClient),
+      paypal_masked_key: maskApiKey(paypalClient),
+      cashfree_configured: Boolean(cashfreeAppId),
+      cashfree_masked_key: maskApiKey(cashfreeAppId),
+      resend_configured: Boolean(resendKey),
+      brevo_configured: Boolean(brevoKey),
+      turnstile_configured: Boolean(turnstileKey),
+      server_environment: process.env.NODE_ENV || 'production',
+      last_checked_at: new Date().toISOString()
+    }
+
+    return { settings: mergedSettings, telemetry }
+  } catch (error: any) {
+    console.error('Error fetching global site settings:', error)
+    return {
+      settings: DEFAULT_SITE_SETTINGS,
+      telemetry: {
+        database_status: 'error',
+        database_latency_ms: 0,
+        total_sample_packs: 0,
+        total_samples: 0,
+        total_registered_users: 0,
+        total_orders: 0,
+        total_coupons: 0,
+        total_support_tickets: 0,
+        current_live_usd_rate: 87.2,
+        razorpay_configured: false,
+        razorpay_masked_key: 'Not Configured',
+        paypal_configured: false,
+        paypal_masked_key: 'Not Configured',
+        cashfree_configured: false,
+        cashfree_masked_key: 'Not Configured',
+        resend_configured: false,
+        brevo_configured: false,
+        turnstile_configured: false,
+        server_environment: 'production',
+        last_checked_at: new Date().toISOString()
+      }
+    }
+  }
+}
+
+export async function updateGlobalSiteSettings(newSettings: Partial<GlobalSiteSettings>, adminEmail?: string) {
+  try {
+    const db = getDB()
+
+    const { data: existingRow } = await db
+      .from('app_metadata')
+      .select('value')
+      .eq('key', 'site_settings')
+      .maybeSingle()
+
+    let current: GlobalSiteSettings = { ...DEFAULT_SITE_SETTINGS }
+    if (existingRow?.value) {
+      try {
+        current = { ...DEFAULT_SITE_SETTINGS, ...JSON.parse(existingRow.value) }
+      } catch (e) {
+        console.error('Could not parse existing site_settings, using defaults', e)
+      }
+    }
+
+    const merged: GlobalSiteSettings = {
+      ...current,
+      ...newSettings,
+      updated_at: new Date().toISOString(),
+      updated_by: adminEmail || 'Admin'
+    }
+
+    const { error: upsertErr } = await db
+      .from('app_metadata')
+      .upsert({
+        key: 'site_settings',
+        value: JSON.stringify(merged),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' })
+
+    if (upsertErr) throw upsertErr
+
+    // Synchronize maintenance_mode dedicated key if provided
+    if (newSettings.maintenance_mode !== undefined) {
+      await db
+        .from('app_metadata')
+        .upsert({
+          key: 'maintenance_mode',
+          value: String(newSettings.maintenance_mode),
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'key' })
+    }
+
+    safeRevalidateTag('admin-settings')
+    notifyMainSiteRevalidate({ path: '/', tag: 'maintenance' })
+
+    return { success: true, settings: merged }
+  } catch (error: any) {
+    console.error('Error updating global site settings:', error)
+    throw new Error(error.message || 'Failed to update global site settings')
+  }
+}
+
+export async function resetGlobalSiteSettings(adminEmail?: string) {
+  try {
+    const db = getDB()
+    const resetData: GlobalSiteSettings = {
+      ...DEFAULT_SITE_SETTINGS,
+      updated_at: new Date().toISOString(),
+      updated_by: adminEmail || 'Admin'
+    }
+
+    const { error } = await db
+      .from('app_metadata')
+      .upsert({
+        key: 'site_settings',
+        value: JSON.stringify(resetData),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' })
+
+    if (error) throw error
+
+    await db
+      .from('app_metadata')
+      .upsert({
+        key: 'maintenance_mode',
+        value: String(resetData.maintenance_mode),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' })
+
+    safeRevalidateTag('admin-settings')
+    notifyMainSiteRevalidate({ path: '/' })
+
+    return { success: true, settings: resetData }
+  } catch (error: any) {
+    console.error('Error resetting site settings:', error)
+    throw new Error(error.message || 'Failed to reset site settings')
+  }
+}
+
