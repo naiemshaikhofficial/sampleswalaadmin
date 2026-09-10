@@ -35,7 +35,7 @@ export function SettingsTab({
               </span>
             </div>
             <p className="text-zinc-400 text-xs mt-1">
-              Jab ye ON rahega toh visitors hamesha <code className="text-zinc-200">/maintenance</code> par redirect honge.
+              When enabled, all visitors will automatically be redirected to the <code className="text-zinc-200">/maintenance</code> page.
             </p>
           </div>
 
@@ -73,7 +73,7 @@ export function SettingsTab({
             rel="noopener noreferrer"
             className="text-zinc-300 hover:text-white flex items-center gap-1 font-medium underline"
           >
-            Preview Game Page <ExternalLink className="w-3.5 h-3.5" />
+            Preview Maintenance Page <ExternalLink className="w-3.5 h-3.5" />
           </a>
         </div>
       </div>

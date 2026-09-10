@@ -56,14 +56,20 @@ export function CouponsTab({
 
   const handleCouponSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!activeCoupon.code || !activeCoupon.discount_percent) {
-      showToast('Coupon code and discount percentage are required!', 'error')
+    const discountVal = Number(activeCoupon.discount_percent)
+    if (!activeCoupon.code?.trim() || isNaN(discountVal) || discountVal <= 0 || discountVal > 100) {
+      showToast('Please enter a valid coupon code and discount percentage (between 0.01% and 100%)!', 'error')
       return
     }
 
     setSaveLoading(true)
     try {
-      const saved = await saveCoupon(activeCoupon)
+      const payload = {
+        ...activeCoupon,
+        code: activeCoupon.code.trim().toUpperCase(),
+        discount_percent: discountVal
+      }
+      const saved = await saveCoupon(payload)
       showToast(`Coupon "${saved.code}" saved!`, 'success')
       addAuditLog(activeCoupon.id ? 'UPDATE_COUPON' : 'CREATE_COUPON', `Saved discount coupon: ${saved.code} (${saved.discount_percent}% off)`, 'info')
       setShowCouponModal(false)
@@ -109,7 +115,7 @@ export function CouponsTab({
           onClick={() => {
             setActiveCoupon({
               code: '',
-              discount_percent: 15,
+              discount_percent: '',
               is_active: true,
               expires_at: '',
               applicable_items: null,
@@ -295,11 +301,19 @@ export function CouponsTab({
                 <label className="block text-[10px] font-bold uppercase text-zinc-400 mb-1.5">Discount Percentage (%)</label>
                 <input
                   type="number"
-                  min="1"
+                  step="any"
+                  min="0.01"
                   max="100"
                   required
-                  value={activeCoupon.discount_percent}
-                  onChange={e => setActiveCoupon((prev: any) => ({ ...prev, discount_percent: Number(e.target.value) }))}
+                  placeholder="e.g. 20 or 99.99"
+                  value={activeCoupon.discount_percent !== undefined && activeCoupon.discount_percent !== null ? activeCoupon.discount_percent : ''}
+                  onChange={e => {
+                    const val = e.target.value
+                    setActiveCoupon((prev: any) => ({
+                      ...prev,
+                      discount_percent: val
+                    }))
+                  }}
                   className="w-full bg-[#121212] border border-[#252525] rounded-xl p-2.5 text-white outline-none focus:border-white/25 font-bold text-sm"
                 />
               </div>
