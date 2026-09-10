@@ -1,7 +1,7 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
-import { getUsdToInrRate, getExchangeRateInfo, convertUsdToInr, isUsdOrder } from '@/lib/exchangeRate'
+import { getUsdToInrRate, getExchangeRateInfo, convertUsdToInr, isUsdOrder, getOrderGateway, getPaymentMethodLabel } from '@/lib/exchangeRate'
 import { unstable_cache } from 'next/cache'
 import { safeRevalidateTag, safeRevalidatePath, notifyMainSiteRevalidate } from '@/lib/revalidateHelper'
 import fs from 'fs'
@@ -211,7 +211,7 @@ async function fetchDashboardStats() {
       db.from('software_orders').select('amount_paid').in('status', ['complete', 'paid']),
       db.from('sample_packs').select('id, name, is_featured, display_rank'),
       db.from('wishlist').select('id', { count: 'exact', head: true }),
-      db.from('user_vault').select('amount, razorpay_order_id, razorpay_payment_id')
+      db.from('user_vault').select('amount, currency, payment_gateway, razorpay_order_id, razorpay_payment_id')
     ])
 
     const liveRate = await getUsdToInrRate()
@@ -237,13 +237,14 @@ async function fetchDashboardStats() {
     // Recent orders
     const [recentSoftwares, recentVaultSales] = await Promise.all([
       db.from('software_orders').select('id, user_email, software_name, amount_paid, status, created_at').order('created_at', { ascending: false }).limit(5),
-      db.from('user_vault').select('user_id, item_id, amount, razorpay_order_id, razorpay_payment_id, created_at').order('created_at', { ascending: false }).limit(5)
+      db.from('user_vault').select('user_id, item_id, amount, currency, payment_gateway, razorpay_order_id, razorpay_payment_id, created_at').order('created_at', { ascending: false }).limit(5)
     ])
 
     // Enrich recent vault sales with sample pack names and converted INR
     const enrichedVaultSales = (recentVaultSales.data || []).map((sale: any) => {
       const pack = (samplePacksRes.data || []).find((p: any) => p.id === sale.item_id)
       const isUsd = isUsdOrder(sale)
+      const gateway = getOrderGateway(sale)
       const rawAmt = Number(sale.amount || 0)
       const convertedAmt = isUsd ? convertUsdToInr(rawAmt, liveRate) : rawAmt
       return {
@@ -251,6 +252,8 @@ async function fetchDashboardStats() {
         pack_name: pack?.name || 'Sample Pack Purchase',
         is_usd: isUsd,
         currency: isUsd ? 'USD' : 'INR',
+        payment_gateway: gateway,
+        payment_method: getPaymentMethodLabel(gateway, isUsd),
         original_amount: rawAmt,
         converted_amount_inr: convertedAmt
       }
@@ -1027,6 +1030,7 @@ async function fetchAllVaultSales() {
       } : null
 
       const isUsd = isUsdOrder(sale)
+      const gateway = getOrderGateway(sale)
       const rawAmt = Number(sale.amount || 0)
       const convertedAmt = isUsd ? convertUsdToInr(rawAmt, liveRate) : rawAmt
 
@@ -1038,13 +1042,14 @@ async function fetchAllVaultSales() {
         amount: sale.amount || 0,
         is_usd: isUsd,
         currency: isUsd ? 'USD' : 'INR',
+        payment_gateway: gateway,
         original_amount: rawAmt,
         converted_amount_inr: convertedAmt,
         exchange_rate: liveRate,
         created_at: sale.created_at,
         razorpay_order_id: sale.razorpay_order_id || 'N/A',
         razorpay_payment_id: sale.razorpay_payment_id || 'N/A',
-        payment_method: isUsd ? 'International (Stripe/PayPal)' : 'Razorpay (UPI/Card/NetBanking)',
+        payment_method: getPaymentMethodLabel(gateway, isUsd),
         pack_name: pack?.name || sale.item_name || 'Sample Pack Purchase',
         buyer_name: account?.full_name || profile?.full_name || authUser?.user_metadata?.full_name || 'Customer',
         buyer_email: authUser?.email || 'N/A',

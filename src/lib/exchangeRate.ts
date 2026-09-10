@@ -95,27 +95,81 @@ export function isUsdOrder(sale: {
   razorpay_order_id?: string
   razorpay_payment_id?: string
   currency?: string
+  payment_gateway?: string
 }): boolean {
+  // Explicit currency takes highest priority
   if (sale.currency === 'USD') return true
   if (sale.currency === 'INR') return false
 
+  // Explicit payment gateway takes next priority
+  if (sale.payment_gateway === 'paypal') return true
+  if (sale.payment_gateway === 'razorpay' || sale.payment_gateway === 'cashfree' || sale.payment_gateway === 'free') return false
+
   const orderId = sale.razorpay_order_id || ''
+  const paymentId = sale.razorpay_payment_id || ''
   const amount = Number(sale.amount || 0)
 
-  // Free orders are 0
-  if (amount === 0 || orderId.startsWith('SW_FREE')) return false
+  // Free orders are 0 or start with SW_FREE
+  if (amount === 0 || orderId.startsWith('SW_FREE') || paymentId.startsWith('SW_PAY_FREE')) return false
+
+  // Cashfree orders start with sw_ or CF_
+  if (orderId.startsWith('sw_') || orderId.startsWith('CF_') || paymentId.startsWith('CF_')) {
+    return false
+  }
+
+  // Razorpay orders start with order_ or payment starts with pay_
+  if (orderId.startsWith('order_') || paymentId.startsWith('pay_') || orderId.startsWith('Manual_')) {
+    return false
+  }
 
   // Explicit PayPal order ID prefixes
-  if (orderId.startsWith('PAYPAL_') || orderId.startsWith('PP_')) return true
+  if (orderId.startsWith('PAYPAL_') || orderId.startsWith('PP_') || paymentId.startsWith('PAY_PP_')) return true
 
-  // Standard PayPal order ID is 17 alphanumeric characters without 'order_' prefix
+  // Standard PayPal order ID is 17 uppercase alphanumeric characters without underscores
   const isPaypalIdFormat = /^[A-Z0-9]{17}$/.test(orderId)
   if (isPaypalIdFormat) return true
 
-  // Amount heuristic: INR packs are at least 199+, while USD prices are under 100
-  if (amount > 0 && amount < 100 && !orderId.startsWith('order_')) {
-    return true
-  }
-
   return false
+}
+
+/**
+ * Identify payment gateway for user_vault sale entry
+ */
+export function getOrderGateway(sale: {
+  currency?: string
+  payment_gateway?: string
+  razorpay_order_id?: string
+  razorpay_payment_id?: string
+  amount?: number
+}): 'cashfree' | 'razorpay' | 'paypal' | 'free' {
+  if (sale.payment_gateway) {
+    return sale.payment_gateway as 'cashfree' | 'razorpay' | 'paypal' | 'free'
+  }
+  const orderId = sale.razorpay_order_id || ''
+  const paymentId = sale.razorpay_payment_id || ''
+  const amount = Number(sale.amount || 0)
+
+  if (amount === 0 || orderId.startsWith('SW_FREE') || paymentId.startsWith('SW_PAY_FREE')) return 'free'
+  if (orderId.startsWith('sw_') || orderId.startsWith('CF_') || paymentId.startsWith('CF_')) return 'cashfree'
+  if (orderId.startsWith('order_') || paymentId.startsWith('pay_') || orderId.startsWith('Manual_')) return 'razorpay'
+  if (orderId.startsWith('PAYPAL_') || orderId.startsWith('PP_') || paymentId.startsWith('PAY_PP_') || /^[A-Z0-9]{17}$/.test(orderId)) return 'paypal'
+  return 'razorpay'
+}
+
+/**
+ * Format clean human-readable payment method name
+ */
+export function getPaymentMethodLabel(gateway: string, isUsd: boolean): string {
+  switch (gateway) {
+    case 'cashfree':
+      return 'Cashfree (UPI/Cards/NetBanking)'
+    case 'razorpay':
+      return 'Razorpay (UPI/Card/NetBanking)'
+    case 'paypal':
+      return 'PayPal (International/USD)'
+    case 'free':
+      return 'Free Claim'
+    default:
+      return isUsd ? 'PayPal (International/USD)' : 'Razorpay (UPI/Card/NetBanking)'
+  }
 }

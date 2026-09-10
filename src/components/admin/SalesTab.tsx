@@ -287,7 +287,10 @@ export function SalesTab({
                               {Number(s.amount) === 0 ? (
                                 <span className="text-zinc-400 font-bold text-xs uppercase tracking-wider">Free Claim</span>
                               ) : (
-                                `₹${Number(s.amount).toLocaleString()}`
+                                <>
+                                  ₹{Number(s.amount).toLocaleString()}{' '}
+                                  <span className="text-[8.5px] text-zinc-500 font-sans font-bold">INR</span>
+                                </>
                               )}
                             </p>
                           )}
@@ -423,21 +426,45 @@ export function SalesTab({
                       ${Number(activeOrder.original_amount !== undefined ? activeOrder.original_amount : activeOrder.amount).toFixed(2)} USD
                     </span>
                     <p className="text-[10px] text-zinc-400 font-mono">
-                      ≈ ₹{activeOrder.converted_amount_inr?.toLocaleString() || Math.round(Number(activeOrder.amount) * 90)} INR
+                      ≈ ₹{(activeOrder.converted_amount_inr ?? Math.round(Number(activeOrder.amount) * 90)).toLocaleString()} INR
                     </p>
                   </div>
                 ) : (
-                  <span className="text-white font-bold text-sm">
-                    {Number(activeOrder.amount) === 0 ? 'Free Claim (₹0)' : `₹${activeOrder.amount?.toLocaleString()}`}
-                  </span>
+                  <div className="text-right">
+                    <span className="text-white font-bold text-sm">
+                      {Number(activeOrder.amount) === 0 ? 'Free Claim (₹0)' : `₹${Number(activeOrder.amount).toLocaleString()} INR`}
+                    </span>
+                  </div>
                 )}
               </div>
               <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Razorpay Order ID</span>
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">Payment Method</span>
+                <span className="text-zinc-200 font-medium text-[11px]">
+                  {activeOrder.payment_method || (activeOrder.is_usd ? 'PayPal (USD)' : 'UPI / Card / NetBanking')}
+                </span>
+              </div>
+              <div className="flex justify-between border-b border-white/[0.06] pb-2">
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">
+                  {(() => {
+                    const gw = activeOrder.payment_gateway || ''
+                    if (gw === 'cashfree' || activeOrder.razorpay_order_id?.startsWith('sw_') || activeOrder.razorpay_payment_id?.startsWith('CF_')) return 'Cashfree'
+                    if (gw === 'paypal' || activeOrder.is_usd) return 'PayPal'
+                    if (gw === 'free' || activeOrder.razorpay_order_id?.startsWith('SW_FREE')) return 'Internal'
+                    return 'Razorpay'
+                  })()} Order ID
+                </span>
                 <span className="text-white font-mono tracking-tight text-[10px] select-all">{activeOrder.razorpay_order_id || 'N/A'}</span>
               </div>
               <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Razorpay Payment ID</span>
+                <span className="text-zinc-500 font-bold uppercase text-[10px]">
+                  {(() => {
+                    const gw = activeOrder.payment_gateway || ''
+                    if (gw === 'cashfree' || activeOrder.razorpay_order_id?.startsWith('sw_') || activeOrder.razorpay_payment_id?.startsWith('CF_')) return 'Cashfree'
+                    if (gw === 'paypal' || activeOrder.is_usd) return 'PayPal'
+                    if (gw === 'free' || activeOrder.razorpay_order_id?.startsWith('SW_FREE')) return 'Internal'
+                    return 'Razorpay'
+                  })()} Payment ID
+                </span>
                 <span className="text-white font-mono tracking-tight text-[10px] select-all">{activeOrder.razorpay_payment_id || 'N/A'}</span>
               </div>
               <div className="flex justify-between">

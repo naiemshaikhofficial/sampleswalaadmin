@@ -13,6 +13,8 @@ export interface VaultSale {
   buyer_address?: string
   created_at: string
   amount: number
+  currency?: string
+  payment_gateway?: string
   is_usd?: boolean
   original_amount?: number
   converted_amount_inr?: number
