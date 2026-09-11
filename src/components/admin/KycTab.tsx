@@ -276,7 +276,7 @@ export function KycTab({
                   <p className="text-white font-bold text-base">₹{pay.amount.toLocaleString()}</p>
                   <p className="text-zinc-400 mt-1 font-mono text-[11px]">Period: <span className="text-white">{pay.payout_month}</span></p>
                   <p className="text-zinc-400 font-mono text-[11px]">UTR: <span className="text-zinc-200 select-all">{pay.utr_number}</span></p>
-                  {pay.notes && <p className="text-zinc-500 mt-1 italic text-[11px]">"{pay.notes}"</p>}
+                  {pay.notes && <p className="text-zinc-500 mt-1 italic text-[11px]">&quot;{pay.notes}&quot;</p>}
                   <p className="text-[10px] text-zinc-500 mt-2 font-mono">{new Date(pay.created_at).toLocaleString()}</p>
                 </div>
               ))

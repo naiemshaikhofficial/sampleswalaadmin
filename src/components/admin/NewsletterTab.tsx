@@ -37,30 +37,6 @@ export function NewsletterTab({
   const [previewHtml, setPreviewHtml] = useState('')
   const [actionLoading, setActionLoading] = useState(false)
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPreviewHtml(getPreviewHtml())
-    }, 150)
-    return () => clearTimeout(timer)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [campaignContent, previewMode, showCampaignModal])
-
-  const injectHtmlElement = (type: string) => {
-    let snippet = ''
-    if (type === 'heading') {
-      snippet = `\n<h2 style="color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; margin-top: 24px; margin-bottom: 12px; letter-spacing: -0.02em;">New Sound Pack Available Now</h2>\n`
-    } else if (type === 'paragraph') {
-      snippet = `\n<p style="color: #94a3b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.6; margin-top: 0; margin-bottom: 16px;">This brand new sound kit delivers elite, studio-grade audio elements recorded by top-tier Indian instrumentalists. Infuse authentic acoustic textures directly into your electronic music productions today.</p>\n`
-    } else if (type === 'button') {
-      snippet = `\n<div style="margin: 28px 0; text-align: center;">\n  <a href="https://sampleswala.com" style="display: inline-block; padding: 12px 28px; background-color: #00BFFF; color: #000000; text-decoration: none; font-weight: 700; font-size: 13px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; border-radius: 6px; letter-spacing: 0.05em; text-transform: uppercase;">Download Sample Pack</a>\n</div>\n`
-    } else if (type === 'image') {
-      snippet = `\n<img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=600&auto=format&fit=crop" style="width: 100%; border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);" alt="Sound drop cover" />\n`
-    } else if (type === 'pack-card') {
-      snippet = `\n<div style="background-color: #111115; border: 1px solid #1e293b; border-radius: 8px; padding: 20px; margin: 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">\n  <span style="display: inline-block; background-color: #FFE600; color: #000000; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; margin-bottom: 12px;">Premium Release</span>\n  <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #ffffff;">🔥 Quantum Melodies & One-Shots</h4>\n  <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">Includes 120+ Melody loops, 80 high-impact drum one-shots, custom Serum synthesizer presets, and professional MIDI structures.</p>\n</div>\n`
-    }
-    setCampaignContent(prev => prev + snippet)
-  }
-
   const getPreviewHtml = () => {
     if (!campaignContent) {
       return `
@@ -165,6 +141,30 @@ export function NewsletterTab({
       </html>
     `;
   };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPreviewHtml(getPreviewHtml())
+    }, 150)
+    return () => clearTimeout(timer)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaignContent, previewMode, showCampaignModal])
+
+  const injectHtmlElement = (type: string) => {
+    let snippet = ''
+    if (type === 'heading') {
+      snippet = `\n<h2 style="color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; margin-top: 24px; margin-bottom: 12px; letter-spacing: -0.02em;">New Sound Pack Available Now</h2>\n`
+    } else if (type === 'paragraph') {
+      snippet = `\n<p style="color: #94a3b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.6; margin-top: 0; margin-bottom: 16px;">This brand new sound kit delivers elite, studio-grade audio elements recorded by top-tier Indian instrumentalists. Infuse authentic acoustic textures directly into your electronic music productions today.</p>\n`
+    } else if (type === 'button') {
+      snippet = `\n<div style="margin: 28px 0; text-align: center;">\n  <a href="https://sampleswala.com" style="display: inline-block; padding: 12px 28px; background-color: #00BFFF; color: #000000; text-decoration: none; font-weight: 700; font-size: 13px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; border-radius: 6px; letter-spacing: 0.05em; text-transform: uppercase;">Download Sample Pack</a>\n</div>\n`
+    } else if (type === 'image') {
+      snippet = `\n<img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=600&auto=format&fit=crop" style="width: 100%; border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);" alt="Sound drop cover" />\n`
+    } else if (type === 'pack-card') {
+      snippet = `\n<div style="background-color: #111115; border: 1px solid #1e293b; border-radius: 8px; padding: 20px; margin: 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">\n  <span style="display: inline-block; background-color: #FFE600; color: #000000; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; margin-bottom: 12px;">Premium Release</span>\n  <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #ffffff;">🔥 Quantum Melodies & One-Shots</h4>\n  <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">Includes 120+ Melody loops, 80 high-impact drum one-shots, custom Serum synthesizer presets, and professional MIDI structures.</p>\n</div>\n`
+    }
+    setCampaignContent(prev => prev + snippet)
+  }
 
   const handleNewsletterSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()

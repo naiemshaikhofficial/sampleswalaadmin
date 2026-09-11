@@ -49,12 +49,7 @@ const nextConfig: NextConfig = {
         source: '/:path*.(ico|png|jpg|jpeg|gif|webp|avif|svg|woff|woff2|ttf|eot|mp3|wav|ogg|json)',
         headers: cdnCacheHeaders,
       },
-      // 2. Next.js Static Builds
-      {
-        source: '/_next/static/:path*',
-        headers: cdnCacheHeaders,
-      },
-      // 3. Security Headers for all routes
+      // 2. Security Headers for all routes
       {
         source: '/(.*)',
         headers: securityHeaders,

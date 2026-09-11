@@ -166,7 +166,7 @@ export function SalesTab({
   }, [paletteSelection, setPaletteSelection])
 
   const filteredSales = useMemo(() => {
-    let list = vaultSalesList.filter(s => {
+    const list = vaultSalesList.filter(s => {
       // Apply Date/Time-wise Filter
       if (!isDateWithinRange(s.created_at)) return false
 

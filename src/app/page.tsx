@@ -244,7 +244,7 @@ export default function AdminDashboard() {
   const getFilteredMetrics = () => {
     let revenue = 0
     let count = 0
-    let uniqueBuyers = new Set<string>()
+    const uniqueBuyers = new Set<string>()
 
     const filtered = vaultSalesList.filter(s => isDateWithinRange(s.created_at))
     count = filtered.length
