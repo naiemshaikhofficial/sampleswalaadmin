@@ -1197,7 +1197,7 @@ async function fetchBrevoSubscribers() {
     let brevoContacts: any[] = []
     try {
       const headers = getBrevoHeaders()
-      const response = await fetch(`${BREVO_API_URL}/contacts?limit=50&offset=0`, {
+      const response = await fetch(`${BREVO_API_URL}/contacts?limit=500&offset=0`, {
         method: 'GET',
         headers
       })
@@ -1249,16 +1249,25 @@ export async function subscribeEmailToBrevo(email: string) {
   try {
     const db = getDB()
 
-    // 1. Update database local newsletter status to true
-    // Find auth user ID first
-    const { data: { users }, error: authErr } = await db.auth.admin.listUsers()
-    if (!authErr && users) {
-      const targetUser = users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase())
-      if (targetUser) {
+    // 1. Update database local newsletter status to true across ALL users
+    const users = await getAuthUsers(db)
+    const targetUser = (users || []).find((u: any) => u.email?.toLowerCase() === email.toLowerCase())
+    if (targetUser) {
+      const { data: existingAccount } = await db
+        .from('user_accounts')
+        .select('user_id')
+        .eq('user_id', targetUser.id)
+        .maybeSingle()
+
+      if (existingAccount) {
         await db
           .from('user_accounts')
           .update({ newsletter: true })
           .eq('user_id', targetUser.id)
+      } else {
+        await db
+          .from('user_accounts')
+          .insert({ user_id: targetUser.id, newsletter: true })
       }
     }
 
@@ -1293,6 +1302,7 @@ export async function subscribeEmailToBrevo(email: string) {
 
     safeRevalidateTag('admin-newsletter')
     safeRevalidateTag('admin-users')
+    await clearServerCache('all')
     return true
   } catch (error: any) {
     console.error('Error in subscribeEmailToBrevo:', error)
@@ -1304,15 +1314,25 @@ export async function unsubscribeEmailFromBrevo(email: string) {
   try {
     const db = getDB()
 
-    // 1. Update database local newsletter status to false
-    const { data: { users }, error: authErr } = await db.auth.admin.listUsers()
-    if (!authErr && users) {
-      const targetUser = users.find((u: any) => u.email?.toLowerCase() === email.toLowerCase())
-      if (targetUser) {
+    // 1. Update database local newsletter status to false across ALL users
+    const users = await getAuthUsers(db)
+    const targetUser = (users || []).find((u: any) => u.email?.toLowerCase() === email.toLowerCase())
+    if (targetUser) {
+      const { data: existingAccount } = await db
+        .from('user_accounts')
+        .select('user_id')
+        .eq('user_id', targetUser.id)
+        .maybeSingle()
+
+      if (existingAccount) {
         await db
           .from('user_accounts')
           .update({ newsletter: false })
           .eq('user_id', targetUser.id)
+      } else {
+        await db
+          .from('user_accounts')
+          .insert({ user_id: targetUser.id, newsletter: false })
       }
     }
 
@@ -1330,9 +1350,137 @@ export async function unsubscribeEmailFromBrevo(email: string) {
 
     safeRevalidateTag('admin-newsletter')
     safeRevalidateTag('admin-users')
+    await clearServerCache('all')
     return true
   } catch (error: any) {
     console.error('Error in unsubscribeEmailFromBrevo:', error)
+    throw error
+  }
+}
+
+export async function bulkSubscribeEmailsToBrevo(emails: string[]) {
+  if (!emails || emails.length === 0) return { success: true, count: 0 }
+  try {
+    const db = getDB()
+    const users = await getAuthUsers(db)
+    const lowerEmails = emails.map(e => e.toLowerCase())
+
+    const targetUsers = (users || []).filter((u: any) => lowerEmails.includes(u.email?.toLowerCase()))
+    for (const u of targetUsers) {
+      const { data: existingAccount } = await db
+        .from('user_accounts')
+        .select('user_id')
+        .eq('user_id', u.id)
+        .maybeSingle()
+
+      if (existingAccount) {
+        await db
+          .from('user_accounts')
+          .update({ newsletter: true })
+          .eq('user_id', u.id)
+      } else {
+        await db
+          .from('user_accounts')
+          .insert({ user_id: u.id, newsletter: true })
+      }
+    }
+
+    // Sync each to Brevo
+    try {
+      const headers = getBrevoHeaders()
+      for (const email of emails) {
+        try {
+          const checkRes = await fetch(`${BREVO_API_URL}/contacts/${encodeURIComponent(email)}`, {
+            method: 'GET',
+            headers
+          })
+
+          if (checkRes.ok) {
+            await fetch(`${BREVO_API_URL}/contacts/${encodeURIComponent(email)}`, {
+              method: 'PUT',
+              headers,
+              body: JSON.stringify({ emailBlacklisted: false })
+            })
+          } else {
+            await fetch(`${BREVO_API_URL}/contacts`, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify({
+                email,
+                emailBlacklisted: false,
+                updateEnabled: true
+              })
+            })
+          }
+        } catch (singleErr) {
+          console.warn(`Brevo bulk subscribe single error for ${email}:`, singleErr)
+        }
+      }
+    } catch (e) {
+      console.warn('Brevo bulk subscribe sync failed/skipped:', e)
+    }
+
+    safeRevalidateTag('admin-newsletter')
+    safeRevalidateTag('admin-users')
+    await clearServerCache('all')
+    return { success: true, count: emails.length }
+  } catch (error: any) {
+    console.error('Error in bulkSubscribeEmailsToBrevo:', error)
+    throw error
+  }
+}
+
+export async function bulkUnsubscribeEmailsFromBrevo(emails: string[]) {
+  if (!emails || emails.length === 0) return { success: true, count: 0 }
+  try {
+    const db = getDB()
+    const users = await getAuthUsers(db)
+    const lowerEmails = emails.map(e => e.toLowerCase())
+
+    const targetUsers = (users || []).filter((u: any) => lowerEmails.includes(u.email?.toLowerCase()))
+    for (const u of targetUsers) {
+      const { data: existingAccount } = await db
+        .from('user_accounts')
+        .select('user_id')
+        .eq('user_id', u.id)
+        .maybeSingle()
+
+      if (existingAccount) {
+        await db
+          .from('user_accounts')
+          .update({ newsletter: false })
+          .eq('user_id', u.id)
+      } else {
+        await db
+          .from('user_accounts')
+          .insert({ user_id: u.id, newsletter: false })
+      }
+    }
+
+    // Sync each to Brevo
+    try {
+      const headers = getBrevoHeaders()
+      for (const email of emails) {
+        try {
+          await fetch(`${BREVO_API_URL}/contacts/${encodeURIComponent(email)}`, {
+            method: 'PUT',
+            headers,
+            body: JSON.stringify({ emailBlacklisted: true })
+          })
+        } catch (singleErr) {
+          console.warn(`Brevo bulk unsubscribe single error for ${email}:`, singleErr)
+        }
+      }
+    } catch (e) {
+      console.warn('Brevo bulk unsubscribe sync failed/skipped:', e)
+    }
+
+    safeRevalidateTag('admin-newsletter')
+    safeRevalidateTag('admin-users')
+    await clearServerCache('all')
+    return { success: true, count: emails.length }
+  } catch (error: any) {
+    console.error('Error in bulkUnsubscribeEmailsFromBrevo:', error)
     throw error
   }
 }

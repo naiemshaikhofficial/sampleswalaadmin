@@ -498,6 +498,37 @@ export function PacksTab({
                 />
               </div>
 
+              {/* PACK COVER IMAGE LINK (PRODUCT INFO IMAGE) */}
+              <div className="md:col-span-2">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-[10px] font-bold uppercase text-zinc-400">Pack Cover Image Link (URL)</label>
+                  {activePack.cover_url && (
+                    <span className="text-[9px] font-mono text-zinc-500">Live Preview</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-[#121212] border border-[#252525] overflow-hidden flex-shrink-0 flex items-center justify-center">
+                    {activePack.cover_url ? (
+                      <img
+                        src={activePack.cover_url}
+                        alt="Pack Cover"
+                        className="w-full h-full object-cover"
+                        onError={e => { (e.target as any).style.display = 'none' }}
+                      />
+                    ) : (
+                      <span className="text-[8px] font-bold text-zinc-600 uppercase">NO IMG</span>
+                    )}
+                  </div>
+                  <input
+                    type="url"
+                    value={activePack.cover_url || ''}
+                    onChange={e => setActivePack((prev: any) => ({ ...prev, cover_url: e.target.value }))}
+                    placeholder="https://images.unsplash.com/... or CDN cover image URL"
+                    className="flex-1 bg-[#121212] border border-[#252525] rounded-xl p-2.5 text-white outline-none focus:border-zinc-500 font-mono text-xs"
+                  />
+                </div>
+              </div>
+
               {/* DEMO AUDIO PREVIEW DRAG & DROP ZONE & DYNAMIC PARSER */}
               <div className="md:col-span-2 border border-dashed border-[#252525] bg-[#121212] rounded-xl p-5 relative flex flex-col items-center justify-center min-h-32 transition-all hover:border-[#353535]">
                 <input

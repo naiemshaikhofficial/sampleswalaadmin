@@ -1,8 +1,14 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Mail, ShieldCheck, Ban, Search, Plus, Send, X, RefreshCw, Users, Check } from 'lucide-react'
-import { subscribeEmailToBrevo, unsubscribeEmailFromBrevo, sendBrevoCampaign } from '@/app/actions'
+import { Mail, ShieldCheck, Ban, Search, Plus, Send, X, RefreshCw, Users, Check, UserCheck, UserX } from 'lucide-react'
+import {
+  subscribeEmailToBrevo,
+  unsubscribeEmailFromBrevo,
+  bulkSubscribeEmailsToBrevo,
+  bulkUnsubscribeEmailsFromBrevo,
+  sendBrevoCampaign
+} from '@/app/actions'
 
 interface NewsletterTabProps {
   subscribersList: any[]
@@ -24,6 +30,11 @@ export function NewsletterTab({
   const [recipientSearch, setRecipientSearch] = useState('')
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>([])
   
+  // Multi-select & Bulk Subscriber Management
+  const [selectedSubscribers, setSelectedSubscribers] = useState<string[]>([])
+  const [bulkLoading, setBulkLoading] = useState(false)
+  const [optimisticStatus, setOptimisticStatus] = useState<Record<string, boolean>>({})
+
   // Modals & Active Edit Entities
   const [showSubscribeModal, setShowSubscribeModal] = useState(false)
   const [newsletterEmailInput, setNewsletterEmailInput] = useState('')
@@ -161,7 +172,7 @@ export function NewsletterTab({
     } else if (type === 'image') {
       snippet = `\n<img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=600&auto=format&fit=crop" style="width: 100%; border-radius: 8px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);" alt="Sound drop cover" />\n`
     } else if (type === 'pack-card') {
-      snippet = `\n<div style="background-color: #111115; border: 1px solid #1e293b; border-radius: 8px; padding: 20px; margin: 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">\n  <span style="display: inline-block; background-color: #FFE600; color: #000000; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; margin-bottom: 12px;">Premium Release</span>\n  <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #ffffff;">🔥 Quantum Melodies & One-Shots</h4>\n  <p style="margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">Includes 120+ Melody loops, 80 high-impact drum one-shots, custom Serum synthesizer presets, and professional MIDI structures.</p>\n</div>\n`
+      snippet = `\n<div style="background-color: #111115; border: 1px solid #1e293b; border-radius: 10px; overflow: hidden; margin: 24px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">\n  <img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=600&auto=format&fit=crop" style="width: 100%; height: 220px; object-fit: cover; display: block; border-bottom: 1px solid #1e293b;" alt="Sound drop cover" />\n  <div style="padding: 20px;">\n    <span style="display: inline-block; background-color: #FFE600; color: #000000; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.05em;">Premium Release</span>\n    <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #ffffff;">🔥 Quantum Melodies & One-Shots</h4>\n    <p style="margin: 0 0 16px 0; font-size: 13px; color: #94a3b8; line-height: 1.5;">Includes 120+ Melody loops, 80 high-impact drum one-shots, custom Serum synthesizer presets, and professional MIDI structures.</p>\n    <a href="https://sampleswala.com" style="display: inline-block; padding: 10px 20px; background-color: #00BFFF; color: #000000; text-decoration: none; font-weight: 700; font-size: 12px; border-radius: 6px; text-transform: uppercase;">Explore Sample Pack</a>\n  </div>\n</div>\n`
     }
     setCampaignContent(prev => prev + snippet)
   }
@@ -173,6 +184,7 @@ export function NewsletterTab({
     setActionLoading(true)
     try {
       await subscribeEmailToBrevo(newsletterEmailInput)
+      setOptimisticStatus(prev => ({ ...prev, [newsletterEmailInput.toLowerCase()]: true }))
       showToast(`Successfully subscribed "${newsletterEmailInput}" to Brevo list!`, 'success')
       addAuditLog('NEWSLETTER_SUBSCRIBE', `Manually subscribed email to newsletter: ${newsletterEmailInput}`, 'success')
       setNewsletterEmailInput('')
@@ -195,12 +207,20 @@ export function NewsletterTab({
     if (!approved) return
 
     setActionLoading(true)
+    // Optimistic status update
+    setOptimisticStatus(prev => ({ ...prev, [email.toLowerCase()]: false }))
     try {
       await unsubscribeEmailFromBrevo(email)
       showToast(`Successfully unsubscribed "${email}"!`, 'success')
       addAuditLog('NEWSLETTER_UNSUBSCRIBE', `Manually unsubscribed/blacklisted newsletter visitor: ${email}`, 'warning')
       invalidateCacheAndReload('newsletter')
     } catch (err: any) {
+      // Revert optimistic status on error
+      setOptimisticStatus(prev => {
+        const copy = { ...prev }
+        delete copy[email.toLowerCase()]
+        return copy
+      })
       showToast(err.message || 'Failed to unsubscribe email', 'error')
     } finally {
       setActionLoading(false)
@@ -209,16 +229,99 @@ export function NewsletterTab({
 
   const handleNewsletterResubscribe = async (email: string) => {
     setActionLoading(true)
+    // Optimistic status update immediately
+    setOptimisticStatus(prev => ({ ...prev, [email.toLowerCase()]: true }))
     try {
       await subscribeEmailToBrevo(email)
       showToast(`Successfully restored newsletter subscription for "${email}"!`, 'success')
       addAuditLog('NEWSLETTER_SUBSCRIBE', `Restored active newsletter subscription: ${email}`, 'success')
       invalidateCacheAndReload('newsletter')
     } catch (err: any) {
+      // Revert optimistic status on error
+      setOptimisticStatus(prev => {
+        const copy = { ...prev }
+        delete copy[email.toLowerCase()]
+        return copy
+      })
       showToast(err.message || 'Failed to subscribe email', 'error')
     } finally {
       setActionLoading(false)
     }
+  }
+
+  // Bulk Actions
+  const handleBulkResubscribe = async () => {
+    if (selectedSubscribers.length === 0) return
+    const approved = await askConfirmation(
+      '✅ RESUBSCRIBE SUBSCRIBERS',
+      `Are you sure you want to restore and resubscribe ${selectedSubscribers.length} selected subscriber(s)?`,
+      false,
+      'RESUBSCRIBE'
+    )
+    if (!approved) return
+
+    setBulkLoading(true)
+    // Optimistically update all selected
+    setOptimisticStatus(prev => {
+      const next = { ...prev }
+      selectedSubscribers.forEach(em => {
+        next[em.toLowerCase()] = true
+      })
+      return next
+    })
+
+    try {
+      await bulkSubscribeEmailsToBrevo(selectedSubscribers)
+      showToast(`Successfully resubscribed ${selectedSubscribers.length} subscriber(s)!`, 'success')
+      addAuditLog('NEWSLETTER_SUBSCRIBE', `Bulk resubscribed ${selectedSubscribers.length} email(s)`, 'success')
+      setSelectedSubscribers([])
+      invalidateCacheAndReload('newsletter')
+    } catch (err: any) {
+      showToast(err.message || 'Failed to bulk resubscribe', 'error')
+    } finally {
+      setBulkLoading(false)
+    }
+  }
+
+  const handleBulkUnsubscribe = async () => {
+    if (selectedSubscribers.length === 0) return
+    const approved = await askConfirmation(
+      '⚠️ UNSUBSCRIBE SUBSCRIBERS',
+      `Are you sure you want to UNSUBSCRIBE and blacklist ${selectedSubscribers.length} selected subscriber(s)?`,
+      true,
+      'UNSUBSCRIBE'
+    )
+    if (!approved) return
+
+    setBulkLoading(true)
+    // Optimistically update all selected
+    setOptimisticStatus(prev => {
+      const next = { ...prev }
+      selectedSubscribers.forEach(em => {
+        next[em.toLowerCase()] = false
+      })
+      return next
+    })
+
+    try {
+      await bulkUnsubscribeEmailsFromBrevo(selectedSubscribers)
+      showToast(`Successfully unsubscribed ${selectedSubscribers.length} subscriber(s)!`, 'warning')
+      addAuditLog('NEWSLETTER_UNSUBSCRIBE', `Bulk unsubscribed ${selectedSubscribers.length} email(s)`, 'warning')
+      setSelectedSubscribers([])
+      invalidateCacheAndReload('newsletter')
+    } catch (err: any) {
+      showToast(err.message || 'Failed to bulk unsubscribe', 'error')
+    } finally {
+      setBulkLoading(false)
+    }
+  }
+
+  const handleBulkCampaign = () => {
+    if (selectedSubscribers.length === 0) return
+    setCampaignSubject('')
+    setCampaignTitle('')
+    setSelectedRecipients([...selectedSubscribers])
+    setShowCampaignModal(true)
   }
 
   const handleSendCampaign = async (e: React.FormEvent) => {
@@ -366,6 +469,26 @@ export function NewsletterTab({
           return (s.email || '').toLowerCase().includes(searchLower)
         })
 
+        const allFilteredEmails = filtered.map(s => s.email).filter(Boolean)
+        const isAllFilteredSelected = allFilteredEmails.length > 0 && allFilteredEmails.every(em => selectedSubscribers.includes(em))
+        const isSomeFilteredSelected = allFilteredEmails.some(em => selectedSubscribers.includes(em))
+
+        const toggleSelectAll = () => {
+          if (isAllFilteredSelected) {
+            setSelectedSubscribers(prev => prev.filter(em => !allFilteredEmails.includes(em)))
+          } else {
+            setSelectedSubscribers(prev => Array.from(new Set([...prev, ...allFilteredEmails])))
+          }
+        }
+
+        const toggleSelectSubscriber = (email: string) => {
+          if (selectedSubscribers.includes(email)) {
+            setSelectedSubscribers(prev => prev.filter(em => em !== email))
+          } else {
+            setSelectedSubscribers(prev => [...prev, email])
+          }
+        }
+
         if (filtered.length === 0) {
           return (
             <div className="border border-[#222222] bg-[#181818] rounded-xl p-10 text-center text-zinc-500 font-medium text-xs">
@@ -376,50 +499,135 @@ export function NewsletterTab({
 
         return (
           <>
+            {/* BULK SELECTION ACTION TOOLBAR */}
+            {selectedSubscribers.length > 0 && (
+              <div className="bg-[#1a1a1e] border border-white/20 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 shadow-xl animate-fadeIn">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse" />
+                  <span className="font-mono font-bold text-xs text-white">
+                    {selectedSubscribers.length} subscriber{selectedSubscribers.length > 1 ? 's' : ''} selected
+                  </span>
+                  <span className="text-[10px] text-zinc-400 font-mono hidden sm:inline">
+                    (across visible/search results)
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={bulkLoading || actionLoading}
+                    onClick={handleBulkResubscribe}
+                    className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-95"
+                  >
+                    {bulkLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <UserCheck className="w-3.5 h-3.5" />}
+                    Resubscribe Selected
+                  </button>
+                  <button
+                    type="button"
+                    disabled={bulkLoading || actionLoading}
+                    onClick={handleBulkUnsubscribe}
+                    className="px-3 py-1.5 rounded-lg bg-[#222225] hover:bg-red-950/40 text-zinc-300 hover:text-red-400 border border-white/10 hover:border-red-500/40 font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50 active:scale-95"
+                  >
+                    {bulkLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <UserX className="w-3.5 h-3.5" />}
+                    Unsubscribe Selected
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleBulkCampaign}
+                    className="px-3 py-1.5 rounded-lg bg-white hover:bg-zinc-200 text-black font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-sm active:scale-95"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    Campaign to Selected
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSubscribers([])}
+                    className="px-2.5 py-1.5 text-zinc-400 hover:text-white font-mono text-xs transition-colors cursor-pointer"
+                  >
+                    Clear Selection
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* MOBILE VIEW: SUBSCRIBER CARDS (NO HORIZONTAL SCROLLBAR) */}
             <div className="md:hidden space-y-2.5">
-              {filtered.map((s: any) => (
-                <div
-                  key={s.id}
-                  className="border border-[#222222] bg-[#181818] rounded-xl p-3.5 space-y-2.5 hover:border-[#333333] transition-colors"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-xs text-zinc-100 font-medium truncate flex-1 select-all" title={s.email}>
-                      {s.email}
-                    </span>
-                    <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-full flex-shrink-0 ${
-                      s.subscribed ? 'bg-white/10 text-white border border-white/20' : 'bg-[#222222] text-zinc-400 border border-zinc-700'
-                    }`}>
-                      {s.subscribed ? 'Active' : 'Unsubscribed'}
-                    </span>
-                  </div>
+              {/* Mobile Select All Bar */}
+              <div className="flex items-center justify-between px-3 py-2 bg-[#181818] border border-[#222222] rounded-xl text-xs font-mono">
+                <label className="flex items-center gap-2 cursor-pointer text-zinc-300 font-semibold">
+                  <input
+                    type="checkbox"
+                    checked={isAllFilteredSelected}
+                    onChange={toggleSelectAll}
+                    className="accent-white w-4 h-4 rounded cursor-pointer"
+                  />
+                  <span>Select All ({filtered.length})</span>
+                </label>
+                {selectedSubscribers.length > 0 && (
+                  <span className="text-[10px] text-white font-bold bg-white/10 px-2 py-0.5 rounded-full border border-white/20">
+                    {selectedSubscribers.length} Selected
+                  </span>
+                )}
+              </div>
 
-                  <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 pt-1 border-t border-[#222222]">
-                    <span>#{s.id} • {s.created_at ? new Date(s.created_at).toLocaleDateString() : 'N/A'}</span>
-                    <div>
-                      {s.subscribed ? (
-                        <button
-                          type="button"
-                          disabled={actionLoading}
-                          onClick={() => handleNewsletterUnsubscribe(s.email)}
-                          className="px-2.5 py-1 rounded-lg bg-[#202020] hover:bg-[#282828] text-zinc-400 hover:text-white border border-[#333333] text-[10px] font-semibold transition-all cursor-pointer disabled:opacity-50"
-                        >
-                          Unsubscribe
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          disabled={actionLoading}
-                          onClick={() => handleNewsletterResubscribe(s.email)}
-                          className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 text-[10px] font-semibold transition-all cursor-pointer disabled:opacity-50"
-                        >
-                          Resubscribe
-                        </button>
-                      )}
+              {filtered.map((s: any) => {
+                const isSelected = selectedSubscribers.includes(s.email)
+                const isSubscribed = optimisticStatus[s.email?.toLowerCase()] !== undefined
+                  ? optimisticStatus[s.email?.toLowerCase()]
+                  : s.subscribed
+
+                return (
+                  <div
+                    key={s.id}
+                    className={`border rounded-xl p-3.5 space-y-2.5 transition-colors ${
+                      isSelected ? 'bg-white/[0.04] border-white/30' : 'bg-[#181818] border-[#222222] hover:border-[#333333]'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelectSubscriber(s.email)}
+                          className="accent-white w-4 h-4 rounded cursor-pointer flex-shrink-0"
+                        />
+                        <span className="font-mono text-xs text-zinc-100 font-medium truncate flex-1 select-all" title={s.email}>
+                          {s.email}
+                        </span>
+                      </div>
+                      <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-full flex-shrink-0 ${
+                        isSubscribed ? 'bg-white/10 text-white border border-white/20' : 'bg-[#222222] text-zinc-400 border border-zinc-700'
+                      }`}>
+                        {isSubscribed ? 'Active' : 'Unsubscribed'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 pt-1 border-t border-[#222222]">
+                      <span>#{s.id} • {s.created_at ? new Date(s.created_at).toLocaleDateString() : 'N/A'}</span>
+                      <div>
+                        {isSubscribed ? (
+                          <button
+                            type="button"
+                            disabled={actionLoading || bulkLoading}
+                            onClick={() => handleNewsletterUnsubscribe(s.email)}
+                            className="px-2.5 py-1 rounded-lg bg-[#202020] hover:bg-[#282828] text-zinc-400 hover:text-white border border-[#333333] text-[10px] font-semibold transition-all cursor-pointer disabled:opacity-50"
+                          >
+                            Unsubscribe
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={actionLoading || bulkLoading}
+                            onClick={() => handleNewsletterResubscribe(s.email)}
+                            className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 text-[10px] font-semibold transition-all cursor-pointer disabled:opacity-50"
+                          >
+                            Resubscribe
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
 
             {/* DESKTOP VIEW: DATA TABLE */}
@@ -428,6 +636,20 @@ export function NewsletterTab({
                 <table className="w-full text-left font-sans border-collapse min-w-[650px]">
                   <thead>
                     <tr className="bg-[#141414] border-b border-[#242424] text-zinc-400 text-[11px] uppercase tracking-wider font-semibold">
+                      <th className="p-4 w-12 text-center">
+                        <input
+                          type="checkbox"
+                          title="Select All"
+                          checked={isAllFilteredSelected}
+                          ref={el => {
+                            if (el) {
+                              el.indeterminate = isSomeFilteredSelected && !isAllFilteredSelected
+                            }
+                          }}
+                          onChange={toggleSelectAll}
+                          className="accent-white w-4 h-4 rounded cursor-pointer"
+                        />
+                      </th>
                       <th className="p-4">Member ID</th>
                       <th className="p-4">Email Address</th>
                       <th className="p-4 text-center">Subscription Status</th>
@@ -436,55 +658,74 @@ export function NewsletterTab({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#222222] font-sans text-xs">
-                    {filtered.map((s: any) => (
-                      <tr key={s.id} className="hover:bg-white/[0.03] transition-colors">
-                        <td className="p-4 font-mono font-medium text-zinc-500">
-                          #{s.id}
-                        </td>
-                        <td className="p-4 font-mono text-zinc-100 select-all text-xs">
-                          {s.email}
-                        </td>
-                        <td className="p-4 text-center">
-                          {s.subscribed ? (
-                            <span className="bg-white/10 text-white border border-white/20 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">
-                              Active Subscriber
-                            </span>
-                          ) : (
-                            <span className="bg-[#222222] text-zinc-400 border border-zinc-700 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">
-                              Unsubscribed
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-4 text-center text-zinc-400 font-mono text-xs">
-                          {s.created_at ? new Date(s.created_at).toLocaleDateString() : 'N/A'}
-                        </td>
-                        <td className="p-4 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            {s.subscribed ? (
-                              <button
-                                type="button"
-                                disabled={actionLoading}
-                                onClick={() => handleNewsletterUnsubscribe(s.email)}
-                                className="px-2.5 py-1.5 rounded-lg bg-[#202020] hover:bg-[#282828] text-zinc-300 hover:text-white border border-[#333333] font-medium text-[11px] transition-all cursor-pointer disabled:opacity-50"
-                              >
-                                Unsubscribe
-                              </button>
+                    {filtered.map((s: any) => {
+                      const isSelected = selectedSubscribers.includes(s.email)
+                      const isSubscribed = optimisticStatus[s.email?.toLowerCase()] !== undefined
+                        ? optimisticStatus[s.email?.toLowerCase()]
+                        : s.subscribed
+
+                      return (
+                        <tr
+                          key={s.id}
+                          className={`transition-colors ${
+                            isSelected ? 'bg-white/[0.05]' : 'hover:bg-white/[0.03]'
+                          }`}
+                        >
+                          <td className="p-4 text-center">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleSelectSubscriber(s.email)}
+                              className="accent-white w-4 h-4 rounded cursor-pointer"
+                            />
+                          </td>
+                          <td className="p-4 font-mono font-medium text-zinc-500">
+                            #{s.id}
+                          </td>
+                          <td className="p-4 font-mono text-zinc-100 select-all text-xs">
+                            {s.email}
+                          </td>
+                          <td className="p-4 text-center">
+                            {isSubscribed ? (
+                              <span className="bg-white/10 text-white border border-white/20 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">
+                                Active Subscriber
+                              </span>
                             ) : (
-                              <button
-                                type="button"
-                                disabled={actionLoading}
-                                onClick={() => handleNewsletterResubscribe(s.email)}
-                                className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium text-[11px] transition-all cursor-pointer disabled:opacity-50"
-                              >
-                                Resubscribe
-                              </button>
+                              <span className="bg-[#222222] text-zinc-400 border border-zinc-700 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide">
+                                Unsubscribed
+                              </span>
                             )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="p-4 text-center text-zinc-400 font-mono text-xs">
+                            {s.created_at ? new Date(s.created_at).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="p-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              {isSubscribed ? (
+                                <button
+                                  type="button"
+                                  disabled={actionLoading || bulkLoading}
+                                  onClick={() => handleNewsletterUnsubscribe(s.email)}
+                                  className="px-2.5 py-1.5 rounded-lg bg-[#202020] hover:bg-[#282828] text-zinc-300 hover:text-white border border-[#333333] font-medium text-[11px] transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  Unsubscribe
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={actionLoading || bulkLoading}
+                                  onClick={() => handleNewsletterResubscribe(s.email)}
+                                  className="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium text-[11px] transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  Resubscribe
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
-                </table>
               </div>
             </div>
           </>
