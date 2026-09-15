@@ -726,6 +726,7 @@ export function NewsletterTab({
                       )
                     })}
                   </tbody>
+                </table>
               </div>
             </div>
           </>
