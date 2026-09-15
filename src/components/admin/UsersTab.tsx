@@ -755,152 +755,196 @@ export function UsersTab({
 
       {/* DETAILED USER PROFILE MODAL DRAWER */}
       {showUserModal && activeUser && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4 font-sans text-xs">
-          <div className="bg-[#181818] border border-[#2a2a2a] rounded-xl p-6 sm:p-7 w-full max-w-lg relative text-left shadow-2xl">
-            <button
-              type="button"
-              onClick={() => setShowUserModal(false)}
-              className="absolute top-4 right-4 p-1.5 bg-[#222222] hover:bg-[#2a2a2a] border border-[#333333] rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 font-sans text-xs animate-fadeIn">
+          <div className="bg-[#181818] border border-[#2a2a2a] rounded-2xl p-4 sm:p-6 w-full max-w-lg relative text-left shadow-2xl max-h-[92vh] flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3 sm:pb-4 mb-3 border-b border-[#222222] shrink-0">
+              <h3 className="font-sans font-bold text-base sm:text-lg text-white flex items-center gap-2 pr-2 min-w-0">
+                <span className="w-2.5 h-2.5 rounded-full bg-white shrink-0" />
+                <span className="truncate">User Profile &amp; Details</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowUserModal(false)}
+                className="p-1.5 bg-[#222222] hover:bg-[#2a2a2a] border border-[#333333] rounded-lg text-zinc-400 hover:text-white transition-colors cursor-pointer shrink-0"
+                aria-label="Close dialog"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
 
-            <h3 className="font-sans font-bold text-lg text-white mb-6 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-white" />
-              User Profile & Details
-            </h3>
+            {/* USER PROFILE METADATA - SCROLLABLE CONTENT */}
+            <div className="overflow-y-auto pr-1 -mr-1 flex-1 min-h-0 space-y-3 mb-4">
+              <div className="bg-[#121212] border border-[#222222] rounded-lg p-3 sm:p-4 space-y-3 text-zinc-300 font-sans">
+                {/* User ID - Collapsible / Stacked on mobile so UUID doesn't collide */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 border-b border-[#222222] pb-2">
+                  <span className="text-zinc-500 font-bold uppercase text-[10px] shrink-0">User ID</span>
+                  <span className="text-white font-mono font-bold text-[11px] sm:text-xs select-all break-all sm:text-right">
+                    {activeUser.id}
+                  </span>
+                </div>
 
-            {/* USER PROFILE METADATA */}
-            <div className="bg-[#121212] border border-[#222222] rounded-lg p-4 space-y-3 mb-6 text-zinc-300 font-sans">
-              <div className="flex justify-between border-b border-[#222222] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">User ID</span>
-                <span className="text-white font-mono font-bold select-all">{activeUser.id}</span>
-              </div>
-              <div className="flex justify-between border-b border-[#222222] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Full Name</span>
-                <span className="text-white font-bold text-sm">{activeUser.full_name || 'Anonymous'}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Email Address</span>
-                <span className="text-white font-mono select-all">{activeUser.email || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Phone Number</span>
-                <span className="text-white font-mono select-all">{activeUser.phone_number || 'N/A'}</span>
-              </div>
-              <div className="flex flex-col space-y-1.5 border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Physical Address</span>
-                <span className="text-zinc-300 font-mono leading-normal bg-black/40 border border-white/10 p-2.5 rounded-lg text-[10px] select-all">
-                  {activeUser.address || 'No physical delivery address provided.'}
-                </span>
-              </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Credits Balance</span>
-                <span className="text-white font-bold text-sm">{activeUser.credits} CR</span>
-              </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Subscription Tier</span>
-                <span className="text-zinc-200 font-bold uppercase">{activeUser.subscription_tier || 'NONE'} ({activeUser.subscription_status || 'INACTIVE'})</span>
-              </div>
-              {(() => {
-                const email = (activeUser.email || '').toLowerCase()
-                const vaultInfo = userVaultMap[activeUser.id] || userVaultMap[email]
-                return (
-                  <div className="flex flex-col space-y-2 border-b border-white/[0.06] pb-2.5">
-                    <div className="flex justify-between items-center">
-                      <span className="text-zinc-500 font-bold uppercase text-[10px]">Vault Orders & Library</span>
-                      <span className="text-white font-mono font-bold text-xs">
-                        {vaultInfo ? `${vaultInfo.count} Orders (${vaultInfo.totalSpend > 0 ? `₹${Math.round(vaultInfo.totalSpend).toLocaleString('en-IN')}` : 'Free Claims'})` : '0 Orders'}
-                      </span>
+                {/* Full Name */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-1 border-b border-[#222222] pb-2">
+                  <span className="text-zinc-500 font-bold uppercase text-[10px] shrink-0">Full Name</span>
+                  <span className="text-white font-bold text-sm break-words sm:text-right">
+                    {activeUser.full_name || 'Anonymous'}
+                  </span>
+                </div>
+
+                {/* Email Address */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-1 border-b border-white/[0.06] pb-2">
+                  <span className="text-zinc-500 font-bold uppercase text-[10px] shrink-0">Email Address</span>
+                  <span className="text-white font-mono text-xs select-all break-all sm:text-right">
+                    {activeUser.email || 'N/A'}
+                  </span>
+                </div>
+
+                {/* Phone Number */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-baseline gap-1 border-b border-white/[0.06] pb-2">
+                  <span className="text-zinc-500 font-bold uppercase text-[10px] shrink-0">Phone Number</span>
+                  <span className="text-white font-mono text-xs select-all break-all sm:text-right">
+                    {activeUser.phone_number || 'N/A'}
+                  </span>
+                </div>
+
+                {/* Physical Address */}
+                <div className="flex flex-col space-y-1.5 border-b border-white/[0.06] pb-2">
+                  <span className="text-zinc-500 font-bold uppercase text-[10px]">Physical Address</span>
+                  <div className="text-zinc-300 font-mono leading-normal bg-black/40 border border-white/10 p-2.5 rounded-lg text-[10px] select-all break-words max-h-24 overflow-y-auto">
+                    {activeUser.address || 'No physical delivery address provided.'}
+                  </div>
+                </div>
+
+                {/* Credits Balance */}
+                <div className="flex justify-between items-center border-b border-white/[0.06] pb-2">
+                  <span className="text-zinc-500 font-bold uppercase text-[10px] shrink-0">Credits Balance</span>
+                  <span className="text-white font-bold text-sm font-mono">{activeUser.credits ?? 0} CR</span>
+                </div>
+
+                {/* Subscription Tier */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 border-b border-white/[0.06] pb-2">
+                  <span className="text-zinc-500 font-bold uppercase text-[10px] shrink-0">Subscription Tier</span>
+                  <span className="text-zinc-200 font-bold uppercase text-xs sm:text-right break-words">
+                    {activeUser.subscription_tier || 'NONE'} ({activeUser.subscription_status || 'INACTIVE'})
+                  </span>
+                </div>
+
+                {/* Vault Orders & Library */}
+                {(() => {
+                  const email = (activeUser.email || '').toLowerCase()
+                  const vaultInfo = userVaultMap[activeUser.id] || userVaultMap[email]
+                  return (
+                    <div className="flex flex-col space-y-2 border-b border-white/[0.06] pb-2.5">
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="text-zinc-500 font-bold uppercase text-[10px] shrink-0">Vault Orders &amp; Library</span>
+                        <span className="text-white font-mono font-bold text-xs text-right">
+                          {vaultInfo ? `${vaultInfo.count} Orders (${vaultInfo.totalSpend > 0 ? `₹${Math.round(vaultInfo.totalSpend).toLocaleString('en-IN')}` : 'Free Claims'})` : '0 Orders'}
+                        </span>
+                      </div>
+                      {vaultInfo && vaultInfo.packs.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 pt-0.5 max-h-32 overflow-y-auto">
+                          {vaultInfo.packs.map((p, idx) => (
+                            <span key={idx} className="text-[9px] sm:text-[10px] bg-white/10 text-white border border-white/20 px-2 py-1 rounded font-mono break-all leading-snug">
+                              📦 {p}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {vaultInfo?.couponCode && (
+                        <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-zinc-300 font-mono pt-1">
+                          <Ticket className="w-3 h-3 text-white shrink-0" />
+                          <span>Coupon Redeemed:</span>
+                          <span className="text-white font-bold bg-white/15 px-1.5 py-0.5 rounded border border-white/30 break-all">{vaultInfo.couponCode}</span>
+                        </div>
+                      )}
                     </div>
-                    {vaultInfo && vaultInfo.packs.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pt-0.5">
-                        {vaultInfo.packs.map((p, idx) => (
-                          <span key={idx} className="text-[9px] bg-white/10 text-white border border-white/20 px-2 py-0.5 rounded font-mono">
-                            📦 {p}
-                          </span>
-                        ))}
-                      </div>
+                  )
+                })()}
+
+                {/* Auth Provider */}
+                <div className="flex justify-between items-center border-b border-white/[0.06] pb-2">
+                  <span className="text-zinc-500 font-bold uppercase text-[10px] shrink-0">Auth Provider</span>
+                  <span className="text-white font-bold uppercase flex items-center gap-1.5">
+                    {activeUser.provider === 'google' ? (
+                      <span className="bg-white/10 text-white border border-white/20 text-[9px] font-bold px-2 py-0.5 rounded">
+                        Google OAuth
+                      </span>
+                    ) : (
+                      <span className="bg-white/5 text-zinc-400 border border-white/10 text-[9px] font-medium px-2 py-0.5 rounded">
+                        Email &amp; Password
+                      </span>
                     )}
-                    {vaultInfo?.couponCode && (
-                      <div className="flex items-center gap-1.5 text-[10px] text-zinc-300 font-mono pt-1">
-                        <Ticket className="w-3 h-3 text-white" />
-                        <span>Coupon Redeemed:</span>
-                        <span className="text-white font-bold bg-white/15 px-1.5 py-0.5 rounded border border-white/30">{vaultInfo.couponCode}</span>
-                      </div>
+                  </span>
+                </div>
+
+                {/* Device Fingerprint */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 border-b border-white/[0.06] pb-2">
+                  <span className="text-zinc-500 font-bold uppercase text-[10px] shrink-0">Device Fingerprint</span>
+                  <span className="text-zinc-400 font-mono text-[10px] select-all break-all sm:text-right">
+                    {activeUser.device_fingerprint || 'N/A'}
+                  </span>
+                </div>
+
+                {/* Registered Date */}
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 border-b border-white/[0.06] pb-2">
+                  <span className="text-zinc-500 font-bold uppercase text-[10px] shrink-0">Registered Date</span>
+                  <span className="text-zinc-400 font-mono text-[10px] sm:text-right">
+                    {new Date(activeUser.created_at).toLocaleString()}
+                  </span>
+                </div>
+
+                {/* Admin Role */}
+                <div className="flex justify-between items-center border-b border-white/[0.06] pb-2 gap-2">
+                  <span className="text-zinc-500 font-bold uppercase text-[10px] shrink-0">Admin Role</span>
+                  <select
+                    value={activeUser.role || 'Super Admin'}
+                    onChange={e => handleUpdateUserRole(activeUser.id, activeUser.email, e.target.value)}
+                    disabled={actionLoading}
+                    className="bg-black/50 border border-white/10 rounded-lg px-2 py-1.5 text-white font-medium outline-none focus:border-white/25 text-xs cursor-pointer max-w-[60%]"
+                  >
+                    <option value="Super Admin">Super Admin</option>
+                    <option value="Support Agent">Support Agent</option>
+                    <option value="Billing Manager">Billing Manager</option>
+                  </select>
+                </div>
+
+                {/* Account Status */}
+                <div className="flex justify-between items-center pt-1.5">
+                  <span className="text-zinc-500 font-bold uppercase text-[10px] shrink-0">Account Status</span>
+                  <div>
+                    {activeUser.is_banned ? (
+                      <span className="bg-[#222222] text-zinc-400 border border-zinc-700 font-bold uppercase text-[9px] px-2.5 py-1 rounded-full inline-flex items-center gap-1">
+                        <Ban className="w-2.5 h-2.5 text-zinc-400" /> Banned
+                      </span>
+                    ) : (
+                      <span className="bg-white/10 text-white border border-white/20 font-bold uppercase text-[9px] px-2.5 py-1 rounded-full inline-flex items-center gap-1">
+                        <ShieldCheck className="w-2.5 h-2.5 text-white" /> Active
+                      </span>
                     )}
                   </div>
-                )
-              })()}
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Auth Provider</span>
-                <span className="text-white font-bold uppercase flex items-center gap-1.5">
-                  {activeUser.provider === 'google' ? (
-                    <span className="bg-white/10 text-white border border-white/20 text-[9px] font-bold px-2 py-0.5 rounded">
-                      Google OAuth
-                    </span>
-                  ) : (
-                    <span className="bg-white/5 text-zinc-400 border border-white/10 text-[9px] font-medium px-2 py-0.5 rounded">
-                      Email & Password
-                    </span>
-                  )}
-                </span>
-              </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Device Fingerprint</span>
-                <span className="text-zinc-400 font-mono text-[10px] select-all">{activeUser.device_fingerprint || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Registered Date</span>
-                <span className="text-zinc-400 font-mono text-[10px]">{new Date(activeUser.created_at).toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between items-center border-b border-white/[0.06] pb-2">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Admin Role</span>
-                <select
-                  value={activeUser.role || 'Super Admin'}
-                  onChange={e => handleUpdateUserRole(activeUser.id, activeUser.email, e.target.value)}
-                  disabled={actionLoading}
-                  className="bg-black/50 border border-white/10 rounded-lg p-1.5 text-white font-medium outline-none focus:border-white/25 text-xs cursor-pointer"
-                >
-                  <option value="Super Admin">Super Admin</option>
-                  <option value="Support Agent">Support Agent</option>
-                  <option value="Billing Manager">Billing Manager</option>
-                </select>
-              </div>
-              <div className="flex justify-between items-center pt-1.5">
-                <span className="text-zinc-500 font-bold uppercase text-[10px]">Account Status</span>
-                <div>
-                  {activeUser.is_banned ? (
-                    <span className="bg-[#222222] text-zinc-400 border border-zinc-700 font-bold uppercase text-[9px] px-2.5 py-1 rounded-full inline-flex items-center gap-1">
-                      <Ban className="w-2.5 h-2.5 text-zinc-400" /> Banned
-                    </span>
-                  ) : (
-                    <span className="bg-white/10 text-white border border-white/20 font-bold uppercase text-[9px] px-2.5 py-1 rounded-full inline-flex items-center gap-1">
-                      <ShieldCheck className="w-2.5 h-2.5 text-white" /> Active
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
 
-            {/* ACTION FOOTER */}
-            <div className="space-y-3">
-              <div className="flex gap-3">
+            {/* ACTION FOOTER - STICKY / SHIFT-PROOF */}
+            <div className="space-y-2.5 pt-2 border-t border-[#222222] shrink-0">
+              <div className="flex gap-2.5">
                 {activeUser.is_banned ? (
                   <button
                     type="button"
                     disabled={actionLoading}
                     onClick={() => handleUnbanUser(activeUser.id, activeUser.email)}
-                    className="flex-1 bg-white hover:bg-zinc-200 text-black font-bold uppercase py-2.5 text-xs rounded-lg cursor-pointer disabled:opacity-50 transition-all"
+                    className="flex-1 bg-white hover:bg-zinc-200 text-black font-bold uppercase py-2.5 px-3 text-xs rounded-lg cursor-pointer disabled:opacity-50 transition-all text-center min-h-[40px] flex items-center justify-center"
                   >
-                    Activate & Unban
+                    Activate &amp; Unban
                   </button>
                 ) : (
                   <button
                     type="button"
                     disabled={actionLoading}
                     onClick={() => handleBanUser(activeUser.id, activeUser.email)}
-                    className="flex-1 bg-[#252525] hover:bg-[#303030] text-zinc-200 border border-[#383838] font-bold uppercase py-2.5 text-xs rounded-lg cursor-pointer disabled:opacity-50 transition-all"
+                    className="flex-1 bg-[#252525] hover:bg-[#303030] text-zinc-200 border border-[#383838] font-bold uppercase py-2.5 px-3 text-xs rounded-lg cursor-pointer disabled:opacity-50 transition-all text-center min-h-[40px] flex items-center justify-center"
                   >
                     Ban Account
                   </button>
@@ -910,7 +954,7 @@ export function UsersTab({
                   type="button"
                   disabled={actionLoading}
                   onClick={() => handleDeleteUser(activeUser.id, activeUser.email)}
-                  className="flex-1 bg-[#202020] hover:bg-[#282828] text-zinc-300 hover:text-white border border-[#333333] font-bold uppercase py-2.5 text-xs rounded-lg cursor-pointer disabled:opacity-50 transition-all"
+                  className="flex-1 bg-[#202020] hover:bg-[#282828] text-zinc-300 hover:text-white border border-[#333333] font-bold uppercase py-2.5 px-3 text-xs rounded-lg cursor-pointer disabled:opacity-50 transition-all text-center min-h-[40px] flex items-center justify-center"
                 >
                   Delete Account
                 </button>
@@ -919,7 +963,7 @@ export function UsersTab({
               <button
                 type="button"
                 onClick={() => setShowUserModal(false)}
-                className="studio-button w-full bg-white/[0.08] hover:bg-white/[0.15] text-white border border-white/15 font-bold uppercase py-2.5 text-xs rounded-xl cursor-pointer"
+                className="studio-button w-full bg-white/[0.08] hover:bg-white/[0.15] text-white border border-white/15 font-bold uppercase py-2.5 text-xs rounded-xl cursor-pointer min-h-[40px] flex items-center justify-center transition-colors"
               >
                 Close Drawer
               </button>
