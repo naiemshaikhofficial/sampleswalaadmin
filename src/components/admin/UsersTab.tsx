@@ -15,7 +15,12 @@ import {
   Ticket,
   ChevronLeft,
   ChevronRight,
-  ArrowUpDown
+  ArrowUpDown,
+  Music,
+  ShoppingBag,
+  Cookie,
+  Sparkles,
+  Sliders
 } from 'lucide-react'
 import { banUser, unbanUser, deleteUser, updateUserRole } from '@/app/actions'
 
@@ -678,6 +683,26 @@ export function UsersTab({
                                   </div>
                                 )
                               })()}
+
+                              {u.telemetry && (
+                                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                  {u.telemetry.daw_preference && (
+                                    <span className="text-[9px] bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 px-1.5 py-0.5 rounded font-mono font-bold">
+                                      🎹 {u.telemetry.daw_preference}
+                                    </span>
+                                  )}
+                                  {u.telemetry.searched_keywords && u.telemetry.searched_keywords.length > 0 && (
+                                    <span className="text-[9px] bg-amber-500/10 text-amber-300 border border-amber-500/20 px-1.5 py-0.5 rounded font-mono">
+                                      🔍 &quot;{u.telemetry.searched_keywords[0]}&quot;
+                                    </span>
+                                  )}
+                                  {u.telemetry.cart_items && u.telemetry.cart_items.length > 0 && (
+                                    <span className="text-[9px] bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-mono font-bold animate-pulse">
+                                      🛒 Cart ({u.telemetry.cart_items.length})
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </td>
@@ -925,6 +950,144 @@ export function UsersTab({
                   </div>
                 </div>
               </div>
+
+              {/* PRODUCER DNA & TELEMETRY SECTION */}
+              {activeUser.telemetry ? (
+                <div className="bg-[#121212] border border-[#222222] rounded-lg p-3 sm:p-4 space-y-3 text-zinc-300 font-sans mt-3">
+                  <div className="flex items-center justify-between border-b border-[#222222] pb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                      <span className="font-bold text-xs uppercase tracking-wider text-white flex items-center gap-1.5 font-mono">
+                        🎧 Producer DNA &amp; Telemetry
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono text-zinc-500">
+                      {activeUser.telemetry.session_count || 1} Sessions Logged
+                    </span>
+                  </div>
+
+                  {/* Cookie Consent Status */}
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 border-b border-white/[0.06] pb-2">
+                    <span className="text-zinc-500 font-bold uppercase text-[10px] shrink-0 flex items-center gap-1">
+                      <Cookie className="w-3 h-3 text-amber-400" /> Cookie Consent
+                    </span>
+                    <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
+                      {activeUser.telemetry.cookie_consent?.accepted ? (
+                        <span className="bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 text-[9px] font-bold px-2 py-0.5 rounded font-mono">
+                          ✓ Accepted
+                        </span>
+                      ) : (
+                        <span className="bg-zinc-800 text-zinc-400 border border-zinc-700 text-[9px] font-medium px-2 py-0.5 rounded font-mono">
+                          Pending / Default
+                        </span>
+                      )}
+                      {activeUser.telemetry.cookie_consent?.analytics && (
+                        <span className="bg-white/5 text-zinc-300 border border-white/10 text-[8px] px-1.5 py-0.5 rounded font-mono">
+                          Analytics ON
+                        </span>
+                      )}
+                      {activeUser.telemetry.cookie_consent?.personalization && (
+                        <span className="bg-white/5 text-zinc-300 border border-white/10 text-[8px] px-1.5 py-0.5 rounded font-mono">
+                          Personalization ON
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* DAW & Genre Preferences */}
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 border-b border-white/[0.06] pb-2">
+                    <span className="text-zinc-500 font-bold uppercase text-[10px] shrink-0">Primary DAW &amp; Style</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-white font-mono font-bold text-xs bg-white/10 border border-white/15 px-2 py-0.5 rounded">
+                        {activeUser.telemetry.daw_preference || 'FL Studio (Inferred)'}
+                      </span>
+                      {activeUser.telemetry.favorite_genres && activeUser.telemetry.favorite_genres.length > 0 && (
+                        <span className="text-zinc-400 font-mono text-[10px]">
+                          ({activeUser.telemetry.favorite_genres.slice(0, 2).join(', ')})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Top Searched Keywords */}
+                  <div className="flex flex-col space-y-1.5 border-b border-white/[0.06] pb-2">
+                    <span className="text-zinc-500 font-bold uppercase text-[10px]">Recent Search Keywords</span>
+                    {activeUser.telemetry.searched_keywords && activeUser.telemetry.searched_keywords.length > 0 ? (
+                      <div className="flex flex-wrap gap-1 pt-0.5">
+                        {activeUser.telemetry.searched_keywords.map((kw: string, i: number) => (
+                          <span key={i} className="text-[10px] bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded font-mono">
+                            🔍 {kw}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-zinc-500 font-mono text-[10px]">No search queries logged yet</span>
+                    )}
+                  </div>
+
+                  {/* Audio Previews Listened */}
+                  <div className="flex flex-col space-y-1.5 border-b border-white/[0.06] pb-2">
+                    <span className="text-zinc-500 font-bold uppercase text-[10px]">Audio Previews Listened</span>
+                    {activeUser.telemetry.previewed_audio && activeUser.telemetry.previewed_audio.length > 0 ? (
+                      <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                        {activeUser.telemetry.previewed_audio.map((track: any, i: number) => (
+                          <div key={i} className="flex justify-between items-center bg-black/40 border border-white/5 p-1.5 rounded text-[10px] font-mono">
+                            <span className="text-white truncate max-w-[200px]">🎵 {track.pack_name || track.sample_name}</span>
+                            <span className="text-cyan-400 shrink-0 font-bold">{track.play_count || 1}x plays</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-zinc-500 font-mono text-[10px]">No audio previews played yet</span>
+                    )}
+                  </div>
+
+                  {/* Active / Abandoned Cart Items */}
+                  <div className="flex flex-col space-y-1.5 border-b border-white/[0.06] pb-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-zinc-500 font-bold uppercase text-[10px] flex items-center gap-1">
+                        <ShoppingBag className="w-3 h-3 text-emerald-400" /> Cart Snapshot
+                      </span>
+                      {activeUser.telemetry.cart_items && activeUser.telemetry.cart_items.length > 0 ? (
+                        <span className="text-emerald-400 text-[10px] font-bold font-mono">
+                          {activeUser.telemetry.cart_items.length} Pending {activeUser.telemetry.cart_items.length === 1 ? 'Item' : 'Items'}
+                        </span>
+                      ) : (
+                        <span className="text-zinc-500 text-[10px] font-mono">Empty</span>
+                      )}
+                    </div>
+                    {activeUser.telemetry.cart_items && activeUser.telemetry.cart_items.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pt-0.5">
+                        {activeUser.telemetry.cart_items.map((item: any, i: number) => (
+                          <span key={i} className="text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-2 py-0.5 rounded font-mono">
+                            🛒 {item.name} (₹{item.price})
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Device & Traffic Attribution */}
+                  <div className="grid grid-cols-2 gap-2 text-[10px] font-mono pt-1">
+                    <div className="bg-black/40 border border-white/5 p-2 rounded">
+                      <span className="text-zinc-500 block text-[9px] uppercase font-bold">Device &amp; OS</span>
+                      <span className="text-white block mt-0.5">
+                        {activeUser.telemetry.device_info?.os || 'Unknown OS'} • {activeUser.telemetry.device_info?.browser || 'Browser'}
+                      </span>
+                    </div>
+                    <div className="bg-black/40 border border-white/5 p-2 rounded">
+                      <span className="text-zinc-500 block text-[9px] uppercase font-bold">Traffic Source</span>
+                      <span className="text-white block mt-0.5 truncate" title={activeUser.telemetry.traffic_source?.referrer}>
+                        {activeUser.telemetry.traffic_source?.referrer || 'Direct'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-[#121212] border border-[#222222] rounded-lg p-3 text-zinc-500 font-mono text-[10px] text-center mt-3">
+                  No telemetry session recorded for this user yet.
+                </div>
+              )}
             </div>
 
             {/* ACTION FOOTER - STICKY / SHIFT-PROOF */}

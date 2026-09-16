@@ -895,10 +895,22 @@ async function fetchAllUsers() {
     const { data: profiles, error: profErr } = await db.from('profiles').select('*')
     if (profErr) throw profErr
 
-    // 4. Map them together
+    // 4. Fetch telemetry / producer behavior & cookie intelligence
+    let telemetryList: any[] = []
+    try {
+      const { data: tData } = await db.from('user_telemetry').select('*').order('last_seen', { ascending: false })
+      telemetryList = tData || []
+    } catch (tErr) {
+      console.warn('Could not fetch user_telemetry:', tErr)
+    }
+
+    // 5. Map them together
     const enrichedUsers = (users || []).map((u: any) => {
       const account = (userAccounts || []).find((a: any) => a.user_id === u.id)
       const profile = (profiles || []).find((p: any) => p.id === u.id)
+      const telemetry = telemetryList.find(
+        (t: any) => t.user_id === u.id || (u.email && t.user_email && t.user_email.toLowerCase() === u.email.toLowerCase())
+      )
 
       const isBanned = u.banned_until ? new Date(u.banned_until).getTime() > Date.now() : false
 
@@ -917,21 +929,38 @@ async function fetchAllUsers() {
           account?.postal_code,
           account?.country
         ].filter(Boolean).join(', ') || 'No address provided',
-         credits: account?.credits ?? 0,
-         subscription_status: account?.subscription_status || 'INACTIVE',
-         subscription_tier: account?.subscription_tier || 'NONE',
-         device_fingerprint: account?.device_fingerprint || 'N/A',
-         provider: u.app_metadata?.provider || (u.app_metadata?.providers && u.app_metadata.providers[0]) || 'email',
-         role: u.app_metadata?.role || 'Super Admin'
-       }
-     })
- 
-     return enrichedUsers
-   } catch (error) {
-     console.error('Error fetching all users:', error)
-     throw error
-   }
- }
+        credits: account?.credits ?? 0,
+        subscription_status: account?.subscription_status || 'INACTIVE',
+        subscription_tier: account?.subscription_tier || 'NONE',
+        device_fingerprint: account?.device_fingerprint || 'N/A',
+        provider: u.app_metadata?.provider || (u.app_metadata?.providers && u.app_metadata.providers[0]) || 'email',
+        role: u.app_metadata?.role || 'Super Admin',
+        telemetry: telemetry || null
+      }
+    })
+
+    return enrichedUsers
+  } catch (error) {
+    console.error('Error fetching all users:', error)
+    throw error
+  }
+}
+
+export async function getAllVisitorTelemetry(limit = 100) {
+  try {
+    const db = getDB()
+    const { data, error } = await db
+      .from('user_telemetry')
+      .select('*')
+      .order('last_seen', { ascending: false })
+      .limit(limit)
+    if (error) throw error
+    return data || []
+  } catch (error) {
+    console.error('Error fetching visitor telemetry:', error)
+    return []
+  }
+}
 
 export async function getAllUsers() {
   return unstable_cache(
