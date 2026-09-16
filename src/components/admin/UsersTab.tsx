@@ -20,7 +20,9 @@ import {
   ShoppingBag,
   Cookie,
   Sparkles,
-  Sliders
+  Sliders,
+  Globe,
+  Compass
 } from 'lucide-react'
 import { banUser, unbanUser, deleteUser, updateUserRole } from '@/app/actions'
 
@@ -542,6 +544,30 @@ export function UsersTab({
                     </span>
                   </div>
 
+                  {u.telemetry && (
+                    <div className="flex flex-wrap items-center gap-1.5 text-[9px] font-mono">
+                      {u.telemetry.device_info?.location?.city && (
+                        <span className="bg-purple-500/10 text-purple-300 border border-purple-500/20 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                          <MapPin className="w-2.5 h-2.5" />
+                          {u.telemetry.device_info.location.city}
+                        </span>
+                      )}
+                      {u.telemetry.traffic_source?.channel && u.telemetry.traffic_source.channel !== 'Direct' && (
+                        <span className="bg-blue-500/10 text-blue-300 border border-blue-500/20 px-1.5 py-0.5 rounded">
+                          {u.telemetry.traffic_source.channel.includes('Instagram') ? '📸 IG' :
+                           u.telemetry.traffic_source.channel.includes('YouTube') ? '▶️ YT' :
+                           u.telemetry.traffic_source.channel.includes('Google') ? '🔍 Google' :
+                           u.telemetry.traffic_source.channel}
+                        </span>
+                      )}
+                      {u.telemetry.daw_preference && (
+                        <span className="bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 px-1.5 py-0.5 rounded">
+                          🎹 {u.telemetry.daw_preference}
+                        </span>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between text-[10px] font-mono pt-2 border-t border-[#222222]">
                     <div className="flex items-center gap-2">
                       <span className="bg-white/[0.06] text-zinc-300 px-1.5 py-0.5 rounded border border-white/10">
@@ -686,6 +712,22 @@ export function UsersTab({
 
                               {u.telemetry && (
                                 <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                  {u.telemetry.device_info?.location?.city && (
+                                    <span className="text-[9px] bg-purple-500/10 text-purple-300 border border-purple-500/20 px-1.5 py-0.5 rounded font-mono font-bold flex items-center gap-1">
+                                      <MapPin className="w-2.5 h-2.5" />
+                                      {u.telemetry.device_info.location.city}
+                                      {u.telemetry.device_info.location.region ? `, ${u.telemetry.device_info.location.region}` : ''}
+                                    </span>
+                                  )}
+                                  {u.telemetry.traffic_source?.channel && u.telemetry.traffic_source.channel !== 'Direct' && (
+                                    <span className="text-[9px] bg-blue-500/10 text-blue-300 border border-blue-500/20 px-1.5 py-0.5 rounded font-mono font-bold">
+                                      {u.telemetry.traffic_source.channel.includes('Instagram') ? '📸 Instagram' :
+                                       u.telemetry.traffic_source.channel.includes('YouTube') ? '▶️ YouTube' :
+                                       u.telemetry.traffic_source.channel.includes('Google') ? '🔍 Google' :
+                                       u.telemetry.traffic_source.channel.includes('AI') ? '🤖 AI/ChatGPT' :
+                                       '🌐 ' + u.telemetry.traffic_source.channel}
+                                    </span>
+                                  )}
                                   {u.telemetry.daw_preference && (
                                     <span className="text-[9px] bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 px-1.5 py-0.5 rounded font-mono font-bold">
                                       🎹 {u.telemetry.daw_preference}
@@ -1067,18 +1109,115 @@ export function UsersTab({
                     )}
                   </div>
 
-                  {/* Device & Traffic Attribution */}
+                  {/* Network, Geo Location & Timezone */}
+                  <div className="bg-black/40 border border-white/5 p-2.5 rounded space-y-2 text-[10px] font-mono">
+                    <div className="flex justify-between items-center border-b border-white/[0.06] pb-1.5">
+                      <span className="text-zinc-500 font-bold uppercase text-[9px] flex items-center gap-1">
+                        <Globe className="w-3 h-3 text-purple-400" /> Network &amp; Geo Location
+                      </span>
+                      {activeUser.telemetry.device_info?.location?.country && (
+                        <span className="bg-purple-500/10 text-purple-300 border border-purple-500/20 px-1.5 py-0.5 rounded text-[9px] font-bold">
+                          {activeUser.telemetry.device_info.location.country}
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-0.5">
+                      <div>
+                        <span className="text-zinc-500 block text-[8px] uppercase">City &amp; Region</span>
+                        <span className="text-white font-bold block truncate">
+                          {activeUser.telemetry.device_info?.location?.city
+                            ? `${activeUser.telemetry.device_info.location.city}${activeUser.telemetry.device_info.location.region ? `, ${activeUser.telemetry.device_info.location.region}` : ''}`
+                            : 'Inferred / Local'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500 block text-[8px] uppercase">Timezone</span>
+                        <span className="text-white block truncate">
+                          {activeUser.telemetry.device_info?.location?.timezone || activeUser.telemetry.device_info?.timezone || 'Asia/Kolkata'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-zinc-500 block text-[8px] uppercase">IP Address</span>
+                        <span className="text-zinc-400 block truncate">
+                          {activeUser.telemetry.device_info?.location?.ip || 'Protected'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Traffic Source & Marketing Attribution */}
+                  <div className="bg-black/40 border border-white/5 p-2.5 rounded space-y-2 text-[10px] font-mono">
+                    <div className="flex justify-between items-center border-b border-white/[0.06] pb-1.5">
+                      <span className="text-zinc-500 font-bold uppercase text-[9px] flex items-center gap-1">
+                        <Compass className="w-3 h-3 text-cyan-400" /> Traffic Source &amp; Marketing Attribution
+                      </span>
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/30">
+                        {activeUser.telemetry.traffic_source?.channel || 'Direct / Organic'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 pt-0.5">
+                      <div className="flex justify-between items-start gap-2">
+                        <span className="text-zinc-500 text-[9px] uppercase shrink-0">Referrer URL:</span>
+                        <span className="text-white truncate max-w-[280px] select-all" title={activeUser.telemetry.traffic_source?.referrer}>
+                          {activeUser.telemetry.traffic_source?.referrer || 'Direct Entry / Bookmark'}
+                        </span>
+                      </div>
+
+                      {/* UTM Parameters & Campaign Intel */}
+                      {(activeUser.telemetry.traffic_source?.utm_campaign ||
+                        activeUser.telemetry.traffic_source?.utm_source ||
+                        activeUser.telemetry.traffic_source?.utm_medium ||
+                        activeUser.telemetry.traffic_source?.utm_term) && (
+                        <div className="flex flex-wrap gap-1.5 pt-1 border-t border-white/[0.04]">
+                          {activeUser.telemetry.traffic_source.utm_campaign && (
+                            <span className="bg-white/5 text-zinc-300 border border-white/10 px-1.5 py-0.5 rounded text-[9px]">
+                              Campaign: <strong className="text-white">{activeUser.telemetry.traffic_source.utm_campaign}</strong>
+                            </span>
+                          )}
+                          {activeUser.telemetry.traffic_source.utm_source && (
+                            <span className="bg-white/5 text-zinc-300 border border-white/10 px-1.5 py-0.5 rounded text-[9px]">
+                              Source: <strong className="text-white">{activeUser.telemetry.traffic_source.utm_source}</strong>
+                            </span>
+                          )}
+                          {activeUser.telemetry.traffic_source.utm_term && (
+                            <span className="bg-amber-500/10 text-amber-300 border border-amber-500/20 px-1.5 py-0.5 rounded text-[9px]">
+                              Ad Query: <strong className="text-amber-200">🔍 {activeUser.telemetry.traffic_source.utm_term}</strong>
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Ad Click IDs (Google Ad / Meta Ad) */}
+                      {(activeUser.telemetry.traffic_source?.gclid || activeUser.telemetry.traffic_source?.fbclid) && (
+                        <div className="flex items-center gap-2 pt-1 border-t border-white/[0.04] text-[9px]">
+                          {activeUser.telemetry.traffic_source.gclid && (
+                            <span className="bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 px-1.5 py-0.5 rounded font-bold">
+                              ✓ Verified Google Ad Click (gclid)
+                            </span>
+                          )}
+                          {activeUser.telemetry.traffic_source.fbclid && (
+                            <span className="bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 px-1.5 py-0.5 rounded font-bold">
+                              ✓ Verified Meta/Instagram Ad Click (fbclid)
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Device & Client Info */}
                   <div className="grid grid-cols-2 gap-2 text-[10px] font-mono pt-1">
                     <div className="bg-black/40 border border-white/5 p-2 rounded">
                       <span className="text-zinc-500 block text-[9px] uppercase font-bold">Device &amp; OS</span>
-                      <span className="text-white block mt-0.5">
+                      <span className="text-white block mt-0.5 truncate">
                         {activeUser.telemetry.device_info?.os || 'Unknown OS'} • {activeUser.telemetry.device_info?.browser || 'Browser'}
                       </span>
                     </div>
                     <div className="bg-black/40 border border-white/5 p-2 rounded">
-                      <span className="text-zinc-500 block text-[9px] uppercase font-bold">Traffic Source</span>
-                      <span className="text-white block mt-0.5 truncate" title={activeUser.telemetry.traffic_source?.referrer}>
-                        {activeUser.telemetry.traffic_source?.referrer || 'Direct'}
+                      <span className="text-zinc-500 block text-[9px] uppercase font-bold">Screen &amp; Device Type</span>
+                      <span className="text-white block mt-0.5 truncate uppercase">
+                        {activeUser.telemetry.device_info?.device_type || 'Desktop'} ({activeUser.telemetry.device_info?.screen || 'Auto'})
                       </span>
                     </div>
                   </div>
