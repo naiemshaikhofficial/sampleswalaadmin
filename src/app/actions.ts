@@ -8,6 +8,7 @@ import fs from 'fs'
 import path from 'path'
 import type { GlobalSiteSettings, SystemTelemetry } from '@/types/siteSettings'
 import { DEFAULT_SITE_SETTINGS } from '@/types/siteSettings'
+import { sendTicketReplyNotificationEmail } from '@/lib/emailHelper'
 
 function getLiveEnvVar(key: string): string {
   if (process.env[key]) return process.env[key]!
@@ -789,26 +790,156 @@ export async function getSupportTickets() {
   )()
 }
 
-export async function replyToTicket(ticketId: string, reply: string) {
+export async function getTicketMessages(ticketId: string) {
   try {
     const db = getDB()
+    const { data: messages, error } = await db
+      .from('support_ticket_messages')
+      .select('*')
+      .eq('ticket_id', ticketId)
+      .order('created_at', { ascending: true })
+
+    if (error) throw error
+    return messages || []
+  } catch (error) {
+    console.error('Error fetching ticket messages:', error)
+    return []
+  }
+}
+
+export async function replyToTicket(
+  ticketId: string,
+  reply: string,
+  options?: { resolve?: boolean; agentName?: string }
+) {
+  try {
+    const db = getDB()
+    const nowIso = new Date().toISOString()
+    const isResolve = Boolean(options?.resolve)
+    const agentName = options?.agentName?.trim() || 'Super Admin'
+    const newStatus = isResolve ? 'resolved' : 'in_progress'
+
+    // 1. Fetch current ticket to verify and get notification details
+    const { data: ticket, error: ticketErr } = await db
+      .from('support_tickets')
+      .select('*')
+      .eq('id', ticketId)
+      .maybeSingle()
+
+    if (ticketErr || !ticket) {
+      throw new Error(ticketErr?.message || 'Support ticket not found')
+    }
+
+    // 2. Insert message into support_ticket_messages
+    const { error: msgErr } = await db
+      .from('support_ticket_messages')
+      .insert({
+        ticket_id: ticketId,
+        sender_type: 'admin',
+        sender_name: agentName,
+        sender_email: 'support@sampleswala.com',
+        message: reply.trim(),
+        created_at: nowIso,
+      })
+
+    if (msgErr) {
+      console.error('Error inserting ticket message:', msgErr)
+    }
+
+    // 3. Update support_tickets record
+    const { error: updateErr } = await db
+      .from('support_tickets')
+      .update({
+        admin_reply: reply.trim(),
+        status: newStatus,
+        assigned_agent: agentName,
+        last_reply_by: 'admin',
+        replied_at: nowIso,
+        updated_at: nowIso,
+      })
+      .eq('id', ticketId)
+
+    if (updateErr) throw updateErr
+
+    // 4. Send automated email notification to customer
+    if (ticket.email) {
+      try {
+        await sendTicketReplyNotificationEmail({
+          to: ticket.email,
+          customerName: ticket.name || undefined,
+          ticketNumber: ticket.ticket_number || ticket.id.substring(0, 8),
+          subject: ticket.subject || 'Support Ticket Update',
+          replyMessage: reply.trim(),
+          agentName,
+          status: newStatus,
+        })
+      } catch (emailErr) {
+        console.warn('Failed to send ticket reply email notification:', emailErr)
+      }
+    }
+
+    safeRevalidateTag('admin-tickets')
+    safeRevalidateTag('admin-stats')
+    await clearServerCache('stats')
+    return { success: true, status: newStatus }
+  } catch (error) {
+    console.error('Error replying to support ticket:', error)
+    throw error
+  }
+}
+
+export async function updateTicketStatus(
+  ticketId: string,
+  status: 'open' | 'in_progress' | 'resolved' | 'closed'
+) {
+  try {
+    const db = getDB()
+    const nowIso = new Date().toISOString()
     const { error } = await db
       .from('support_tickets')
       .update({
-        admin_reply: reply,
-        status: 'resolved',
-        replied_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        status,
+        updated_at: nowIso,
       })
       .eq('id', ticketId)
 
     if (error) throw error
+
+    // Insert system timeline event in messages
+    await db.from('support_ticket_messages').insert({
+      ticket_id: ticketId,
+      sender_type: 'system',
+      sender_name: 'System',
+      message: `Ticket status marked as ${status.toUpperCase()}`,
+      created_at: nowIso,
+    })
+
     safeRevalidateTag('admin-tickets')
     safeRevalidateTag('admin-stats')
     await clearServerCache('stats')
     return true
   } catch (error) {
-    console.error('Error replying to support ticket:', error)
+    console.error('Error updating ticket status:', error)
+    throw error
+  }
+}
+
+export async function updateTicketAgent(ticketId: string, agentName: string) {
+  try {
+    const db = getDB()
+    const { error } = await db
+      .from('support_tickets')
+      .update({
+        assigned_agent: agentName,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', ticketId)
+
+    if (error) throw error
+    safeRevalidateTag('admin-tickets')
+    return true
+  } catch (error) {
+    console.error('Error updating ticket agent:', error)
     throw error
   }
 }
