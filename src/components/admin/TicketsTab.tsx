@@ -142,7 +142,7 @@ export function TicketsTab({
       setActiveTicket((prev: any) => (prev ? { ...prev, assigned_agent: val } : prev))
       try {
         await updateTicketAgent(activeTicket.id, val)
-        showToast(`Assigned to ${val}`, 'info')
+        showToast(`Assigned to ${val}`, 'success')
       } catch (err: any) {
         console.error('Failed to update ticket agent:', err)
       }
